@@ -11,8 +11,8 @@ import threading
 import CentOSVZAdapter
 from VMSpec import VMSpec
 
-HOST_NAME = 'localhost'
-PORT_NUMBER = 8089
+HOST_NAME = '10.4.12.21' #base1 machine's IP
+PORT_NUMBER = 80 
 
 
 class CentOSVZAdapterHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -33,7 +33,7 @@ class CentOSVZAdapterHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         response = CentOSVZAdapter.create_vm("99100", vm_spec)
         #CentOSVZAdapter.destroy_vm("99100")
         self.wfile.write(response)
-        return    
+        return
 
 
 class ThreadedHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
