@@ -31,5 +31,5 @@ else:
 if __name__ == '__main__':
         my_request = HTTPClientRequest(json_file, HOST_NAME, PORT_NUMBER)
         #my_request.create_request(json_file)
-        response = my_request.execute_request()
-        print response.read()    
+        response = my_request.execute()
+        print response.read()
