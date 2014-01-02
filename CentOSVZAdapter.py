@@ -54,7 +54,7 @@ VZCTL = "/usr/sbin/vzctl"
 VZLIST = "/usr/sbin/vzlist -a"
 HOST_NAME = "vlabs.ac.in"
 LAB_ID = "engg01"
-MAX_vm_id = 2147483644      # 32-bit; exact value based on trial-and-error
+MAX_VM_ID = 2147483644      # 32-bit; exact value based on trial-and-error
 VM_MANAGER_PORT = 8089
 VM_MANAGER_DIR = "/root/vm_manager"
 OS = "Ubuntu"
@@ -206,7 +206,7 @@ def validate_vm_id(vm_id):
     vm_id = int(m.group(0))
     if vm_id <= 100:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
-    if vm_id > MAX_vm_id:
+    if vm_id > MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
 
