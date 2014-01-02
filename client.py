@@ -29,11 +29,7 @@ else:
 
 
 if __name__ == '__main__':
-    try:
         my_request = HTTPClientRequest(json_file, HOST_NAME, PORT_NUMBER)
         #my_request.create_request(json_file)
         response = my_request.execute_request()
-        print response.read()
-    except Exception, e:
-        print 'Exception! ', e
-        
+        print response.read()    
