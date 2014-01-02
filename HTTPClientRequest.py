@@ -16,9 +16,9 @@ from urllib import urlencode
 class HTTPClientRequest(object):
     """docstring for HTTPClientRequest"""
 
-    def __init__(self, request_specs, HOST_NAME, PORT_NUMBER):
+    def __init__(self, request_specs, host_name, port_number, request_url_path, request_type=None):
         """ Initializes the object """    
-        self.base_url = self._set_base_url(HOST_NAME, PORT_NUMBER)
+        self.base_url = self._set_base_url(host_name, port_number, request_url_path)
         self.create(request_specs)
 
     def create(self, request_specs):
@@ -47,6 +47,6 @@ class HTTPClientRequest(object):
         """ Returns the string of enocoded url into proper POST url format """
         return urlencode(payload)    
 
-    def _set_base_url(self, HOST_NAME, PORT_NUMBER):
+    def _set_base_url(self, host_name, port_number, request_url_path):
         """ Returns the string in the hostname:port format """
-        return HOST_NAME+':'+PORT_NUMBER
+        return "%s:%s/%s" % (host_name, port_number, request_url_path)
