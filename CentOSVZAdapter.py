@@ -3,6 +3,15 @@
 
 """ A module for managing VMs on CentOS - OpenVZ platform. """
 
+""" Open issues with the current version:
+    1. Not designed for concurrent use e.g. find_available_ip uses vzlist for 
+        finding available ip, but if a vm is in the process of being created,
+        vzlist will probably not list it, resulting in duplicate ip address.
+        These functionalities should be moved up to VMPool for enabling 
+        concurrency.
+    2. Very little of any kind of error handling is done.
+"""
+
 __all__ = [
     'create_vm',
     'start_vm',
@@ -47,18 +56,20 @@ if "check_output" not in dir(subprocess):
     subprocess.check_output = f
 
 
-# Globals
+# Configurations; should be moved to a conf file
 NAME_SERVER = "10.10.10.10"
-SUBNET = ["10.1.10.0/24", "10.1.11.0/24"]
-VZCTL = "/usr/sbin/vzctl"
-VZLIST = "/usr/sbin/vzlist -a"
+SUBNET = ["10.1.100.0/24", "10.1.101.0/24"]
+VM_MANAGER_PORT = 8089
+VM_MANAGER_DIR = "/root/vm_manager"
 HOST_NAME = "vlabs.ac.in"
 LAB_ID = "engg01"
 MAX_VM_ID = 2147483644      # 32-bit; exact value based on trial-and-error
-VM_MANAGER_PORT = 8089
-VM_MANAGER_DIR = "/root/vm_manager"
 OS = "Ubuntu"
 OS_VERSION = "12.04"
+
+# Globals
+VZCTL = "/usr/sbin/vzctl"
+VZLIST = "/usr/sbin/vzlist -a"
 IP_ADDRESS_REGEX = "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"
 #IP_ADDRESS_REGEX = 
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
@@ -68,10 +79,16 @@ class InvalidVMIDException(Exception):
         Exception.__init__(msg)
 
 
-def create_vm(vm_id, vm_spec):
-    """ VM_specification is a VMSpec object """
-    # Create the VM
-    vm_id = validate_vm_id(vm_id)
+def create_vm(vm_spec, vm_id=""):
+    """If no vm_id is specified, it is computed using the last two segments of
+       an available IP address; vm_spec is an object """
+    if vm_id == "":
+        ip_address = find_available_ip()
+        m = re.match(r'[0-9]+\.[0-9]+\.([0-9]+)\.([0-9]+)', ip_address)
+        if m != None:
+            vm_id = m.group(1) + m.group(2)
+    else:
+        vm_id = validate_vm_id(vm_id)
     (vm_create_args, vm_set_args) = construct_vzctl_args(vm_spec)
     try:
         subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, shell=True)
@@ -177,6 +194,7 @@ def find_available_ip():
                 ip_address = str(ip)
                 if ip_address not in used_ips:
                     return ip_address
+    # Raise an exception if no available_ip found?
 
 def find_os_template(os, os_version):
     # What to do when request comes for unavailable OS/version?
@@ -215,12 +233,13 @@ if __name__ == "__main__":
     # Start an HTTP server and wait for invocation
     # Parse the invocation command and route to 
     # appropriate methods.
-    vm_spec = VMSpec.VMSpec()
-    create_vm("99100", vm_spec)
-    create_vm("99101", vm_spec)
+    vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
+    create_vm(vm_spec)
+    create_vm(vm_spec, "99100")
+    #create_vm(vm_spec, "99101")
     #create_vm("99102", vm_spec)
     #create_vm("99103", vm_spec)
     destroy_vm("99100")
-    destroy_vm("99101")
+    #destroy_vm("99101")
     #destroy_vm("99102")
     #destroy_vm("99103")
