@@ -34,8 +34,10 @@ class HTTPClientRequest(object):
         """ Executes the request and returns the response object """
         try:
             return urllib2.urlopen(self.request_url)
-        except Exception, e:
-            raise e    
+        except urllib2.URLError, e:
+            raise e
+        except urllib2.HTTPError, e:
+            raise e 
 
     def _convert_json_to_dict(self, request_specs):
         """ Converts the JSON into dictionary """

@@ -42,7 +42,7 @@ def mem_usage():
 def disk_usage():
     return execute("df -h")
 
-def running_process():
+def running_processes():
     return execute("ps -e -o command")
 
 def cpu_load():
