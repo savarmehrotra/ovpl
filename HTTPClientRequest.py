@@ -19,9 +19,9 @@ class HTTPClientRequest(object):
     def __init__(self, request_specs, HOST_NAME, PORT_NUMBER):
         """ Initializes the object """    
         self.base_url = self._set_base_url(HOST_NAME, PORT_NUMBER)
-        self.create_request(request_specs)
+        self.create(request_specs)
 
-    def create_request(self, request_specs):
+    def create(self, request_specs):
         """ Creates the request """
         try:
             payload = self._convert_json_to_dict(request_specs)
@@ -30,7 +30,7 @@ class HTTPClientRequest(object):
         except Exception, e:
             raise e 
 
-    def execute_request(self):
+    def execute(self):
         """ Executes the request and returns the response object """
         try:
             return urllib2.urlopen(self.request_url)
