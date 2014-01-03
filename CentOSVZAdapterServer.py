@@ -4,7 +4,7 @@
 # Organization : VLEAD, Virtual-Labs
 
 # Services exposed by CentOSVZAdapter
-# http://host-name/api/1/create-vm
+# http://host-name/api/1.0/vm/create
 
 import json
 import urlparse
@@ -31,10 +31,8 @@ class CreateVMHandler(tornado.web.RequestHandler):
     def post(self):
         post_data = dict(urlparse.parse_qsl(self.request.body))
         vm_spec = VMSpec(post_data)
-        platform_adapter = CentOSVZAdapter()
-        response = CentOSVZAdapter.create_vm("99100", vm_spec)
-        #CentOSVZAdapter.destroy_vm("99100")
-        self.write(response)
+        result = CentOSVZAdapter.create_vm(vm_spec)
+        self.write(result)
         
 
 class RestartVMHandler(tornado.web.RequestHandler):
@@ -50,8 +48,8 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[
-            (r"/api/1/create-vm", CreateVMHandler),
-            (r"/api/1/restart-vm", RestartVMHandler)
+            (r"/api/1.0/vm/create", CreateVMHandler),
+            (r"/api/1.0/vm/restart", RestartVMHandler)
         ],
         debug = True)
     http_server = tornado.httpserver.HTTPServer(app) 
