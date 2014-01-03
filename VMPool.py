@@ -20,22 +20,27 @@ The response object supports following:
 - response_object.json(), provides response content in JSON 
 
 The Requests module supports GET, POST, PUT, DELETE and OPTIONS requests. In
-case of POST or PUT request, the request data should be in Python dictionary. 
+case of POST or PUT request, the request data should be a Python dictionary. 
 The requests module will handle converting it to proper POST/PUT url format
 
 Example usage: 
 
 >>>import requests
+GET
+===
 >>>response_object = requests.get(url='http://www.google.com')
 >>>print response_object.status_code
-
+POST
+====
 >>>payload = {'username': 'avinash', 'password': 'avinash'}
 >>>response_object_post = requests.post(url='http://www.google.com/login', 
                                         data=payload)
-
+PUT
+===
 >>>response_object_put = requests.put(url='http://www.google.com/login', 
                                         data=payload)
-
+DELETE
+======
 >>>response_object_delete = requests.delete(url='http://google.com/accounts')
 >>>print response_object_delete.text
 """
@@ -45,10 +50,14 @@ __all__ = [
     'VMPool',
     ]
 
+import json
+
+import requests
+
 import VMSpec
 
 #Globals
-CREATE_PATH = "/api/1.0/create"
+CREATE_PATH = "/api/1.0/vm/create"
 
 class VMProxy:
     """ The proxy object corresponding to a VM """
@@ -70,10 +79,14 @@ class VMPool:
     def create_vm(self, vm_spec):
         # vm_spec is a json string
         # Allocate a vm_id: not required as platform adapter will allocate it.
-        # Invoke platform adapter server
-        my_request = HTTPClientRequest(vm_spec, self.adapter_ip, 
-                                       self.adapter_port, CREATE_PATH, "POST")
-        response = my_request.execute()
+        # Invoke platform adapter server (POST)
+        vm_spec = json.loads(open("vmspec.json", "r").read())
+        url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
+        result = requests.post(url=url, data=vm_spec)
+        if result.status_code == requests.codes.ok:
+            print result.headers
+            print result.text
+            print result.url
         # Extract vm_id, ip_address and port from response
         pass
         # Construct VMProxy and add to VMs list
@@ -83,3 +96,7 @@ class VMPool:
         # Invoke platform adapter
         # Delete entry from VMs list
         pass
+
+if __name__ == "__main__":
+    pool = VMPool("http://localhost", "8000")
+    pool.create_vm(None)
