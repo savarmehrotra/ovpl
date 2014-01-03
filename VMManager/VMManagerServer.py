@@ -2,12 +2,12 @@
 
 # Services exposed by the VM Manager
 # The REST url : 
-# http://host-name/api/1/disk-usage
-# http://host-name/api/1/running-time 
-# http://host-name/api/1/mem-usage
-# http://host-name/api/1/running-processes
-# http://host-name/api/1/cpu-load
-# http://host-name/api/1/execute/<command>
+# http://host-name/api/1.0/disk-usage
+# http://host-name/api/1.0/running-time 
+# http://host-name/api/1.0/mem-usage
+# http://host-name/api/1.0/running-processes
+# http://host-name/api/1.0/cpu-load
+# http://host-name/api/1.0/execute/<command>
 
 # bunch of tornado imports
 import tornado.httpserver 
@@ -57,12 +57,12 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[
-            (r"/api/1/disk-usage", DiskUsageHandler),
-            (r"/api/1/mem-usage", MemUsageHandler),
-            (r"/api/1/running-time", RunningTimeHandler),
-            (r"/api/1/running-processes", RunningProcHandler),
-            (r"/api/1/cpu-load", CPULoadHandler),
-            (r"/api/1/execute/([\w*\d*\%\-]+)", ExecuteHandler) 
+            (r"/api/1.0/disk-usage", DiskUsageHandler),
+            (r"/api/1.0/mem-usage", MemUsageHandler),
+            (r"/api/1.0/running-time", RunningTimeHandler),
+            (r"/api/1.0/running-processes", RunningProcHandler),
+            (r"/api/1.0/cpu-load", CPULoadHandler),
+            (r"/api/1.0/execute/([\w*\d*\%\-]+)", ExecuteHandler) 
         ],
         debug = False)
     http_server = tornado.httpserver.HTTPServer(app) 

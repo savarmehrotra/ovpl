@@ -10,6 +10,7 @@
         These functionalities should be moved up to VMPool for enabling 
         concurrency.
     2. Very little of any kind of error handling is done.
+    3. Logging has not been implemented yet.
 """
 
 __all__ = [
@@ -29,6 +30,8 @@ __all__ = [
 # Standard Library imports
 import re
 import subprocess
+import os
+import shutil
 from exceptions import Exception
 
 # Third party imports
@@ -38,6 +41,7 @@ import netaddr
 import VMSpec
 import VMUtils
 import VMManager
+from settings import *
 
 # UGLY DUCK PUNCHING: Backporting check_output from 2.7 to 2.6
 if "check_output" not in dir(subprocess):
@@ -56,21 +60,11 @@ if "check_output" not in dir(subprocess):
     subprocess.check_output = f
 
 
-# Configurations; should be moved to a conf file
-NAME_SERVER = "10.10.10.10"
-SUBNET = ["10.1.100.0/24", "10.1.101.0/24"]
-VM_MANAGER_PORT = 8089
-VM_MANAGER_DIR = "/root/vm_manager"
-HOST_NAME = "vlabs.ac.in"
-LAB_ID = "engg01"
-MAX_VM_ID = 2147483644      # 32-bit; exact value based on trial-and-error
-OS = "Ubuntu"
-OS_VERSION = "12.04"
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"
 VZLIST = "/usr/sbin/vzlist -a"
-IP_ADDRESS_REGEX = "[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"
+IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
 #IP_ADDRESS_REGEX = 
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
 
@@ -84,7 +78,7 @@ def create_vm(vm_spec, vm_id=""):
        an available IP address; vm_spec is an object """
     if vm_id == "":
         ip_address = find_available_ip()
-        m = re.match(r'[0-9]+\.[0-9]+\.([0-9]+)\.([0-9]+)', ip_address)
+        m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
         if m != None:
             vm_id = m.group(1) + m.group(2)
     else:
@@ -96,7 +90,7 @@ def create_vm(vm_spec, vm_id=""):
         subprocess.check_call(VZCTL + " set " + vm_id + vm_set_args, shell=True)
     except subprocess.CalledProcessError, e:
         raise e
-    return start_vm_manager(vm_id)
+    return init_vm(vm_id)
 
 def restart_vm(vm_id):
     vm_id = validate_vm_id(vm_id)
@@ -109,12 +103,25 @@ def restart_vm(vm_id):
 # Function alias
 start_vm = restart_vm
 
-def start_vm_manager(vm_id):
-    # Copy the VMManager package to the VM
-    # Start the VMManager on a chosen port
-    # 
+def init_vm(vm_id):
+    copy_vm_manager_files(vm_id)
+    start_vm_manager(vm_id)
     # Return the VM's IP and port info
-    return (get_vm_ip(vm_id), VM_MANAGER_PORT)
+    response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vm_port": VM_MANAGER_PORT}
+    return response
+
+def copy_vm_manager_files(vm_id):
+    dest_dir = "%s%s%s" % (VM_ROOT_DIR, vm_id, VM_MANAGER_DEST_DIR)
+    # Create the destination directory
+    #os.makedirs(dest_dir)
+    # Copy the files from source directory to dest. dir.
+    shutil.copytree(VM_MANAGER_SRC_DIR, dest_dir)
+
+def start_vm_manager(vm_id):
+    command = VZCTL + " exec " + vm_id + " python " + \
+        VM_MANAGER_DEST_DIR + "/" + VM_MANAGER_SCRIPT + " &"
+    print command
+    subprocess.check_call(command, shell=True)
 
 def get_resource_utilization():
     pass
@@ -146,7 +153,7 @@ def get_vm_ip(vm_id):
         vzlist = subprocess.check_output(VZLIST + " | grep " + vm_id, shell=True)
         if vzlist == "":
             return                                  # raise exception?
-        ip_address = re.match(r'[\s*\w+]*\s+(%s)' % IP_ADDRESS_REGEX, vzlist)
+        ip_address = re.search(IP_ADDRESS_REGEX, vzlist)
         if ip_address != None:
             ip_address = ip_address.group(0)
         return ip_address
@@ -202,7 +209,7 @@ def find_os_template(os, os_version):
     os_version = OS_VERSION if os_version == "" else os_version.strip()
     if os == "UBUNTU":
         if os_version == "12.04" or os_version == "12":
-            return "ubuntu-12.04-x86_64"
+            return "ubuntu-12.04-custom1-x86_64"
         elif os_version == "11.10" or os_version == "11":
             return "ubuntu-11.10-x86_64"
     elif os == "CENTOS":
