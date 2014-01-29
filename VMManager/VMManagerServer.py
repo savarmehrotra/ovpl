@@ -9,6 +9,8 @@
 # http://host-name/api/1.0/cpu-load
 # http://host-name/api/1.0/execute/<command>
 
+import urlparse
+
 # bunch of tornado imports
 import tornado.httpserver 
 import tornado.ioloop 
@@ -50,10 +52,16 @@ class MemUsageHandler(tornado.web.RequestHandler):
 
 class ExecuteHandler(tornado.web.RequestHandler):
     def get(self, command):
-        self.write(VMManager.execute(command))                                 
+        self.write(VMManager.execute(command))
 
 
-if __name__ == "__main__": 
+class TestLabHandler(tornado.web.RequestHandler):
+    def post(self):
+        post_data = dict(urlparse.parse_qsl(self.request.body))
+        self.write(VMManager.test_lab(post_data['lab_src_url'], post_data['version']))
+
+
+if __name__ == "__main__":
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[
@@ -62,7 +70,8 @@ if __name__ == "__main__":
             (r"/api/1.0/running-time", RunningTimeHandler),
             (r"/api/1.0/running-processes", RunningProcHandler),
             (r"/api/1.0/cpu-load", CPULoadHandler),
-            (r"/api/1.0/execute/([\w*\d*\%\-]+)", ExecuteHandler) 
+            (r"/api/1.0/execute/([\w*\d*\%\-]+)", ExecuteHandler),
+            (r"/api/1.0/test-lab", TestLabHandler)
         ],
         debug = False)
     http_server = tornado.httpserver.HTTPServer(app) 
