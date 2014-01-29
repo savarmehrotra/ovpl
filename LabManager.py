@@ -18,7 +18,7 @@ class LabSpecInvalid(Exception):
 def get_lab_reqs(lab_id, lab_src_url, version=None):
     # sample lab_src_url: git@github.com:vlead/ovpl.git
     def construct_repo_name():
-        repo = url.split('/')[-1]
+        repo = lab_src_url.split('/')[-1]
         repo_name = lab_id + (repo[:-4] if repo[-4:] == ".git" else repo)
         return repo_name
 
@@ -72,8 +72,8 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
     return get_lab_spec(repo_name)
     #vm_spec = json.loads(open("vmspec.json", "r").read())
 
-def test_lab(lab_id, lab_src_url, version=None):
-    pass
+def test_lab(lab_src_url, version=None, ip, port):
+    pass 
 
 
 def setup_logging():
