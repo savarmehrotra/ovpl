@@ -38,9 +38,8 @@ from exceptions import Exception
 import netaddr
 
 # VLEAD imports
-import VMSpec
 import VMUtils
-import VMManager
+from dict2default import *
 from settings import *
 
 # UGLY DUCK PUNCHING: Backporting check_output from 2.7 to 2.6
@@ -73,7 +72,7 @@ class InvalidVMIDException(Exception):
         Exception.__init__(msg)
 
 
-def create_vm(vm_spec, vm_id=""):
+def create_vm(lab_spec, vm_id=""):
     """If no vm_id is specified, it is computed using the last two segments of
        an available IP address; vm_spec is an object """
     if vm_id == "":
@@ -83,7 +82,7 @@ def create_vm(vm_spec, vm_id=""):
             vm_id = m.group(1) + m.group(2)
     else:
         vm_id = validate_vm_id(vm_id)
-    (vm_create_args, vm_set_args) = construct_vzctl_args(vm_spec)
+    (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
     try:
         subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, shell=True)
         subprocess.check_call(VZCTL + " start " + vm_id, shell=True)
@@ -168,14 +167,26 @@ def take_snapshot(vm_id):
     vm_id = validate_vm_id(vm_id)
     pass
 
-def construct_vzctl_args(vm_spec):
+def construct_vzctl_args(lab_spec):
     """ Returns a tuple of vzctl create arguments and set arguments """
-    lab_ID = LAB_ID if vm_spec.lab_ID == "" else vm_spec.lab_ID
+
+    def get_vm_spec():
+        lab_spec = dict2default(lab_spec)
+        vm_spec = { "lab_ID" : lab_spec['lab']['description']['id'],
+            "os" : lab_spec['lab']['runtime_requirements']['platform']['os'],
+            "os_version" : lab_spec['lab']['runtime_requirements']['platform']['osVersion'],
+            "ram" : lab_spec['lab']['runtime_requirements']['platform']['memory']['min_required'],
+            "diskspace" : lab_spec['lab']['runtime_requirements']['platform']['storage']['min_required']
+        }
+        return vm_spec
+
+    vm_spec = get_vm_spec()
+    lab_ID = LAB_ID if vm_spec[lab_ID] == "" else vm_spec[lab_ID]
     host_name = lab_ID + "." + HOST_NAME
     ip_address = find_available_ip()
-    os_template = find_os_template(vm_spec.os, vm_spec.os_version)
-    (ram, swap) = VMUtils.get_ram_swap(vm_spec.ram, vm_spec.swap)
-    (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec.diskspace)
+    os_template = find_os_template(vm_spec[os], vm_spec[os_version])
+    (ram, swap) = VMUtils.get_ram_swap(vm_spec[ram], vm_spec[swap])
+    (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec[diskspace])
     vm_create_args = " --ostemplate " + os_template + \
                      " --ipadd " + ip_address + \
                      " --diskspace " + disk_soft + ":" + disk_hard + \
@@ -235,18 +246,22 @@ def validate_vm_id(vm_id):
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
 
-
-if __name__ == "__main__":
-    # Start an HTTP server and wait for invocation
-    # Parse the invocation command and route to 
-    # appropriate methods.
-    vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
-    create_vm(vm_spec)
-    create_vm(vm_spec, "99100")
+def test():
+    #vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
+    import json
+    lab_spec = json.loads(open("sample_lab_spec.json").read())
+    create_vm(lab_spec)
+    create_vm(lab_spec, "99100")
     #create_vm(vm_spec, "99101")
     #create_vm("99102", vm_spec)
     #create_vm("99103", vm_spec)
     destroy_vm("99100")
     #destroy_vm("99101")
     #destroy_vm("99102")
-    #destroy_vm("99103")
+    #destroy_vm("99103")    
+
+if __name__ == "__main__":
+    # Start an HTTP server and wait for invocation
+    # Parse the invocation command and route to 
+    # appropriate methods.
+    test()
