@@ -73,6 +73,13 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
     #vm_spec = json.loads(open("vmspec.json", "r").read())
 
 def test_lab(lab_src_url, version=None, ip, port):
+    # make sure VM Manager is running
+    # the target VM should have LabActionRunner scripts 
+    # VM Manager should do the following?
+    # or better it should invoke another script which should
+        # clone the repo in the VM
+        # get the lab_spec
+        # run Lab Action Runner
     pass 
 
 
