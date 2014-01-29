@@ -76,21 +76,24 @@ class VMPool:
         self.adapter_ip = adapter_ip
         self.adapter_port = adapter_port
 
-    def create_vm(self, vm_spec):
+    def create_vm(self, lab_spec):
         # vm_spec is a json string
         # Allocate a vm_id: not required as platform adapter will allocate it.
         # Invoke platform adapter server (POST)
-        vm_spec = json.loads(open("vmspec.json", "r").read())
+        #vm_spec = json.loads(open("vmspec.json", "r").read())
         url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
-        result = requests.post(url=url, data=vm_spec)
+        result = requests.post(url=url, data=lab_spec)
         if result.status_code == requests.codes.ok:
             print result.headers
-            print result.text
+            print result.json()
             print result.url
-        # Extract vm_id, ip_address and port from response
-        pass
-        # Construct VMProxy and add to VMs list
-        self.vms.append(VMProxy(vm_id, ip_address, port))
+            self.vms.append(VMProxy(result.json()["vm_id"], 
+                                    result.json()["vm_ip"], 
+                                    result.json()["vm_port"]))
+            # print self.vms
+            return True
+        else:
+            return False
 
     def destroy_vm(self, vm_id):
         # Invoke platform adapter
