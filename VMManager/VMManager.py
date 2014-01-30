@@ -14,6 +14,8 @@
 
 import subprocess
 
+from LabActionsRunner import LabActionsRunner
+
 GIT_CLONE_LOC = "./"
 VMM_LOGGER = logging.getLogger('VMM')
 LOG_FILENAME = 'log/vmmanager.log'       # make log name a setting
@@ -62,6 +64,12 @@ def test_lab(lab_src_url, version=None):
     # get the appropriate the actions from lab_spec.json
     # run LabAction Runner
         # instantiate the object
+
+    def get_build_spec(lab_spec):
+        return {"build_steps": lab_spec['lab'][u'build_requirements']['platform']['build_steps']}
+
+    def get_installer_steps_spec(lab_spec):
+        return {"installer": lab_spec['lab']['build_requirements']['platform']['installer']}
 
     def construct_repo_name():
         repo = lab_src_url.split('/')[-1]
@@ -118,7 +126,11 @@ def test_lab(lab_src_url, version=None):
 
     lab_spec = get_lab_spec(repo_name)
 
-    # set up lab action runner 
+    lar = LabActionsRunner(get_installer_steps_spec(lab_spec), "")
+    lar.run_install_source()
+
+    lar = LabActionsRunner(get_build_steps_spec(lab_spec), "")
+    lar.run_build_steps()
 
 
 def setup_logging():
