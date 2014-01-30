@@ -3,13 +3,17 @@ import re
 import os
 import subprocess
 import shlex
-from exception import Exception
+import logging
+from exceptions import Exception
+
+import requests
 
 GIT_CLONE_LOC = "./lab-repo-cache/"
 OVPL_LOGGER = logging.getLogger('ovpl')
 LOG_FILENAME = 'log/ovpl.log'       # make log name a setting
 LOG_FD = open(LOG_FILENAME, 'a')
 LAB_SPEC_LOC = "/scripts/labspec.json"
+TEST_LAB_API_URI = '/api/1.0/test-lab'
 
 class LabSpecInvalid(Exception):
     def __init__(self, msg):
@@ -72,7 +76,7 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
     return get_lab_spec(repo_name)
     #vm_spec = json.loads(open("vmspec.json", "r").read())
 
-def test_lab(lab_src_url, version=None, ip, port):
+def test_lab(ip, port, lab_src_url, version=None):
     # make sure VM Manager is running
     # the target VM should have LabActionRunner scripts 
     # VM Manager should do the following?
@@ -80,7 +84,10 @@ def test_lab(lab_src_url, version=None, ip, port):
         # clone the repo in the VM
         # get the lab_spec
         # run Lab Action Runner
-    pass 
+    payload = {lab_src_url = lab_src_url, version = version}
+    url = '%s:%s%s' % (ip, port, TEST_LAB_API_URI)
+    response = requests.post(url=url, data=payload)
+    print response.text 
 
 
 def setup_logging():

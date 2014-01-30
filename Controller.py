@@ -4,6 +4,8 @@ Controller interfaces with LabPoolManager and VMPoolManager.
 
 """
 
+import logging
+
 import LabManager
 import VMPoolManager
 
@@ -20,9 +22,9 @@ class Controller:
             lab_spec = LabManager.get_lab_reqs(lab_id, lab_src_url, version)
         except Exception, e:
             # This should return an error json when Controller is a web service
-            return -1
+            print e
         
         vmpoolmgr = VMPoolManager.VMPoolManager()
         (ip, port) = vmpoolmgr.create_vm(lab_spec)
-        LabManager.test_lab(lab_src_url, version, ip, port)
+        LabManager.test_lab(ip, port, lab_src_url, version)
 
