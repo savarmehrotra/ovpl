@@ -17,26 +17,23 @@ import tornado.web
 from tornado.options import define, options
 
 import CentOSVZAdapter
-from VMSpec import VMSpec
 
 
 define("port", default=8000, help="run on the given port", type=int)
 
 
 class CreateVMHandler(tornado.web.RequestHandler):
-
     def get(self):
         pass
 
     def post(self):
         post_data = dict(urlparse.parse_qsl(self.request.body))
-        vm_spec = VMSpec(post_data)
-        result = CentOSVZAdapter.create_vm(vm_spec)
+        #lab_spec = VMSpec(post_data)
+        result = CentOSVZAdapter.create_vm(post_data['lab_spec'])
         self.write(result)
         
 
 class RestartVMHandler(tornado.web.RequestHandler):
-
     def get(self):
         pass
 

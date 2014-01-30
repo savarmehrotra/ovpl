@@ -51,10 +51,7 @@ __all__ = [
     ]
 
 import json
-
 import requests
-
-import VMSpec
 
 #Globals
 CREATE_PATH = "/api/1.0/vm/create"
@@ -82,7 +79,8 @@ class VMPool:
         # Invoke platform adapter server (POST)
         #vm_spec = json.loads(open("vmspec.json", "r").read())
         url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
-        result = requests.post(url=url, data=lab_spec)
+        payload = {'lab_spec': lab_spec}
+        result = requests.post(url=url, data=payload)
         if result.status_code == requests.codes.ok:
             print result.headers
             print result.json()
