@@ -167,26 +167,27 @@ def take_snapshot(vm_id):
     vm_id = validate_vm_id(vm_id)
     pass
 
-def construct_vzctl_args(lab_spec):
+def construct_vzctl_args(lab_specz):
     """ Returns a tuple of vzctl create arguments and set arguments """
 
     def get_vm_spec():
-        lab_spec = dict2default(lab_spec)
+        lab_spec = dict2default(lab_specz)
         vm_spec = { "lab_ID" : lab_spec['lab']['description']['id'],
             "os" : lab_spec['lab']['runtime_requirements']['platform']['os'],
             "os_version" : lab_spec['lab']['runtime_requirements']['platform']['osVersion'],
             "ram" : lab_spec['lab']['runtime_requirements']['platform']['memory']['min_required'],
-            "diskspace" : lab_spec['lab']['runtime_requirements']['platform']['storage']['min_required']
+            "diskspace" : lab_spec['lab']['runtime_requirements']['platform']['storage']['min_required'],
+            "swap" : lab_spec['lab']['runtime_requirements']['platform']['memory']['swap']
         }
         return vm_spec
 
     vm_spec = get_vm_spec()
-    lab_ID = LAB_ID if vm_spec[lab_ID] == "" else vm_spec[lab_ID]
+    lab_ID = LAB_ID if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
     host_name = lab_ID + "." + HOST_NAME
     ip_address = find_available_ip()
-    os_template = find_os_template(vm_spec[os], vm_spec[os_version])
-    (ram, swap) = VMUtils.get_ram_swap(vm_spec[ram], vm_spec[swap])
-    (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec[diskspace])
+    os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
+    (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
+    (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
     vm_create_args = " --ostemplate " + os_template + \
                      " --ipadd " + ip_address + \
                      " --diskspace " + disk_soft + ":" + disk_hard + \

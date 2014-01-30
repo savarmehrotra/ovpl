@@ -79,8 +79,12 @@ class VMPool:
         # Invoke platform adapter server (POST)
         #vm_spec = json.loads(open("vmspec.json", "r").read())
         url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
-        payload = {'lab_spec': lab_spec}
+        #print "VMPool::create_vm()", lab_spec
+        payload = {'lab_spec': json.dumps(lab_spec)}
+        print
+        print "VMPool::create_vm()", payload
         result = requests.post(url=url, data=payload)
+        print result.text
         if result.status_code == requests.codes.ok:
             print result.headers
             print result.json()

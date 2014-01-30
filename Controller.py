@@ -20,11 +20,16 @@ class Controller:
     def test_lab(self, lab_id, lab_src_url, version=None):
         try:
             lab_spec = LabManager.get_lab_reqs(lab_id, lab_src_url, version)
+            vmpoolmgr = VMPoolManager.VMPoolManager()
+            (ip, port) = vmpoolmgr.create_vm(lab_spec)
+            print 'created vm ', ip, port
+            LabManager.test_lab(ip, port, lab_src_url, version)
         except Exception, e:
             # This should return an error json when Controller is a web service
             print e
         
-        vmpoolmgr = VMPoolManager.VMPoolManager()
-        (ip, port) = vmpoolmgr.create_vm(lab_spec)
-        LabManager.test_lab(ip, port, lab_src_url, version)
 
+if __name__ == '__main__':
+    c = Controller()
+    #c.test_lab("asdf", "asdf")
+    c.test_lab("asdf", "https://github.com/vlead/simo.git")

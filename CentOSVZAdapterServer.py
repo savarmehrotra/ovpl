@@ -28,8 +28,7 @@ class CreateVMHandler(tornado.web.RequestHandler):
 
     def post(self):
         post_data = dict(urlparse.parse_qsl(self.request.body))
-        #lab_spec = VMSpec(post_data)
-        result = CentOSVZAdapter.create_vm(post_data['lab_spec'])
+        result = CentOSVZAdapter.create_vm(json.loads(post_data['lab_spec']))
         self.write(result)
         
 

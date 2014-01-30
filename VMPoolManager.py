@@ -13,9 +13,11 @@ class VMPoolManager:
     def add_vm_pool(self, adapter_ip, adapter_port):
         self.VMPools.append(VMPool.VMPool(adapter_ip, adapter_port))
 
-    def get_available_pool(self, vm_spec):
+    def get_available_pool(self, lab_spec):
         return self.VMPools[0]
 
-    def create_vm(self, vm_spec):
-        vmpool = self.get_available_pool(vm_spec)
-        return vmpool.create_vm(vm_spec)
+    def create_vm(self, lab_spec):
+        #dirty hack
+        self.add_vm_pool("http://localhost", "8000")
+        vmpool = self.get_available_pool(lab_spec)
+        return vmpool.create_vm(lab_spec)
