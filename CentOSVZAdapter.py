@@ -221,7 +221,7 @@ def find_os_template(os, os_version):
     os_version = OS_VERSION if os_version == "" else os_version.strip()
     if os == "UBUNTU":
         if os_version == "12.04" or os_version == "12":
-            return "ubuntu-12.04-custom1-x86_64"
+            return "ubuntu-12.04-custom-x86_64"
         elif os_version == "11.10" or os_version == "11":
             return "ubuntu-11.10-x86_64"
     elif os == "CENTOS":

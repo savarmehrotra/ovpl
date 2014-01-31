@@ -22,8 +22,11 @@ class Controller:
             lab_spec = LabManager.get_lab_reqs(lab_id, lab_src_url, version)
             vmpoolmgr = VMPoolManager.VMPoolManager()
             (ip, port) = vmpoolmgr.create_vm(lab_spec)
-            print 'created vm ', ip, port
-            LabManager.test_lab(ip, port, lab_src_url, version)
+            #print 'created vm ', ip, port
+            if LabManager.test_lab(ip, port, lab_src_url, version):
+                return ip
+            else:
+                return "Test failed"
         except Exception, e:
             # This should return an error json when Controller is a web service
             print e
@@ -32,4 +35,4 @@ class Controller:
 if __name__ == '__main__':
     c = Controller()
     #c.test_lab("asdf", "asdf")
-    c.test_lab("asdf", "https://github.com/vlead/simo.git")
+    print c.test_lab("ovpl01", "https://github.com/nrchandan/vlab-computer-programming")

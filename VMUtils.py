@@ -49,6 +49,8 @@ def get_disk_space(disk_soft):
     return (disk_soft, disk_hard)
 
 def convert_to_megs(value):
+    if not value:
+        return 0
     m = re.match(r'([0-9]+)\s*([a-zA-Z]+)', value)
     if m == None:
         return 0

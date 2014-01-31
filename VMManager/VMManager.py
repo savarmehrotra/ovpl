@@ -12,14 +12,24 @@
 
 # to do : handle exceptions
 
+import os
 import subprocess
+import logging
+import shlex
+import json
+from logging.handlers import TimedRotatingFileHandler
 
-from LabActionsRunner import LabActionsRunner
+from LabActionRunner import LabActionRunner
 
 GIT_CLONE_LOC = "./"
 VMM_LOGGER = logging.getLogger('VMM')
-LOG_FILENAME = 'log/vmmanager.log'       # make log name a setting
-LOG_FD = open(LOG_FILENAME, 'a')
+LOG_FILENAME = '/root/VMManager/log/vmmanager.log'       # make log name a setting
+LAB_SPEC_LOC = "/scripts/labspec.json"
+
+class LabSpecInvalid(Exception):
+    def __init__(self, msg):
+        Exception(self, msg)
+
 
 # UGLY DUCK PUNCHING: Backporting check_output from 2.7 to 2.6
 if "check_output" not in dir(subprocess):
@@ -65,7 +75,7 @@ def test_lab(lab_src_url, version=None):
     # run LabAction Runner
         # instantiate the object
 
-    def get_build_spec(lab_spec):
+    def get_build_steps_spec(lab_spec):
         return {"build_steps": lab_spec['lab'][u'build_requirements']['platform']['build_steps']}
 
     def get_installer_steps_spec(lab_spec):
@@ -81,6 +91,7 @@ def test_lab(lab_src_url, version=None):
 
     def clone_repo(repo_name):
         clone_cmd = shlex.split("git clone %s" % lab_src_url)
+        VMM_LOGGER.debug(clone_cmd)
         try:
             subprocess.check_call(clone_cmd, stdout=LOG_FD, stderr=LOG_FD)
         except Exception, e:
@@ -89,7 +100,7 @@ def test_lab(lab_src_url, version=None):
             raise e
 
     def pull_repo(repo_name):
-        pull_cmd = shlex.split("git --git-dir=%s pull" % \
+        pull_cmd = shlex.split("git --git-dir=%s/.git pull" % \
                             (GIT_CLONE_LOC + repo_name))
         try:
             subprocess.check_call(pull_cmd, stdout=LOG_FD, stderr=LOG_FD)
@@ -110,6 +121,7 @@ def test_lab(lab_src_url, version=None):
 
     def get_lab_spec(repo_name):
         repo_path = GIT_CLONE_LOC + repo_name + LAB_SPEC_LOC
+        print repo_path
         if not os.path.exists(repo_path):
             raise LabSpecInvalid("Lab spec file not found")
         try:
@@ -126,26 +138,30 @@ def test_lab(lab_src_url, version=None):
 
     lab_spec = get_lab_spec(repo_name)
 
-    lar = LabActionsRunner(get_installer_steps_spec(lab_spec), "")
+    lar = LabActionRunner(get_installer_steps_spec(lab_spec), "")
     lar.run_install_source()
 
-    lar = LabActionsRunner(get_build_steps_spec(lab_spec), "")
+    lar = LabActionRunner(get_build_steps_spec(lab_spec), "")
     lar.run_build_steps()
 
 
 def setup_logging():
     VMM_LOGGER.setLevel(logging.DEBUG)   # make log level a setting
     # Add the log message handler to the logger
-    handler = logging.handlers.TimedRotatingFileHandler(
+    myhandler = TimedRotatingFileHandler(
                                 LOG_FILENAME, when='midnight', backupCount=5)
 
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %I:%M:%S %p')
-    handler.setFormatter(formatter)
-    VMM_LOGGER.addHandler(handler)
+    myhandler.setFormatter(formatter)
+    VMM_LOGGER.addHandler(myhandler)
 
+
+setup_logging()
+LOG_FD = open(LOG_FILENAME, 'a')
 
 if __name__ == "__main__":
+    test_lab("https://github.com/nrchandan/vlab-computer-programming")
     print cpu_load()
     print mem_usage()

@@ -61,6 +61,7 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
                 raise e
 
     def get_lab_spec(repo_name):
+        # Allow no lab spec but not an invalid json as a lab spec
         spec_path = GIT_CLONE_LOC + repo_name + LAB_SPEC_LOC
         if not os.path.exists(spec_path):
             raise LabSpecInvalid("Lab spec file not found")
@@ -89,7 +90,7 @@ def test_lab(ip, port, lab_src_url, version=None):
     payload = {"lab_src_url": lab_src_url, "version": version}
     url = '%s:%s%s' % (ip, port, TEST_LAB_API_URI)
     response = requests.post(url=url, data=payload)
-    print response.text 
+    return response.text
 
 
 def setup_logging():
