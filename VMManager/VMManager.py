@@ -21,7 +21,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 from LabActionRunner import LabActionRunner
 
-GIT_CLONE_LOC = "./"
+GIT_CLONE_LOC = "/root/VMManager/lab-repo-cache/"
 VMM_LOGGER = logging.getLogger('VMM')
 LOG_FILENAME = '/root/VMManager/log/vmmanager.log'       # make log name a setting
 LAB_SPEC_LOC = "/scripts/labspec.json"
@@ -90,7 +90,7 @@ def test_lab(lab_src_url, version=None):
         return os.path.isdir(GIT_CLONE_LOC+repo_name)
 
     def clone_repo(repo_name):
-        clone_cmd = shlex.split("git clone %s" % lab_src_url)
+        clone_cmd = shlex.split("git clone %s %s%s" % (lab_src_url, GIT_CLONE_LOC,repo_name))
         VMM_LOGGER.debug(clone_cmd)
         try:
             subprocess.check_call(clone_cmd, stdout=LOG_FD, stderr=LOG_FD)

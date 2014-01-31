@@ -70,6 +70,7 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
         except Exception, e:
             raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
 
+    print "LabManager.get_lab_reqs()"
     repo_name = construct_repo_name()
     if repo_exists(repo_name):
         pull_repo(repo_name)
@@ -87,6 +88,7 @@ def test_lab(ip, port, lab_src_url, version=None):
         # clone the repo in the VM
         # get the lab_spec
         # run Lab Action Runner
+    print "LabManager.test_lab()"
     payload = {"lab_src_url": lab_src_url, "version": version}
     url = '%s:%s%s' % (ip, port, TEST_LAB_API_URI)
     response = requests.post(url=url, data=payload)

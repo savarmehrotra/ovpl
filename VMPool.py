@@ -78,24 +78,19 @@ class VMPool:
         # Allocate a vm_id: not required as platform adapter will allocate it.
         # Invoke platform adapter server (POST)
         #vm_spec = json.loads(open("vmspec.json", "r").read())
-        url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
+        print "VMPool.create_vm()"
+        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
         #print "VMPool::create_vm()", lab_spec
         payload = {'lab_spec': json.dumps(lab_spec)}
-        print
-        print "VMPool::create_vm()", payload
-        result = requests.post(url=url, data=payload)
+        result = requests.post(url=adapter_url, data=payload)
         print result.text
         if result.status_code == requests.codes.ok:
-            print result.headers
-            print result.json()
-            print result.url
             self.vms.append(VMProxy(result.json()["vm_id"], 
                                     result.json()["vm_ip"], 
                                     result.json()["vm_port"]))
-            # print self.vms
-            return True
+            return (result.json()["vm_ip"], result.json()["vm_port"])
         else:
-            return False
+            return (None, None)
 
     def destroy_vm(self, vm_id):
         # Invoke platform adapter

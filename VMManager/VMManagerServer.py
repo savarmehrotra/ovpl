@@ -21,7 +21,7 @@ from tornado.options import define, options
 import VMManager
 
 
-define("port", default=8000, help="run on the given port", type=int)
+define("port", default=8089, help="run on the given port", type=int)
 
 
 class DiskUsageHandler(tornado.web.RequestHandler):
@@ -58,7 +58,8 @@ class ExecuteHandler(tornado.web.RequestHandler):
 class TestLabHandler(tornado.web.RequestHandler):
     def post(self):
         post_data = dict(urlparse.parse_qsl(self.request.body))
-        self.write(VMManager.test_lab(post_data['lab_src_url'], post_data['version']))
+        print post_data['lab_src_url']
+        self.write(VMManager.test_lab(post_data['lab_src_url'], post_data.get('version', None)))
 
 
 if __name__ == "__main__":
