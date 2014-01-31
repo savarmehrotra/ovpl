@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block CSS %}
+body {
+  text-align: center;
+  font-family: georgia;
+}
+
+#container {
+  margin: 0 auto;
+  width: 960px;
+}
+
+h1 {
+	font-size: 40px
+}
+
+p {
+	font-size: 20px	
+}
+{% end %}
+
+{% block title %}
+      Controller - OVPL
+{% end %}
+
+{% block header %}
+	Test Your Lab!
+{% end %}
+
+{% block body %}
+<form action="/" method="post">
+    <p> Lab ID: <input type="text" name="lab_id" id="lab_id"></p><br>
+    <p> Repo url: <input type="text" name="lab_src_url" id="lab_src_url"></p><br>
+    <p> Tag: <input type="text" name="version" id="version"></p><br>
+    <input type="submit"><br />
+</form>
+{% end %}
