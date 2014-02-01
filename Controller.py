@@ -5,6 +5,7 @@ Controller interfaces with LabPoolManager and VMPoolManager.
 """
 
 import logging
+import time
 
 import LabManager
 import VMPoolManager
@@ -18,19 +19,18 @@ class Controller:
         pass
 
     def test_lab(self, lab_id, lab_src_url, version=None):
-        print "Controller.test_lab()"
+        OVPL_LOGGER.debug("Controller.test_lab()")
         try:
             lab_spec = LabManager.get_lab_reqs(lab_id, lab_src_url, version)
             vmpoolmgr = VMPoolManager.VMPoolManager()
             (ip, port) = vmpoolmgr.create_vm(lab_spec)
-            #(ip, port) = ("10.4.14.22", "8089")
+            #(ip, port) = ("10.4.14.39", "8089")
             vmmgrurl = "http://" + ip
-            
-            print 'created vm ', ip, port
-            print "vm manager url is :", vmmgrurl
-            print "vm mgr port is :", port
-            print "lab src url is: ", lab_src_url
+            #time.sleep(10)
             if LabManager.test_lab(vmmgrurl, port, lab_src_url, version):
+                return ip
+            elif LabManager.test_lab(vmmgrurl, port, lab_src_url, version):
+                # retry seems to work (always?)
                 return ip
             else:
                 return "Test failed"
