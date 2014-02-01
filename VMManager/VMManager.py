@@ -14,9 +14,9 @@
 
 import os
 import subprocess
-import logging
 import shlex
 import json
+import logging
 from logging.handlers import TimedRotatingFileHandler
 
 from LabActionRunner import LabActionRunner
@@ -49,7 +49,12 @@ if "check_output" not in dir(subprocess):
 
 def execute(command):
     # do some validation
-    return subprocess.check_output(command, shell=True)
+    try:
+        VMM_LOGGER.info("Command executed: " + command)
+        return subprocess.check_output(command, shell=True)
+    except Exception, e:
+        VMM_LOGGER.error("Execution failed: " + str(e))
+        return "Error executing the command: " + str(e)
 
 def running_time():
     return execute("uptime")
@@ -95,8 +100,7 @@ def test_lab(lab_src_url, version=None):
         try:
             subprocess.check_call(clone_cmd, stdout=LOG_FD, stderr=LOG_FD)
         except Exception, e:
-            # different logger needs to be implemented here
-            VMM_LOGGER.error("git clone failed: %s %s" % (repo_name, str(e)))
+            VMM_LOGGER.error("git clone failed for repo %s: %s" % (repo_name, str(e)))
             raise e
 
     def pull_repo(repo_name):
@@ -105,7 +109,7 @@ def test_lab(lab_src_url, version=None):
         try:
             subprocess.check_call(pull_cmd, stdout=LOG_FD, stderr=LOG_FD)
         except Exception, e:
-            VMM_LOGGER.error("git pull failed: %s %s" % (repo_name, str(e)))
+            VMM_LOGGER.error("git pull failed for repo %s: %s" % (repo_name, str(e)))
             raise e
 
     def checkout_version(repo_name):
@@ -121,7 +125,6 @@ def test_lab(lab_src_url, version=None):
 
     def get_lab_spec(repo_name):
         repo_path = GIT_CLONE_LOC + repo_name + LAB_SPEC_LOC
-        print repo_path
         if not os.path.exists(repo_path):
             raise LabSpecInvalid("Lab spec file not found")
         try:
@@ -137,13 +140,18 @@ def test_lab(lab_src_url, version=None):
     checkout_version(repo_name)
 
     lab_spec = get_lab_spec(repo_name)
+    try:
+        lar = LabActionRunner(get_installer_steps_spec(lab_spec), "")
+        lar.run_install_source()
 
-    lar = LabActionRunner(get_installer_steps_spec(lab_spec), "")
-    lar.run_install_source()
+        lar = LabActionRunner(get_build_steps_spec(lab_spec), "")
+        lar.run_build_steps()
 
-    lar = LabActionRunner(get_build_steps_spec(lab_spec), "")
-    lar.run_build_steps()
-
+        return "Success"
+    except Exception, e:
+        VMM_LOGGER.error("VMManager.test_lab failed: " + str(e))
+        return "Test lab failed"
+    
 
 def setup_logging():
     VMM_LOGGER.setLevel(logging.DEBUG)   # make log level a setting
@@ -156,7 +164,7 @@ def setup_logging():
         datefmt='%Y-%m-%d %I:%M:%S %p')
     myhandler.setFormatter(formatter)
     VMM_LOGGER.addHandler(myhandler)
-
+    
 
 setup_logging()
 LOG_FD = open(LOG_FILENAME, 'a')
