@@ -70,7 +70,7 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
         except Exception, e:
             raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
 
-    print "LabManager.get_lab_reqs()"
+    OVPL_LOGGER.debug("LabManager.get_lab_reqs()")
     repo_name = construct_repo_name()
     if repo_exists(repo_name):
         pull_repo(repo_name)
@@ -80,7 +80,7 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
     return get_lab_spec(repo_name)
     #vm_spec = json.loads(open("vmspec.json", "r").read())
 
-def test_lab(ip, port, lab_src_url, version=None):
+def test_lab(vmmgr_ip, port, lab_src_url, version=None):
     # make sure VM Manager is running
     # the target VM should have LabActionRunner scripts 
     # VM Manager should do the following?
@@ -88,11 +88,11 @@ def test_lab(ip, port, lab_src_url, version=None):
         # clone the repo in the VM
         # get the lab_spec
         # run Lab Action Runner
-    print "LabManager.test_lab()"
+    OVPL_LOGGER.debug("LabManager.test_lab()")
     payload = {"lab_src_url": lab_src_url, "version": version}
-    url = '%s:%s%s' % (ip, port, TEST_LAB_API_URI)
+    url = '%s:%s%s' % (vmmgr_ip, port, TEST_LAB_API_URI)
     response = requests.post(url=url, data=payload)
-    return response.text
+    return "Success" in response.text
 
 
 def setup_logging():
