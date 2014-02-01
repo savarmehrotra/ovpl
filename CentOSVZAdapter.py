@@ -33,6 +33,8 @@ import subprocess
 import os
 import shutil
 from exceptions import Exception
+import logging
+from logging.handlers import TimedRotatingFileHandler
 
 # Third party imports
 import netaddr
@@ -66,6 +68,9 @@ VZLIST = "/usr/sbin/vzlist -a"
 IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
 #IP_ADDRESS_REGEX = 
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+CENTOSVZ_LOGGER = logging.getLogger('CENTOSVZ')
+LOG_FILENAME = '/root/ovpl/log/centosvzadapter.log'
+
 
 class InvalidVMIDException(Exception):
     def __init__(msg):
@@ -84,17 +89,19 @@ def create_vm(lab_spec, vm_id=""):
         vm_id = validate_vm_id(vm_id)
     (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
     try:
-        subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, shell=True)
-        subprocess.check_call(VZCTL + " start " + vm_id, shell=True)
-        subprocess.check_call(VZCTL + " set " + vm_id + vm_set_args, shell=True)
+        subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        subprocess.check_call(VZCTL + " start " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        subprocess.check_call(VZCTL + " set " + vm_id + vm_set_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        return init_vm(vm_id)
     except subprocess.CalledProcessError, e:
-        raise e
-    return init_vm(vm_id)
+        #raise e
+        CENTOSVZ_LOGGER.error("Error creating VM: " + str(e))
+        return (None, None, None)
 
 def restart_vm(vm_id):
     vm_id = validate_vm_id(vm_id)
     try:
-        subprocess.check_call(VZCTL + " restart " + vm_id, shell=True)
+        subprocess.check_call(VZCTL + " restart " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
     except subprocess.CalledProcessError, e:
         raise e
     return start_vm_manager(vm_id)
@@ -119,8 +126,12 @@ def copy_vm_manager_files(vm_id):
 def start_vm_manager(vm_id):
     command = VZCTL + " exec " + vm_id + " python " + \
         VM_MANAGER_DEST_DIR + "/" + VM_MANAGER_SCRIPT + " &"
-    print command
-    subprocess.check_call(command, shell=True)
+    try:
+        subprocess.check_call(command, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+    except Exception, e:
+        CENTOSVZ_LOGGER.error("Error starting vm manager: " + str(e))
+        return False
+    
 
 def get_resource_utilization():
     pass
@@ -128,7 +139,7 @@ def get_resource_utilization():
 def stop_vm(vm_id):
     vm_id = validate_vm_id(vm_id)
     try:
-        subprocess.check_call(VZCTL + " stop " + vm_id, shell=True)
+        subprocess.check_call(VZCTL + " stop " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
     except subprocess.CalledProcessError, e:
         raise e
     # Return success or failure
@@ -136,8 +147,8 @@ def stop_vm(vm_id):
 def destroy_vm(vm_id):
     vm_id = validate_vm_id(vm_id)
     try:
-        subprocess.check_call(VZCTL + " stop " + vm_id, shell=True)
-        subprocess.check_call(VZCTL + " destroy " + vm_id, shell=True)
+        subprocess.check_call(VZCTL + " stop " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        subprocess.check_call(VZCTL + " destroy " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
     except subprocess.CalledProcessError, e:
         raise e
     # Return success or failure
@@ -149,7 +160,7 @@ def is_running_vm(vm_id):
 def get_vm_ip(vm_id):
     vm_id = validate_vm_id(vm_id)
     try:
-        vzlist = subprocess.check_output(VZLIST + " | grep " + vm_id, shell=True)
+        vzlist = subprocess.check_output(VZLIST + " | grep " + vm_id, stderr=LOG_FD, shell=True)
         if vzlist == "":
             return                                  # raise exception?
         ip_address = re.search(IP_ADDRESS_REGEX, vzlist)
@@ -202,7 +213,7 @@ def construct_vzctl_args(lab_specz):
 
 def find_available_ip():
     # not designed to be concurrent?
-    used_ips = subprocess.check_output(VZLIST, shell=True)
+    used_ips = subprocess.check_output(VZLIST, stderr=LOG_FD, shell=True)
     for subnet in SUBNET:
         ip_network = netaddr.IPNetwork(subnet)
         for ip in list(ip_network):
@@ -247,6 +258,19 @@ def validate_vm_id(vm_id):
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
 
+def setup_logging():
+    CENTOSVZ_LOGGER.setLevel(logging.DEBUG)   # make log level a setting
+    # Add the log message handler to the logger
+    myhandler = TimedRotatingFileHandler(
+                                LOG_FILENAME, when='midnight', backupCount=5)
+
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %I:%M:%S %p')
+    myhandler.setFormatter(formatter)
+    CENTOSVZ_LOGGER.addHandler(myhandler)
+
+
 def test():
     #vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
     import json
@@ -261,6 +285,8 @@ def test():
     #destroy_vm("99102")
     #destroy_vm("99103")    
 
+setup_logging()
+LOG_FD = open(LOG_FILENAME, 'a')
 if __name__ == "__main__":
     # Start an HTTP server and wait for invocation
     # Parse the invocation command and route to 
