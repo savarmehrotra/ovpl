@@ -7,7 +7,6 @@ __all__ = [
     'get_ram_swap',
     'get_disk_space',
     'convert_to_megs',
-    'find_os_template',
     ]
 
 import re
