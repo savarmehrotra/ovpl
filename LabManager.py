@@ -3,17 +3,12 @@ import re
 import os
 import subprocess
 import shlex
-import logging
 from exceptions import Exception
-from logging.handlers import TimedRotatingFileHandler
-
-
 import requests
 
+from OVPLLogging import *
+
 GIT_CLONE_LOC = "./lab-repo-cache/"
-OVPL_LOGGER = logging.getLogger('ovpl')
-LOG_FILENAME = 'log/ovpl.log'       # make log name a setting
-LOG_FD = open(LOG_FILENAME, 'a')
 LAB_SPEC_LOC = "/scripts/labspec.json"
 TEST_LAB_API_URI = '/api/1.0/test-lab'
 
@@ -23,7 +18,7 @@ class LabSpecInvalid(Exception):
 
 def get_lab_reqs(lab_id, lab_src_url, version=None):
     # sample lab_src_url: git@github.com:vlead/ovpl.git
-    def construct_repo_name():
+    def construct_repo_name(lab_id, lab_src_url):
         repo = lab_src_url.split('/')[-1]
         repo_name = lab_id + (repo[:-4] if repo[-4:] == ".git" else repo)
         return repo_name
@@ -71,7 +66,7 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
             raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
 
     OVPL_LOGGER.debug("LabManager.get_lab_reqs()")
-    repo_name = construct_repo_name()
+    repo_name = construct_repo_name(lab_id, lab_src_url)
     if repo_exists(repo_name):
         pull_repo(repo_name)
     else:
@@ -93,19 +88,3 @@ def test_lab(vmmgr_ip, port, lab_src_url, version=None):
     url = '%s:%s%s' % (vmmgr_ip, port, TEST_LAB_API_URI)
     response = requests.post(url=url, data=payload)
     return "Success" in response.text
-
-
-def setup_logging():
-    OVPL_LOGGER.setLevel(logging.DEBUG)   # make log level a setting
-    # Add the log message handler to the logger
-    myhandler = TimedRotatingFileHandler(
-                                LOG_FILENAME, when='midnight', backupCount=5)
-
-    formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %I:%M:%S %p')
-    myhandler.setFormatter(formatter)
-    OVPL_LOGGER.addHandler(myhandler)
-
-
-setup_logging()
