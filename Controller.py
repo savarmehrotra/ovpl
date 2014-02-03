@@ -1,25 +1,23 @@
 """ 
 Main interface of OVPL with the external world.
-Controller interfaces with LabPoolManager and VMPoolManager.
+Controller interfaces with LabManager and VMPoolManager.
 
 """
 
-import logging
-import time
+#import time
 
 import LabManager
 import VMPoolManager
+from OVPLLogging import *
 
-OVPL_LOGGER = logging.getLogger('ovpl')
-LOG_FILENAME = '/root/ovpl/log/ovpl.log'       # make log name a setting
-LOG_FD = open(LOG_FILENAME, 'a')
 
 class Controller:
     def __init__(self):
         pass
 
     def test_lab(self, lab_id, lab_src_url, version=None):
-        OVPL_LOGGER.debug("Controller.test_lab()")
+        OVPL_LOGGER.debug("Controller.test_lab() for lab ID %s and git url %s" \
+                            % (lab_id, lab_src_url))
         try:
             lab_spec = LabManager.get_lab_reqs(lab_id, lab_src_url, version)
             vmpoolmgr = VMPoolManager.VMPoolManager()
@@ -33,11 +31,11 @@ class Controller:
                 # retry seems to work (always?)
                 return ip
             else:
-                return "Test failed"
+                OVPL_LOGGER.error("Test failed")
         except Exception, e:
             # This should return an error json when Controller is a web service
-            print e
-        
+            OVPL_LOGGER.error("Test failed with error: " + str(e))
+
 
 if __name__ == '__main__':
     c = Controller()
