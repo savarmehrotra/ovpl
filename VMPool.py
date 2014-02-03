@@ -52,6 +52,9 @@ __all__ = [
 
 import json
 import requests
+from exceptions import Exception
+
+from OVPLLogging import *
 
 #Globals
 CREATE_PATH = "/api/1.0/vm/create"
@@ -78,19 +81,24 @@ class VMPool:
         # Allocate a vm_id: not required as platform adapter will allocate it.
         # Invoke platform adapter server (POST)
         #vm_spec = json.loads(open("vmspec.json", "r").read())
-        print "VMPool.create_vm()"
+        OVPL_LOGGER.debug("VMPool.create_vm()")
         adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
-        #print "VMPool::create_vm()", lab_spec
         payload = {'lab_spec': json.dumps(lab_spec)}
-        result = requests.post(url=adapter_url, data=payload)
-        print result.text
-        if result.status_code == requests.codes.ok:
-            self.vms.append(VMProxy(result.json()["vm_id"], 
-                                    result.json()["vm_ip"], 
-                                    result.json()["vm_port"]))
-            return (result.json()["vm_ip"], result.json()["vm_port"])
-        else:
-            return (None, None)
+        try:
+            result = requests.post(url=adapter_url, data=payload)
+            OVPL_LOGGER.debug("Response text from adapter: " + result.text)
+            if result.status_code == requests.codes.ok:
+                self.vms.append(VMProxy(result.json()["vm_id"],
+                                        result.json()["vm_ip"],
+                                        result.json()["vm_port"]))
+                return (result.json()["vm_ip"], result.json()["vm_port"])
+            else:
+                raise Exception("Error creating VM: " + result.text)
+                #return (None, None)
+        except Exception, e:
+            OVPL_LOGGER.error("Error communicating with adapter: " + str(e))
+            raise Exception("Error creating VM: " + str(e))
+            #return (None, None)
 
     def destroy_vm(self, vm_id):
         # Invoke platform adapter
