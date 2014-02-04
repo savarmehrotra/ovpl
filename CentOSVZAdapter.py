@@ -178,7 +178,7 @@ def take_snapshot(vm_id):
     vm_id = validate_vm_id(vm_id)
     pass
 
-def construct_vzctl_args(lab_specz):
+def construct_vzctl_args(lab_specz={}):
     """ Returns a tuple of vzctl create arguments and set arguments """
 
     def get_vm_spec():
