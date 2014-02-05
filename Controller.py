@@ -8,7 +8,7 @@ import pymongo
 
 import LabManager
 import VMPoolManager
-from OVPLLogging import *
+import Logging
 
 
 class Controller:
@@ -30,7 +30,7 @@ class Controller:
         self.db.ovpl.insert(self.state)
 
     def test_lab(self, lab_id, lab_src_url, version=None):
-        OVPL_LOGGER.debug("Controller.test_lab() for lab ID %s and git url %s" \
+        Logging.LOGGER.debug("Controller.test_lab() for lab ID %s and git url %s" \
                             % (lab_id, lab_src_url))
         def update_state():
             self.state.append({ "lab_id": lab_id,
@@ -57,10 +57,10 @@ class Controller:
                 # retry seems to work (always?)
                 return ip
             else:
-                OVPL_LOGGER.error("Test failed")
+                Logging.LOGGER.error("Test failed")
         except Exception, e:
             # This should return an error json when Controller is a web service
-            OVPL_LOGGER.error("Test failed with error: " + str(e))
+            Logging.LOGGER.error("Test failed with error: " + str(e))
 
 
 if __name__ == '__main__':

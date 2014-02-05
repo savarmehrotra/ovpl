@@ -5,7 +5,7 @@ and decide which VMPool to use for creating a VM.
 """
 
 import VMPool
-from OVPLLogging import *
+import Logging
 
 class VMPoolManager:
     def __init__(self):
@@ -37,6 +37,6 @@ class VMPoolManager:
         return False
 
     def create_vm(self, lab_spec):
-        OVPL_LOGGER.debug("VMPoolManager.create_vm()")
+        Logging.LOGGER.debug("VMPoolManager.create_vm()")
         vmpool = self.get_available_pool(lab_spec)
         return vmpool.create_vm(lab_spec)

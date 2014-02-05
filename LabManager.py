@@ -6,7 +6,7 @@ import shlex
 from exceptions import Exception
 import requests
 
-from OVPLLogging import *
+import Logging
 
 GIT_CLONE_LOC = "./lab-repo-cache/"
 LAB_SPEC_LOC = "/scripts/labspec.json"
@@ -29,9 +29,9 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
     def clone_repo(repo_name):
         clone_cmd = shlex.split("git clone %s %s%s" % (lab_src_url, GIT_CLONE_LOC, repo_name))
         try:
-            subprocess.check_call(clone_cmd, stdout=LOG_FD, stderr=LOG_FD)
+            subprocess.check_call(clone_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD)
         except Exception, e:
-            OVPL_LOGGER.error("git clone failed: %s %s" % (repo_name, str(e)))
+            Logging.LOGGER.error("git clone failed: %s %s" % (repo_name, str(e)))
             raise e
 
     def pull_repo(repo_name):
@@ -39,9 +39,9 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
         pull_cmd = shlex.split("git --git-dir=%s/.git pull" % \
                             (GIT_CLONE_LOC + repo_name))
         try:
-            subprocess.check_call(pull_cmd, stdout=LOG_FD, stderr=LOG_FD)
+            subprocess.check_call(pull_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD)
         except Exception, e:
-            OVPL_LOGGER.error("git pull failed: %s %s" % (repo_name, str(e)))
+            Logging.LOGGER.error("git pull failed: %s %s" % (repo_name, str(e)))
             raise e
 
     def checkout_version(repo_name):
@@ -49,9 +49,9 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
             try:
                 checkout_cmd = shlex.split("git --git-dir=%s checkout %s" \
                                     % ((GIT_CLONE_LOC + repo_name), version))
-                subprocess.check_call(checkout_cmd, stdout=LOG_FD, stderr=LOG_FD)
+                subprocess.check_call(checkout_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD)
             except Exception, e:
-                OVPL_LOGGER.error("git checkout failed for repo %s tag %s: %s" \
+                Logging.LOGGER.error("git checkout failed for repo %s tag %s: %s" \
                                     % (repo_name, version, str(e)))
                 raise e
 
@@ -65,7 +65,7 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
         except Exception, e:
             raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
 
-    OVPL_LOGGER.debug("LabManager.get_lab_reqs()")
+    Logging.LOGGER.debug("LabManager.get_lab_reqs()")
     repo_name = construct_repo_name(lab_id, lab_src_url)
     if repo_exists(repo_name):
         pull_repo(repo_name)
@@ -83,7 +83,7 @@ def test_lab(vmmgr_ip, port, lab_src_url, version=None):
         # clone the repo in the VM
         # get the lab_spec
         # run Lab Action Runner
-    OVPL_LOGGER.debug("LabManager.test_lab()")
+    Logging.LOGGER.debug("LabManager.test_lab()")
     payload = {"lab_src_url": lab_src_url, "version": version}
     url = '%s:%s%s' % (vmmgr_ip, port, TEST_LAB_API_URI)
     response = requests.post(url=url, data=payload)
