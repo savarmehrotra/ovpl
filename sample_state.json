@@ -1,17 +1,23 @@
 OVPLSTATE (mongodb) = [
     {
-        "lab_id": "cse01",
-        "lab_src_url": "https://github.com/virtuallabs/cse01.git",
-        "version_tag": "v1",
-        "lab_spec": {},
+        "lab_spec": {
+            "lab_id": "cse01",
+            "lab_src_url": "https://github.com/virtuallabs/cse01.git",
+            "version_tag": "v1",
+            "...": "..."
+        },
         "vm_info": {
             "vm_id": "14143",
             "vm_ip": "10.4.14.143",
             "vmmgr_url": "http://10.4.14.143",
-            "vmmgr_port": "8089"
+            "vmmgr_port": 8089,
+            "vmproxy_pid": "145523"
         },
-        "vmpool_id": "1",
-        "vmproxy_pid": "145523",
+        "vmpool_info": {
+            "vmpool_id": "1",
+            "adapter_ip": "10.1.1.20",
+            "adapter_port": 8000
+        },
         "vm_status": {
             "last_known_status": "UP/ DOWN",
             "last_successful_connection": "2014-02-04 14:38:23 IST",
