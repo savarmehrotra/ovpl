@@ -55,9 +55,12 @@ import requests
 from exceptions import Exception
 
 import Logging
+from State import State
 
 #Globals
 CREATE_PATH = "/api/1.0/vm/create"
+DESTROY_PATH = "/api/1.0/vm/destroy"
+
 
 class VMProxy:
     """ The proxy object corresponding to a VM """
@@ -71,8 +74,10 @@ class VMProxy:
 class VMPool:
     """ Manages a pool of VMs or VMProxy's """
 
-    def __init__(self, adapter_ip, adapter_port):
-        self.vms = []       # List of VMProxy objects
+    def __init__(self, adapter_ip, adapter_port, vmpool_id=0):
+        self.system = State.Instance()
+        #self.vms = []       # List of VMProxy objects
+        self.vmpool_id = vmpool_id
         self.adapter_ip = adapter_ip
         self.adapter_port = adapter_port
 
@@ -80,7 +85,34 @@ class VMPool:
         # vm_spec is a json string
         # Allocate a vm_id: not required as platform adapter will allocate it.
         # Invoke platform adapter server (POST)
-        #vm_spec = json.loads(open("vmspec.json", "r").read())
+
+        def construct_state():
+            return {
+                "lab_spec": lab_spec,
+                "vm_info": {
+                    "vm_id": vm_id,
+                    "vm_ip": vm_ip,
+                    "vmm_port": vmm_port
+                },
+                "vmpool_info": {
+                    "vmpool_id": 0,
+                    "adapter_ip": self.adapter_ip,
+                    "adapter_port": self.adapter_port
+                },
+                "vm_status": {
+                    "last_known_status": None,
+                    "last_successful_connection": None,
+                    "reconnect_attempts": None,
+                    "disk_usage": None,
+                    "mem_usage": None
+                },
+                "lab_history": {
+                    "released_by": None,
+                    "released_on": None,
+                    "destroyed_by": None,
+                    "destroyed_on": None
+                }
+            }
         Logging.LOGGER.debug("VMPool.create_vm()")
         adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
         payload = {'lab_spec': json.dumps(lab_spec)}
@@ -88,22 +120,35 @@ class VMPool:
             result = requests.post(url=adapter_url, data=payload)
             Logging.LOGGER.debug("Response text from adapter: " + result.text)
             if result.status_code == requests.codes.ok:
-                self.vms.append(VMProxy(result.json()["vm_id"],
-                                        result.json()["vm_ip"],
-                                        result.json()["vm_port"]))
-                return (result.json()["vm_ip"], result.json()["vm_port"])
+                vm_id = result.json()["vm_id"]
+                vm_ip = result.json()["vm_ip"]
+                vmm_port = result.json()["vmm_port"]
+                return construct_state()
             else:
                 raise Exception("Error creating VM: " + result.text)
-                #return (None, None)
         except Exception, e:
             Logging.LOGGER.error("Error communicating with adapter: " + str(e))
             raise Exception("Error creating VM: " + str(e))
-            #return (None, None)
 
     def destroy_vm(self, vm_id):
         # Invoke platform adapter
         # Delete entry from VMs list
-        pass
+        Logging.LOGGER.debug("VMPool.destroy_vm()")
+        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, DESTROY_PATH)
+        payload = {'vm_id': vm_id}
+        try:
+            result = requests.post(url=adapter_url, data=payload)
+            Logging.LOGGER.debug("Response text from adapter: " + result.text)
+            if result.status_code == requests.codes.ok and "Success" in result.text:
+
+    def undeploy_lab(self, lab_id):
+        map(self.destroy_vm, self.dedicated_vms(lab_id))
+
+    def dedicated_vms(self, lab_id):
+        this_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state if r['lab_spec']['lab_id']==lab_id and r['vmpool_info']['vmpool_id']==self.vmpool_id])
+        other_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state if r['lab_spec']['lab_id']!=lab_id and r['vmpool_info']['vmpool_id']==self.vmpool_id])
+        return list(this_lab_vms - other_lab_vms)
+
 
 if __name__ == "__main__":
     pool = VMPool("http://localhost", "8000")
