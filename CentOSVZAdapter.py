@@ -41,7 +41,7 @@ import netaddr
 
 # VLEAD imports
 import VMUtils
-from dict2default import *
+from dict2default import dict2default
 from settings import *
 
 # UGLY DUCK PUNCHING: Backporting check_output from 2.7 to 2.6
@@ -113,7 +113,7 @@ def init_vm(vm_id):
     copy_vm_manager_files(vm_id)
     start_vm_manager(vm_id)
     # Return the VM's IP and port info
-    response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vm_port": VM_MANAGER_PORT}
+    response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": VM_MANAGER_PORT}
     return response
 
 def copy_vm_manager_files(vm_id):
@@ -131,7 +131,6 @@ def start_vm_manager(vm_id):
     except Exception, e:
         CENTOSVZ_LOGGER.error("Error starting vm manager: " + str(e))
         return False
-    
 
 def get_resource_utilization():
     pass
@@ -140,18 +139,20 @@ def stop_vm(vm_id):
     vm_id = validate_vm_id(vm_id)
     try:
         subprocess.check_call(VZCTL + " stop " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        return "Success"
     except subprocess.CalledProcessError, e:
-        raise e
-    # Return success or failure
+        CENTOSVZ_LOGGER.error("Error stopping VM: " + str(e))
+        return "Failed to stop VM: " + str(e)
 
 def destroy_vm(vm_id):
     vm_id = validate_vm_id(vm_id)
     try:
         subprocess.check_call(VZCTL + " stop " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
         subprocess.check_call(VZCTL + " destroy " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        return "Success"
     except subprocess.CalledProcessError, e:
-        raise e
-    # Return success or failure
+        CENTOSVZ_LOGGER.error("Error destroying VM: " + str(e))
+        return "Failed to destroy VM: " + str(e)
 
 def is_running_vm(vm_id):
     vm_id = validate_vm_id(vm_id)
