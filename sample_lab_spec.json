@@ -53,7 +53,8 @@
         "servicepack": "",
         "memory": {
         "max_required": "2gb",
-        "min_required": "2gb"
+        "min_required": "2gb",
+        "hosting": "shared"
         },
       
         "storage": {
