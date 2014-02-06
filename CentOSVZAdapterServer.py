@@ -32,6 +32,16 @@ class CreateVMHandler(tornado.web.RequestHandler):
         self.write(result)
         
 
+class DestroyVMHandler(tornado.web.RequestHandler):
+    def get(self):
+        pass
+
+    def post(self):
+        post_data = dict(urlparse.parse_qsl(self.request.body))
+        result = CentOSVZAdapter.destroy_vm(post_data['vm_id'])
+        self.write(result)
+
+
 class RestartVMHandler(tornado.web.RequestHandler):
     def get(self):
         pass
@@ -45,6 +55,7 @@ if __name__ == "__main__":
     app = tornado.web.Application(
         handlers=[
             (r"/api/1.0/vm/create", CreateVMHandler),
+            (r"/api/1.0/vm/destroy", DestroyVMHandler),
             (r"/api/1.0/vm/restart", RestartVMHandler)
         ],
         debug = True)
