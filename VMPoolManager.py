@@ -6,9 +6,13 @@ and decide which VMPool to use for creating a VM.
 
 import VMPool
 import Logging
+from State import State
+
 
 class VMPoolManager:
     def __init__(self):
+        self.system = State.Instance()
+        # Work on finishing the below later (may be a separate mongodb document)
         self.VMPools = []
         self.add_vm_pool("http://localhost", "8000")        # Adapter IP and Port
 
@@ -40,3 +44,11 @@ class VMPoolManager:
         Logging.LOGGER.debug("VMPoolManager.create_vm()")
         vmpool = self.get_available_pool(lab_spec)
         return vmpool.create_vm(lab_spec)
+
+    def undeploy_lab(self, lab_id):
+        used_pools = self.get_used_pools(lab_id)
+        for pool_id in used_pools:
+            self.VMPools[pool_id].undeploy_lab(lab_id)
+
+    def get_used_pools(self, lab_id):
+        return [d['vmpool_info']['vmpool_id'] for d in self.system.state if d['lab_spec']['lab_id']==lab_id]
