@@ -46,6 +46,7 @@ class VMPoolManager:
         return vmpool.create_vm(lab_spec)
 
     def undeploy_lab(self, lab_id):
+        Logging.LOGGER.debug("VMPoolManager.undeploy_lab()")
         used_pools = self.get_used_pools(lab_id)
         for pool_id in used_pools:
             self.VMPools[pool_id].undeploy_lab(lab_id)

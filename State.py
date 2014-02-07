@@ -18,4 +18,5 @@ class State:
         """Writes the current state to mongodb(disk)"""
         if "ovpl" in self.db.collection_names():
             self.db.ovpl.rename("ovpl-last", dropTarget=True)
-        self.db.ovpl.insert(self.state)
+        if bool(self.state):
+            self.db.ovpl.insert(self.state)
