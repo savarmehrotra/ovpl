@@ -140,9 +140,27 @@ class VMPool:
             result = requests.post(url=adapter_url, data=payload)
             Logging.LOGGER.debug("Response text from adapter: " + result.text)
             if result.status_code == requests.codes.ok and "Success" in result.text:
+                Logging.LOGGER.debug("VMPool.destroy_vm()")
+                return True
+            else:
+                Logging.LOGGER.error("Error destroying vm: " + result.text)
+        except Exception, e:
+            Logging.LOGGER.error("Error communicating with adapter: " + str(e))
+
+    def save_state(self, lab_id, vm_id):
+        for r in self.system.state:
+            if r['lab_spec']['lab_id'] == lab_id and r['vm_info']['vm_id'] == vm_id and r['vmpool_info']['vmpool_id'] == self.vmpool_id:
+                self.system.state.remove(r)
+                self.system.save()
+                break
+
+    def destroy_and_save(self, lab_id, vm_id):
+        if self.destroy_vm(vm_id):
+            self.save_state(lab_id, vm_id)
 
     def undeploy_lab(self, lab_id):
-        map(self.destroy_vm, self.dedicated_vms(lab_id))
+        Logging.LOGGER.debug("VMPool.undeploy_lab()")
+        map(lambda vm_id: self.destroy_and_save(lab_id, vm_id), self.dedicated_vms(lab_id))
 
     def dedicated_vms(self, lab_id):
         this_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state if r['lab_spec']['lab_id']==lab_id and r['vmpool_info']['vmpool_id']==self.vmpool_id])
