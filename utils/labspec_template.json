@@ -64,14 +64,14 @@
         ],
 
         "lab_actions": {
-          "init":     ["initialize"],
-          "shutdown": ["shutdown"],
+          "init":     [],
+          "shutdown": [],
           "pause":    [],
           "resume":   [],
-          "start":    ["startup"],
+          "start":    [],
           "stop":     [],
-          "backup":   ["backup"],
-          "restore":  ["restore"],
+          "backup":   [],
+          "restore":  [],
           "clean":    [],
           "stats":    [],
           "publish":  []
