@@ -25,6 +25,8 @@ import re
 import os
 import MySQLdb
 import copy
+import logging
+
 from Settings import *
 
 PATH = "/labs"
@@ -35,6 +37,7 @@ LAB_ID_REGEX = r"\w+\d*"
 BZR_WORK_AREA = "repo_work_area/bzr/"
 GIT_WORK_AREA = "repo_work_area/git/"
 SVN_WORK_AREA = "repo_work_area/svn/"
+LABSPEC = "scripts/labspec.json"
 
 
 def is_lab_l5(labspec, location):
@@ -182,7 +185,7 @@ def create_spec_for_bzr_repos():
         else:
             create_bzr_work_area(location, work_area)
         labspec = create_labspec(lab_id, work_area)
-        update_bzr_repo(location, labspec)
+        commit_to_repo(work_area, labspec, 'bzr')
 
 def create_spec_for_git_repos():
     print GIT_LOCATE
@@ -203,7 +206,7 @@ def create_spec_for_git_repos():
             else:
                 create_git_work_area(repo_path, work_area)
             labspec = create_labspec(lab_id, work_area)
-            update_git_repo(repo_path, labspec)
+            commit_to_repo(work_area, labspec, 'git')
 
 def create_spec_for_svn_repos():
     print SVN_LOCATE
@@ -225,7 +228,7 @@ def create_spec_for_svn_repos():
             else:
                 create_svn_work_area(repo_path, work_area)
             labspec = create_labspec(lab_id, work_area)
-            update_svn_repo(repo_path, labspec)
+            commit_to_repo(work_area, labspec, 'svn')
 
 def work_area_exists(work_area):
     return os.path.isdir(work_area)
@@ -254,17 +257,41 @@ def update_svn_working_area(work_area):
     subprocess.check_call("svn update", shell=True)
     os.chdir(curr_dir)
 
-def update_bzr_repo(location, labspec):
+def commit_to_repo(work_area, labspec, repo_type):
     """Write labspec to a json file. Commit to the working tree and push to parent repo"""
-    pass
+    curr_dir = os.getcwd()
+    os.chdir(work_area)
+    if not os.path.isdir("scripts"):
+        os.mkdir("scripts")
+    with open(LABSPEC, "w") as f:
+        f.write(json.dumps(labspec, sort_keys=True, indent=4))
+    if repo_type == 'bzr':
+        commit_to_bzr()
+    elif repo_type == 'git':
+        commit_to_git()
+    elif repo_type == 'svn':
+        commit_to_svn()
+    os.chdir(curr_dir)
 
-def update_git_repo(location, labspec):
-    """Write labspec to a json file. Commit to the working tree and push to parent repo"""
-    pass
+def commit_to_bzr():
+    try:
+        subprocess.check_call("bzr add " + LABSPEC, shell=True)
+        subprocess.check_call("bzr commit -m 'Generated using developer portal info'", shell=True)
+    except Exception, e:
+        print e
+    subprocess.check_call("bzr push :parent", shell=True)
 
-def update_svn_repo(location, labspec):
-    """Write labspec to a json file. Commit to the working tree and push to parent repo"""
-    pass
+def commit_to_git():
+    try:
+        subprocess.check_call("git add " + LABSPEC, shell=True)
+        subprocess.check_call("git commit -m 'Generated using developer portal info'", shell=True)
+    except Exception, e:
+        print e
+    subprocess.check_call("git push origin master", shell=True)
+
+def commit_to_svn():
+    subprocess.check_call("svn add " + LABSPEC, shell=True)
+    subprocess.check_call("svn commit -m 'Generated using developer portal info'", shell=True)
 
 def main():
     create_spec_for_bzr_repos()
