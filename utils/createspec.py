@@ -24,6 +24,8 @@ import subprocess
 import re
 import os
 import MySQLdb
+import copy
+from Settings import *
 
 PATH = "/labs"
 GIT_LOCATE = r"find %s -maxdepth 3 -name %s -exec du -sh {} \; | grep -v '^4.0K' | cut -f2" % (PATH, "git")
@@ -39,7 +41,7 @@ def is_lab_l5(labspec, location):
     """Checks if the lab is integration level 5 from the labspec and if
     the scripts folder exists"""
     print location + "/src/scripts"
-    return labspec['lab']['description']['misc']['integration_level'] == 5 and \
+    return labspec['lab']['description']['integration_level'] == 5 and \
             os.path.isdir(location + "/scripts")
 
 def update_l5_info(labspec):
@@ -56,7 +58,7 @@ def labspec_template():
     """Reads the labspec json file and returns a dict"""
     return json.loads(open("labspec_template.json").read())
 
-def get_redmine_info(lab_id):
+def get_redmine_lab_info(lab_id):
     db = MySQLdb.connect("localhost", "", "", "redmine_dump")
     cursor = db.cursor()
     query = """SELECT
@@ -66,9 +68,12 @@ def get_redmine_info(lab_id):
             dev_status,
             lab_type,
             integration_level,
-            dev_os, dev_os_ver,
-            dep_os, dep_os_ver,
-            disk_space, ram_space
+            dev_os,
+            dev_os_ver,
+            dep_os,
+            dep_os_ver,
+            disk_space,
+            ram_space
         FROM
             lab_infos
         WHERE
@@ -79,9 +84,44 @@ def get_redmine_info(lab_id):
     if lab_info:
         return lab_info[0]
 
+def get_redmine_developer_info(lab_id):
+    db = MySQLdb.connect("localhost", "", "", "redmine_dump")
+    cursor = db.cursor()
+    query = r"""SELECT
+            u.firstname,
+            u.lastname,
+            u.mail,
+            r.name
+        FROM
+            users u,
+            projects p,
+            roles r,
+            members m,
+            member_roles mr
+        WHERE
+            p.identifier="%s"
+            AND r.name in ("Lab RA", "Lab Developer")
+            AND u.id=m.user_id
+            AND mr.member_id = m.id
+            AND m.user_id = u.id
+            AND m.project_id = p.id
+            AND mr.role_id = r.id
+            AND u.mail not LIKE "%%vlabs.ac.in"
+            AND u.mail not LIKE "%%virtual-labs.ac.in"
+            AND u.mail not IN (
+                %s
+            )
+    """ % (lab_id, VLEAD)
+    cursor.execute(query)
+    return cursor.fetchall()
+
 def update_spec_from_redmine(labspec, lab_id):
+    update_lab_info(labspec, lab_id)
+    update_developer_info(labspec, lab_id)
+
+def update_lab_info(labspec, lab_id):
     """Read the redmine database and update the labspec"""
-    lab_info = get_redmine_info(lab_id)
+    lab_info = get_redmine_lab_info(lab_id)
     desc = labspec['lab']['description']
     desc['id'] = lab_id
     desc['name'] = lab_info[0].strip()
@@ -89,7 +129,7 @@ def update_spec_from_redmine(labspec, lab_id):
     desc['discipline'].append(lab_info[2])
     desc['status'] = lab_info[3]
     desc['type'] = lab_info[4]
-    desc['misc']['integration_level'] = lab_info[5]
+    desc['integration_level'] = lab_info[5]
     if lab_info[6]:
         labspec['lab']['build_requirements']['platform']['os'] = lab_info[6]
     if lab_info[7]:
@@ -104,20 +144,32 @@ def update_spec_from_redmine(labspec, lab_id):
     if lab_info[11]:
         runtime['memory']['min_required'] = lab_info[11]
 
-def create_labspec():
+def update_developer_info(labspec, lab_id):
+    developers_info = get_redmine_developer_info(lab_id)
+    if not developers_info:
+        return
+    developer_template = labspec['lab']['description']['developer'][0]
+    new_developers = []
+    for developer in developers_info:
+        new_developer = copy.deepcopy(developer_template)
+        new_developer["name"] = developer[0] + " " + developer[1]
+        new_developer["contact"]["email"] = developer[2]
+        new_developer["role"] = developer[3]
+        new_developers.append(new_developer)
+    labspec['lab']['description']['developer'] = new_developers
+
+def create_labspec(lab_id, work_area):
     labspec = labspec_template()
     update_spec_from_redmine(labspec, lab_id)
-    if is_lab_l5(labspec, work_area):
-        update_l5_info(labspec)
-    print json.dumps(labspec)
+    #if is_lab_l5(labspec, work_area):
+    #    update_l5_info(labspec)
+    print json.dumps(labspec, sort_keys=True, indent=4)
     return labspec
 
 def create_spec_for_bzr_repos():
     print BZR_LOCATE
     all_bzr_locations = subprocess.check_output(BZR_LOCATE, shell=True)
     for location in all_bzr_locations.split('\n'):
-        # get all the bazaar repo names
-        print location
         m = re.match(r'/labs/(\w+\d*)/bzr/([\w\d\-_]+)/', location)
         if m == None:
             continue
@@ -129,10 +181,11 @@ def create_spec_for_bzr_repos():
             update_bzr_working_area(work_area)
         else:
             create_bzr_work_area(location, work_area)
-        labspec = create_labspec()
-        update_bzr_repo(labspec)
+        labspec = create_labspec(lab_id, work_area)
+        update_bzr_repo(location, labspec)
 
 def create_spec_for_git_repos():
+    print GIT_LOCATE
     all_git_locations = subprocess.check_output(GIT_LOCATE, shell=True)
     for location in all_git_locations.split('\n'):
         # get all the git repo names 
@@ -141,16 +194,19 @@ def create_spec_for_git_repos():
             continue
         lab_id = m.group(1)
         for repo_name in os.listdir(location):
+            repo_path = location + "/" + repo_name
             print "Now working on", lab_id, repo_name
             work_area = GIT_WORK_AREA + lab_id + "-" + repo_name
             if work_area_exists(work_area):
                 update_git_working_area(work_area)
+                pass
             else:
-                create_git_work_area(location, work_area)
-            labspec = create_labspec()
-            update_git_repo(labspec)
+                create_git_work_area(repo_path, work_area)
+            labspec = create_labspec(lab_id, work_area)
+            update_git_repo(repo_path, labspec)
 
 def create_spec_for_svn_repos():
+    print SVN_LOCATE
     all_svn_locations = subprocess.check_output(SVN_LOCATE, shell=True)
     for location in all_svn_locations.split('\n'):
         m = re.match("/labs/(%s)/svn" % LAB_ID_REGEX, location)
@@ -161,14 +217,15 @@ def create_spec_for_svn_repos():
             repo_path = location + "/" + repo_name
             if not os.path.isdir(repo_path):
                 continue
+            repo_path = "file://" + repo_path
             print "Now working on", lab_id, repo_name
             work_area = SVN_WORK_AREA + lab_id + "-" + repo_name
             if work_area_exists(work_area):
                 update_svn_working_area(work_area)
             else:
-                create_svn_work_area(location, work_area)
-            labspec = create_labspec()
-            update_svn_repo(labspec)
+                create_svn_work_area(repo_path, work_area)
+            labspec = create_labspec(lab_id, work_area)
+            update_svn_repo(repo_path, labspec)
 
 def work_area_exists(work_area):
     return os.path.isdir(work_area)
@@ -186,20 +243,26 @@ def update_bzr_working_area(work_area):
     subprocess.check_call("bzr pull -d %s" % work_area, shell=True)
 
 def update_git_working_area(work_area):
-    subprocess.check_call("git pull -d %s " % work_area, shell=True)
+    curr_dir = os.getcwd()
+    os.chdir(work_area)
+    subprocess.check_call("git pull", shell=True)
+    os.chdir(curr_dir)
 
 def update_svn_working_area(work_area):
-    subprocess.check_call("svn update -d %s " % work_area, shell=True)
+    curr_dir = os.getcwd()
+    os.chdir(work_area)
+    subprocess.check_call("svn update", shell=True)
+    os.chdir(curr_dir)
 
-def update_bzr_repo(labspec):
+def update_bzr_repo(location, labspec):
     """Write labspec to a json file. Commit to the working tree and push to parent repo"""
     pass
 
-def update_git_repo(labspec):
+def update_git_repo(location, labspec):
     """Write labspec to a json file. Commit to the working tree and push to parent repo"""
     pass
 
-def update_svn_repo(labspec):
+def update_svn_repo(location, labspec):
     """Write labspec to a json file. Commit to the working tree and push to parent repo"""
     pass
 
