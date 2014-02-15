@@ -7,9 +7,11 @@
       "discipline": [],
       "type": "Simulation",
       "server-side": true,
+      "integration_level": 0,
       "developer": [{
         "name": "",
         "title": "",
+        "role": "",
         "organization": "",
         "institute": "",
         "web": "",
@@ -20,10 +22,7 @@
       	  "mobile_number": "", 
       	  "office_number": ""
         }
-      }],
-      "misc": {
-        "integration_level": 0
-      }
+      }]
     },
 
     "build_requirements": {
@@ -50,19 +49,16 @@
         "osVersion": "12",
         "arch": "i386",
         "servicepack": "",
+        "hosting": "dedicated",
         "memory": {
-        "max_required": "2gb",
-        "min_required": "256mb",
-        "hosting": "dedicated"
+          "max_required": "2gb",
+          "min_required": "256mb"
         },
-      
         "storage": {
-          "min_required": "2gb"
+          "min_required": "10gb"
         },
-
         "installer": [
         ],
-
         "lab_actions": {
           "init":     [],
           "shutdown": [],
