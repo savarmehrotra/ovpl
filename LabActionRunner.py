@@ -1,7 +1,7 @@
 import json
 from LabActionScript import LabActionScript
 
-class LabActionsRunner:
+class LabActionRunner:
     """
     
     An 'action' is an abstract operation in the life cycle of a lab.
@@ -103,44 +103,44 @@ if __name__ == '__main__':
 	def tests():
 	    def testInitActions():
 	        init_action_spec = '{"init": ["scripts/on_init_lab.sh", "scripts/first_run.py --silent", "scripts/start_services.sh"]}'
-	        lar = LabActionsRunner(json.loads(init_action_spec), "")
+	        lar = LabActionRunner(json.loads(init_action_spec), "")
 	        #lar.display()
 	        lar.run_init_lab()
 	        
 	    def testEmptyBuildActions():
 	    	build_steps_spec = '{}'
-	    	lar = LabActionsRunner(json.loads(build_steps_spec), "")
+	    	lar = LabActionRunner(json.loads(build_steps_spec), "")
 	        lar.run_build_steps()
 	    
 	    def testEmptyBuildStepActions():
 	    	build_steps_spec = '{"build_steps": {}}'
-	    	lar = LabActionsRunner(json.loads(build_steps_spec), "")
+	    	lar = LabActionRunner(json.loads(build_steps_spec), "")
 	        lar.run_build_steps()
 	    
 	    def testEmptyConfigureBuildStepActions():
 	    	build_steps_spec = '{"build_steps": {"configure": []}}'
-	    	lar = LabActionsRunner(json.loads(build_steps_spec), "")
+	    	lar = LabActionRunner(json.loads(build_steps_spec), "")
 	        lar.run_build_steps()
 
 	    def testBuildActions():
 	        build_steps_spec = '{"build_steps": { "configure": ["scripts/configure.sh", "/bin/ls -l"], "pre_build": ["make clean"], "build": ["make lab", "make install"], "post_build": ["make clean"], "status": ["scripts/check_build_status.sh"]}}'
-	        lar = LabActionsRunner(json.loads(build_steps_spec), "")
+	        lar = LabActionRunner(json.loads(build_steps_spec), "")
 	        lar.run_build_steps()
 	        #print json.loads(build_steps_spec)
 
 	    def testEmpty():
 	        installer_steps_spec = '{}'
-	        lar = LabActionsRunner(json.loads(installer_steps_spec), "")
+	        lar = LabActionRunner(json.loads(installer_steps_spec), "")
 	        lar.run_install_source()
 
 	    def testEmptyInstallSources():
 	        installer_steps_spec = '{"installer": []}'
-	        lar = LabActionsRunner(json.loads(installer_steps_spec), "")
+	        lar = LabActionRunner(json.loads(installer_steps_spec), "")
 	        lar.run_install_source()
 
 	    def testInstallSources():
 	        installer_steps_spec = '{"installer": [ "sudo apt-get install libxml24", "sudo apt-get install libnss34", "sudo apt-get install python2.74", "sudo apt-get install curl4", "git clone https://bitbucket.org/deviprasad/data_structures.git", "wget -b -O output/log.txt --user=witcracker --password=secretpassword www.myhome.in/config_lab.py"]}'
-	        lar = LabActionsRunner(json.loads(installer_steps_spec), "")
+	        lar = LabActionRunner(json.loads(installer_steps_spec), "")
 	        lar.run_install_source()
 
 	    testEmpty()
