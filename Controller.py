@@ -23,10 +23,9 @@ class Controller:
                             % (lab_id, lab_src_url))
         try:
             lab_spec = LabManager.get_lab_reqs(lab_id, lab_src_url, revision_tag)
-            lab_spec['lab']['description']['id'] = lab_spec['lab_id'] = lab_id
-            lab_spec['lab_src_url'] = lab_src_url
-            lab_spec['revision_tag'] = revision_tag
-            lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
+            self.update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
+            if lab_spec['lab']['runtime_requirements']['hosting'] == 'dedicated':
+                self.undeploy_lab(lab_id)
             vmpoolmgr = VMPoolManager.VMPoolManager()
             lab_state = vmpoolmgr.create_vm(lab_spec)
             ip = lab_state['vm_info']['vm_ip']
@@ -35,10 +34,11 @@ class Controller:
             try:
                 if LabManager.test_lab(vmmgrurl, port, lab_src_url, revision_tag):
                     self.update_state(lab_state)
+                    Logging.LOGGER.info("Controller.test_lab: test succcessful")
                     return ip
                 elif LabManager.test_lab(vmmgrurl, port, lab_src_url, revision_tag):
-                    # retry seems to work (always?)
                     self.update_state(lab_state)
+                    Logging.LOGGER.info("Controller.test_lab: test succcessful")
                     return ip
                 else:
                     Logging.LOGGER.error("Test failed")
@@ -48,6 +48,12 @@ class Controller:
                 self.system.save()
         except Exception, e:
             Logging.LOGGER.error("Test failed with error: " + str(e))
+
+    def update_lab_spec(self, lab_spec, lab_id, lab_src_url, revision_tag):
+        lab_spec['lab']['description']['id'] = lab_spec['lab_id'] = lab_id
+        lab_spec['lab_src_url'] = lab_src_url
+        lab_spec['revision_tag'] = revision_tag
+        lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
 
     def update_state(self, state):
         state['lab_history']['released_by'] = 'dummy'
