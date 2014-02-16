@@ -8,21 +8,23 @@
       "type": "Simulation",
       "server-side": true,
       "integration_level": 0,
-      "developer": [{
-        "name": "",
-        "title": "",
-        "role": "",
-        "organization": "",
-        "institute": "",
-        "web": "",
-        "department": "",
-        "contact": {
-      	  "email": "",
-      	  "alternate_email": "",
-      	  "mobile_number": "", 
-      	  "office_number": ""
+      "developer": [
+        {
+          "name": "",
+          "title": "",
+          "role": "",
+          "organization": "",
+          "institute": "",
+          "web": "",
+          "department": "",
+          "contact": {
+        	  "email": "",
+        	  "alternate_email": "",
+        	  "mobile_number": "",
+        	  "office_number": ""
+          }
         }
-      }]
+      ]
     },
 
     "build_requirements": {
