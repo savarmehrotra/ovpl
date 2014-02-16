@@ -1,6 +1,3 @@
-# Author: Chandan Gupta
-# Contact: chandan@vlabs.ac.in
-
 """ 
 VMPool manages a pool of VMs and the resources available for use by the VMs.
 Resources may include RAM, diskspace, IPs, etc.  For now, these resources 
@@ -60,15 +57,6 @@ from State import State
 #Globals
 CREATE_PATH = "/api/1.0/vm/create"
 DESTROY_PATH = "/api/1.0/vm/destroy"
-
-
-class VMProxy:
-    """ The proxy object corresponding to a VM """
-
-    def __init__(self, vm_id, ip_address, port):
-        self.vm_id = vm_id.strip()
-        self.ip_address = ip_address.strip()
-        self.port = port.strip()
 
 
 class VMPool:
