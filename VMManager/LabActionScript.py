@@ -82,7 +82,7 @@ if __name__ == '__main__':
         assert(action.empty() == True)
     
     def testGitCloneAction():
-        action = LabActionScript("git clone https://deviprasad:\(indradhanush\)@bitbucket.org/deviprasad/itworkshop2-spring-2014.git")
+        action = LabActionScript("git clone https://bitbucket.org/deviprasad/itworkshop2-spring-2014.git")
         action.run()
         assert(action.done() == True)
 
