@@ -147,6 +147,7 @@ def test_lab(lab_src_url, version=None):
 
     lab_spec = get_lab_spec(repo_name)
     try:
+        os.chdir(GIT_CLONE_LOC+repo_name+"/scripts")
         lar = LabActionRunner(get_build_installer_steps_spec(lab_spec))
         lar.run_install_source()
 
