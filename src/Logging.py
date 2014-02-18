@@ -1,7 +1,7 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-LOG_FILENAME = '/root/ovpl/log/ovpl.log'       # make log name a setting
+LOG_FILENAME = 'log/ovpl.log'       # make log name a setting
 
 def setup_logging():
     LOGGER.setLevel(logging.DEBUG)   # make log level a setting
