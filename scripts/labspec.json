@@ -108,14 +108,14 @@
           "sudo apt-get install -y python-pip",
           "sudo pip install requests",
           "sudo pip install tornado",
-          "sudo apt-get install -y mongodb"
+          "sudo apt-get install -y mongodb",
           "sudo pip install pymongo"
         ],
         "lab_actions": {
           "init":     [
                 "mkdir -p /data/db",
-                "chmod 777 /data/db"
-                "mongod &"
+                "chmod 777 /data/db",
+                "mongod &",
                 "python ../src/ControllerServer.py &"
           ],
           "shutdown": [],
