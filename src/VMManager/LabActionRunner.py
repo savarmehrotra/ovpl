@@ -14,7 +14,7 @@ class LabActionRunner:
     This object is driven by the lab-requirements specification.
 
     """
-    def __init__(self, actions, path_prefix):
+    def __init__(self, actions, path_prefix=""):
         self._actions = actions
         self._path_prefix = path_prefix
 

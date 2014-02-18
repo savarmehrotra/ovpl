@@ -81,10 +81,16 @@ def test_lab(lab_src_url, version=None):
         # instantiate the object
 
     def get_build_steps_spec(lab_spec):
-        return {"build_steps": lab_spec['lab'][u'build_requirements']['platform']['build_steps']}
+        return {"build_steps": lab_spec['lab']['build_requirements']['platform']['build_steps']}
 
-    def get_installer_steps_spec(lab_spec):
+    def get_build_installer_steps_spec(lab_spec):
         return {"installer": lab_spec['lab']['build_requirements']['platform']['installer']}
+
+    def get_runtime_installer_steps(lab_spec):
+        return {"installer": lab_spec['lab']['runtime_requirements']['platform']['installer']}
+
+    def get_runtime_actions_steps(lab_spec):
+        return lab_spec['lab']['runtime_requirements']['platform']['lab_actions']
 
     def construct_repo_name():
         repo = lab_src_url.split('/')[-1]
@@ -141,11 +147,18 @@ def test_lab(lab_src_url, version=None):
 
     lab_spec = get_lab_spec(repo_name)
     try:
-        lar = LabActionRunner(get_installer_steps_spec(lab_spec), "")
+        lar = LabActionRunner(get_build_installer_steps_spec(lab_spec))
         lar.run_install_source()
 
-        lar = LabActionRunner(get_build_steps_spec(lab_spec), "")
+        lar = LabActionRunner(get_build_steps_spec(lab_spec))
         lar.run_build_steps()
+
+        lar = LabActionRunner(get_runtime_installer_steps(lab_spec))
+        lar.run_install_source()
+
+        lar = LabActionRunner(get_runtime_actions_steps(lab_spec))
+        lar.run_init_lab()
+        lar.run_start_lab()
 
         return "Success"
     except Exception, e:
