@@ -17,7 +17,7 @@ def setup_logging():
     LOGGER.addHandler(myhandler)
 
 if not os.path.isdir("log"):
-    os.path.mkdir("log")
+    os.mkdir("log")
 LOGGER = logging.getLogger('ovpl')
 setup_logging()
 LOG_FD = open(LOG_FILENAME, 'a')
