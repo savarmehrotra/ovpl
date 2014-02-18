@@ -157,5 +157,5 @@ class VMPool:
 
 
 if __name__ == "__main__":
-    pool = VMPool("http://localhost", "8000")
+    pool = VMPool("http://10.4.12.24", "8000")
     pool.create_vm(None)

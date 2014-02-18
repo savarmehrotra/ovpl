@@ -102,14 +102,22 @@
           "min_required": null
         },
         "storage": {
-          "min_required": null
+          "min_required": "10gb"
         },
         "installer": [
           "sudo apt-get install -y python-pip",
-          "sudo pip install requests"
+          "sudo pip install requests",
+          "sudo pip install tornado",
+          "sudo apt-get install -y mongodb"
+          "sudo pip install pymongo"
         ],
         "lab_actions": {
-          "init":     ["python ../src/ControllerServer.py &"],
+          "init":     [
+                "mkdir -p /data/db",
+                "chmod 777 /data/db"
+                "mongod &"
+                "python ../src/ControllerServer.py &"
+          ],
           "shutdown": [],
           "pause":    [],
           "resume":   [],
