@@ -113,15 +113,16 @@
         ],
         "lab_actions": {
           "init":     [
-                "mkdir -p /data/db",
-                "chmod 777 /data/db",
-                "mongod &",
-                "python ../src/ControllerServer.py &"
+            "mkdir -p /data/db",
+            "chmod 777 /data/db"
           ],
           "shutdown": [],
           "pause":    [],
           "resume":   [],
-          "start":    [],
+          "start":    [
+            "mongod &",
+            "python ../src/ControllerServer.py &"
+          ],
           "stop":     [],
           "backup":   [],
           "restore":  [],
