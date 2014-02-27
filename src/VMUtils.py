@@ -1,6 +1,3 @@
-# Author: Chandan Gupta
-# Contact: chandan@vlabs.ac.in
-
 """ Utilities for use in OVPL application. """
 
 __all__ = [
@@ -50,6 +47,7 @@ def get_disk_space(disk_soft):
 def convert_to_megs(value):
     if not value:
         return 0
+    value = value.strip()
     m = re.match(r'([0-9]+)\s*([a-zA-Z]+)', value)
     if m == None:
         return 0
@@ -61,8 +59,33 @@ def convert_to_megs(value):
         quantity = int(quantity / 1024)
     elif "M" in unit.upper():   # Megabytes
         pass
-    else:                       # Invalid unit?
-        # Work on this later
-        print "Invalid unit"
+    else:                       # Invalid unit
         return 0
     return quantity
+
+def test():
+    test_unit_conversion()
+    test_ram_swap()
+    test_disk_space()
+
+def test_ram_swap():
+    assert (RAM, SWAP) == get_ram_swap(None, None)
+    assert (RAM, SWAP) == get_ram_swap(0, 0)
+    assert ("100M", "150M") == get_ram_swap("100 mb", " 150MB")
+    assert (RAM_MAX, SWAP_MAX) == get_ram_swap("100 Gigabytes", "100 gigs")
+
+def test_disk_space():
+    (disk_soft, disk_hard) = get_disk_space(None)
+    assert disk_soft == DISK_SOFT
+
+def test_unit_conversion():
+    assert convert_to_megs(None) == 0
+    assert convert_to_megs("100Mb") == 100
+    assert convert_to_megs("1 Gig") == 1024
+    assert convert_to_megs("1024 K") == 1
+    assert convert_to_megs(" 1mb  ") == 1
+    assert convert_to_megs("some-nonsense") == 0
+
+
+if __name__ == '__main__':
+    test()
