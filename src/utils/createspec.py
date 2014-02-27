@@ -180,7 +180,9 @@ def create_spec_for_bzr_repos():
         repo_name = m.group(2)
         work_area = BZR_WORK_AREA + lab_id + "-" + repo_name
         print "Now working on", lab_id, repo_name
-        if work_area_exists(work_area):
+        if _exists(work_area + "/" + LABSPEC):
+            continue
+        if _exists(work_area):
             update_bzr_working_area(work_area)
         else:
             create_bzr_work_area(location, work_area)
@@ -200,7 +202,9 @@ def create_spec_for_git_repos():
             repo_path = location + "/" + repo_name
             print "Now working on", lab_id, repo_name
             work_area = GIT_WORK_AREA + lab_id + "-" + repo_name
-            if work_area_exists(work_area):
+            if _exists(work_area + "/" + LABSPEC):
+                continue
+            if _exists(work_area):
                 update_git_working_area(work_area)
                 pass
             else:
@@ -223,15 +227,17 @@ def create_spec_for_svn_repos():
             repo_path = "file://" + repo_path
             print "Now working on", lab_id, repo_name
             work_area = SVN_WORK_AREA + lab_id + "-" + repo_name
-            if work_area_exists(work_area):
+            if _exists(work_area + "/" + LABSPEC):
+                continue
+            if _exists(work_area):
                 update_svn_working_area(work_area)
             else:
                 create_svn_work_area(repo_path, work_area)
             labspec = create_labspec(lab_id, work_area)
             commit_to_repo(work_area, labspec, 'svn')
 
-def work_area_exists(work_area):
-    return os.path.isdir(work_area)
+def _exists(work_area):
+    return os.path.exists(work_area)
 
 def create_bzr_work_area(location, work_area):
     subprocess.check_call("bzr branch %s %s" % (location, work_area), shell=True)
@@ -290,7 +296,7 @@ def commit_to_git():
     subprocess.check_call("git push origin master", shell=True)
 
 def commit_to_svn():
-    subprocess.check_call("svn add " + LABSPEC, shell=True)
+    subprocess.check_call("svn add scripts", shell=True)
     subprocess.check_call("svn commit -m 'Generated using developer portal info'", shell=True)
 
 def main():
