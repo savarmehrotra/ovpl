@@ -35,13 +35,21 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
             raise e
 
     def pull_repo(repo_name):
-        # dirty hack to fix git pull
-        pull_cmd = shlex.split("git --git-dir=%s/.git pull" % \
-                            (GIT_CLONE_LOC + repo_name))
+        pull_cmd = "git --git-dir=%s/.git pull" % (GIT_CLONE_LOC + repo_name)
+        Logging.LOGGER.debug(pull_cmd)
         try:
-            subprocess.check_call(pull_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD)
+            subprocess.check_call(pull_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
         except Exception, e:
             Logging.LOGGER.error("git pull failed: %s %s" % (repo_name, str(e)))
+            raise e
+
+    def reset_repo(repo_name):
+        reset_cmd = "git --git-dir=%s/.git reset --hard" % (GIT_CLONE_LOC + repo_name)
+        Logging.LOGGER.debug(reset_cmd)
+        try:
+            subprocess.check_call(reset_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
+        except Exception, e:
+            Logging.LOGGER.error("git reset failed: %s %s" % (repo_name, str(e)))
             raise e
 
     def checkout_version(repo_name):
@@ -59,15 +67,18 @@ def get_lab_reqs(lab_id, lab_src_url, version=None):
         # Allow no lab spec but not an invalid json as a lab spec
         spec_path = GIT_CLONE_LOC + repo_name + LAB_SPEC_LOC
         if not os.path.exists(spec_path):
+            Logging.LOGGER.error("Lab spec file not found")
             raise LabSpecInvalid("Lab spec file not found")
         try:
             return json.loads(open(spec_path).read())
         except Exception, e:
+            Logging.LOGGER.error("Lab spec JSON invalid: " + str(e))
             raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
 
     Logging.LOGGER.debug("LabManager.get_lab_reqs()")
     repo_name = construct_repo_name(lab_id, lab_src_url)
     if repo_exists(repo_name):
+        reset_repo(repo_name)
         pull_repo(repo_name)
     else:
         clone_repo(repo_name)
