@@ -124,8 +124,9 @@ def copy_vm_manager_files(vm_id):
     shutil.copytree(VM_MANAGER_SRC_DIR, dest_dir)
 
 def start_vm_manager(vm_id):
-    command = VZCTL + " exec " + vm_id + " python " + \
-        VM_MANAGER_DEST_DIR + "/" + VM_MANAGER_SCRIPT + " &"
+    command = VZCTL + " exec " + vm_id + " \"su - root -c \'python " + \
+        VM_MANAGER_DEST_DIR + "/" + VM_MANAGER_SCRIPT + " &\'\""
+    CENTOSVZ_LOGGER.debug(command)
     try:
         subprocess.check_call(command, stdout=LOG_FD, stderr=LOG_FD, shell=True)
     except Exception, e:
