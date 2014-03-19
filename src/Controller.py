@@ -42,8 +42,10 @@ class Controller:
                     return ip
                 else:
                     Logging.LOGGER.error("Test failed")
+                    return "Test failed: See log file for errors"
             except Exception, e:
                 Logging.LOGGER.error("Test failed with error: " + str(e))
+                return "Test failed: See log file for errors"
             finally:
                 self.system.save()
         except Exception, e:
@@ -71,7 +73,10 @@ class Controller:
 if __name__ == '__main__':
     c = Controller()
     #print c.test_lab("ovpl01", "https://github.com/nrchandan/vlab-computer-programming")
-    print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
+    #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
+    print c.test_lab("cse08", "git@bitbucket.org:virtuallabs/cse08-cse08.git")
+    #print c.test_lab("cse08", "http://10.4.14.2/cse08.git")
+    #print c.test_lab("ovpl01", "https://github.com/vlead/ovpl")
     #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
     #print c.test_lab("cse30", "https://github.com/avinassh/cse09")
     #print c.undeploy_lab("ovpl01")
