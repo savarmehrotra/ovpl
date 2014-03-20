@@ -50,6 +50,7 @@ class Controller:
                 self.system.save()
         except Exception, e:
             Logging.LOGGER.error("Test failed with error: " + str(e))
+            return "Test failed: See log file for errors"
 
     def update_lab_spec(self, lab_spec, lab_id, lab_src_url, revision_tag):
         lab_spec['lab']['description']['id'] = lab_spec['lab_id'] = lab_id
