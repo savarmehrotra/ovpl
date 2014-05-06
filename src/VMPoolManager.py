@@ -1,4 +1,3 @@
-
 """
 VMPoolManager manages a set of VMPools i.e. maintain a list of available VMPools
 and decide which VMPool to use for creating a VM.
@@ -10,14 +9,26 @@ from State import State
 
 
 class VMPoolManager:
-    def __init__(self):
-        self.system = State.Instance()
-        # Work on finishing the below later (may be a separate mongodb document)
-        self.VMPools = []
-        self.add_vm_pool("http://localhost", "8000")        # Adapter IP and Port
 
-    def add_vm_pool(self, adapter_ip, adapter_port):
-        self.VMPools.append(VMPool.VMPool(adapter_ip, adapter_port))
+    def __init__(self):
+        """ State should be rewriten"""
+        self.system = State.Instance()
+        
+        self.VMPools = []
+        config_spec = json.loads(open("../config/config.json").read())
+        pools = config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"]
+        for pool in pools:
+            self.add_vm_pool( pool["POOLID"], \
+                              pool["DESCRIPTION"], \
+                              pool["ADAPTERIP"], \
+                              pool["PORT"], \
+                              config_spec["CREATE_URI"], \
+                              config_spec["DESTROY_URI"])
+
+
+    def add_vm_pool(self, pool_id, description, adapter_ip, adapter_port, create_path, destroy_path):
+
+        self.VMPools.append(VMPool.VMPool(adapter_ip, adapter_port, pool_id, vm_description, create_path, destroy_path))
 
     def get_available_pool(self, lab_spec):
         """Imagining four VMPools:

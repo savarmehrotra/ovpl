@@ -1,6 +1,7 @@
 import os
 import logging
 from logging.handlers import TimedRotatingFileHandler
+import json
 
 LOG_FILENAME = 'log/ovpl.log'       # make log name a setting
 
@@ -16,8 +17,18 @@ def setup_logging():
     myhandler.setFormatter(formatter)
     LOGGER.addHandler(myhandler)
 
-if not os.path.isdir("log"):
-    os.mkdir("log")
+config_spec = json.loads(open("../config/config.json").read())
+LOG_FILENAME = config_spec["CONTROLLER_CONFIG"]["LOG_FILENAME"]
+
+nodes = LOG_FILENAME.split("/")
+nodes = nodes[1:-1]   #remove the first and the last elements
+dir_path = ""
+for node in nodes:
+    dir_path = dir_path + "/" + node
+
+if not os.path.isdir(dir_path):
+    os.makedirs(dir_path)
+
 LOGGER = logging.getLogger('ovpl')
 setup_logging()
 LOG_FD = open(LOG_FILENAME, 'a')

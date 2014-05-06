@@ -11,6 +11,7 @@
 
 import urlparse
 import os
+import json
 
 # bunch of tornado imports
 import tornado.httpserver 
@@ -20,6 +21,7 @@ import tornado.web
 from tornado.options import define, options
 
 import Controller
+import Logging
 
 
 define("port", default=8000, help="run on the given port", type=int)
@@ -45,5 +47,8 @@ if __name__ == "__main__":
         static_path=os.path.join(os.path.dirname(__file__), "static"),
         debug = True)
     http_server = tornado.httpserver.HTTPServer(app) 
+    config_spec = json.loads(open("../config/config.json").read())
+    options.port = config_spec["CONTROLLER_CONFIG"]["SERVER_PORT"]
+    Logging.LOGGER.debug("ControllerServer: It will run on port : " + str(options.port))
     http_server.listen(options.port) 
     tornado.ioloop.IOLoop.instance().start()

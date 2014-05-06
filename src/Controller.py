@@ -17,6 +17,7 @@ from State import State
 class Controller:
     def __init__(self):
         self.system = State.Instance()
+        lab_spec = {}
 
     def test_lab(self, lab_id, lab_src_url, revision_tag=None):
         Logging.LOGGER.debug("Controller.test_lab() for lab ID %s and git url %s" \
@@ -25,7 +26,8 @@ class Controller:
             lab_spec = LabManager.get_lab_reqs(lab_id, lab_src_url, revision_tag)
             self.update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
             if lab_spec['lab']['runtime_requirements']['hosting'] == 'dedicated':
-                self.undeploy_lab(lab_id)
+               """ TODO: Undeploy , fnd proper place to invoke undeploy""" 
+               self.undeploy_lab(lab_id)
             vmpoolmgr = VMPoolManager.VMPoolManager()
             lab_state = vmpoolmgr.create_vm(lab_spec)
             ip = lab_state['vm_info']['vm_ip']
@@ -46,6 +48,7 @@ class Controller:
             except Exception, e:
                 Logging.LOGGER.error("Test failed with error: " + str(e))
                 return "Test failed: See log file for errors"
+                """ TODO: Garbage collection clean up for the created VM """ 
             finally:
                 self.system.save()
         except Exception, e:
