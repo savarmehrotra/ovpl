@@ -26,12 +26,16 @@ DESTROY_PATH = "/api/1.0/vm/destroy"
 class VMPool:
     """ Manages a pool of VMs or VMProxy's """
 
-    def __init__(self, adapter_ip, adapter_port, vmpool_id=0):
+    def __init__(self, vmpool_id, vm_description, adapter_ip, adapter_port, create_path, destroy_path):
         self.system = State.Instance()
         #self.vms = []       # List of VMProxy objects
         self.vmpool_id = vmpool_id
+        self.vm_description = vm_description
         self.adapter_ip = adapter_ip
         self.adapter_port = adapter_port
+        self.create_path = create_path
+        self.destroy_path = destroy_path
+
 
     def create_vm(self, lab_spec):
         # vm_spec is a json string
@@ -47,7 +51,8 @@ class VMPool:
                     "vmm_port": vmm_port
                 },
                 "vmpool_info": {
-                    "vmpool_id": 0,
+                    "vmpool_id": self.vmpool_id,
+                    "vm_description": self.vm_description,
                     "adapter_ip": self.adapter_ip,
                     "adapter_port": self.adapter_port
                 },
@@ -66,7 +71,7 @@ class VMPool:
                 }
             }
         Logging.LOGGER.debug("VMPool.create_vm()")
-        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, CREATE_PATH)
+        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, self.create_path)
         payload = {'lab_spec': json.dumps(lab_spec)}
         try:
             result = requests.post(url=adapter_url, data=payload)
@@ -86,7 +91,7 @@ class VMPool:
         # Invoke platform adapter
         # Delete entry from VMs list
         Logging.LOGGER.debug("VMPool.destroy_vm()")
-        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, DESTROY_PATH)
+        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, self.destrpy_path)
         payload = {'vm_id': vm_id}
         try:
             result = requests.post(url=adapter_url, data=payload)

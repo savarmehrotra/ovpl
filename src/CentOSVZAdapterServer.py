@@ -52,11 +52,13 @@ class RestartVMHandler(tornado.web.RequestHandler):
 
 if __name__ == "__main__": 
     tornado.options.parse_command_line()
+    config_spec = json.loads(open("../config/config.json").read())
+    options.port = config_spec["ADAPTER_CONFIG"]["SERVER_PORT"]    
     app = tornado.web.Application(
         handlers=[
-            (r"/api/1.0/vm/create", CreateVMHandler),
-            (r"/api/1.0/vm/destroy", DestroyVMHandler),
-            (r"/api/1.0/vm/restart", RestartVMHandler)
+            (config_spec["ADAPTER_CONFIG"]["CREATE_URI"], CreateVMHandler),
+            (config_spec["ADAPTER_CONFIG"]["DESTROY_URI"], DestroyVMHandler),
+            (config_spec["ADAPTER_CONFIG"]["RESTART_URI"], RestartVMHandler)
         ],
         debug = True)
     http_server = tornado.httpserver.HTTPServer(app) 

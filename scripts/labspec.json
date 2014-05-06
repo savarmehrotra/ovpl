@@ -74,7 +74,8 @@
 
     "build_requirements": {
       "platform": {
-        "os": "ubuntu", 
+        "os": "linux", 
+        "osdistro":"ubuntu",
         "osVersion": "12",
         "arch": "i386",
         "service_pack": "",
@@ -92,7 +93,8 @@
 
     "runtime_requirements": {
       "platform": {
-        "os": "ubuntu", 
+        "os": "linux", 
+        "osdistro":"ubuntu",
         "osVersion": "12",
         "arch": "i386",
         "servicepack": "",
