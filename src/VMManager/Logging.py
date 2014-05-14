@@ -12,7 +12,7 @@ def setup_logging():
                                 LOG_FILENAME, when='midnight', backupCount=5)
 
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        '%(asctime)s - %(levelname)s : [%(filename)s:%(lineno)d] : %(message)s',
         datefmt='%Y-%m-%d %I:%M:%S %p')
     myhandler.setFormatter(formatter)
     LOGGER.addHandler(myhandler)

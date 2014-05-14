@@ -11,6 +11,7 @@
 
 import urlparse
 import os
+import os.path
 import json
 
 # bunch of tornado imports
@@ -47,7 +48,8 @@ if __name__ == "__main__":
         static_path=os.path.join(os.path.dirname(__file__), "static"),
         debug = True)
     http_server = tornado.httpserver.HTTPServer(app) 
-    config_spec = json.loads(open("../config/config.json").read())
+    current_file_path = os.path.dirname(os.path.abspath(__file__))
+    config_spec = json.loads(open(current_file_path + "/../config/config.json").read())
     options.port = config_spec["CONTROLLER_CONFIG"]["SERVER_PORT"]
     Logging.LOGGER.debug("ControllerServer: It will run on port : " + str(options.port))
     http_server.listen(options.port) 

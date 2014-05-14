@@ -9,6 +9,7 @@
 import json
 import urlparse
 import urllib
+import os.path
 
 import tornado.httpserver 
 import tornado.ioloop 
@@ -17,17 +18,19 @@ import tornado.web
 from tornado.options import define, options
 
 import CentOSVZAdapter
-
+from CentOSVZAdapter import CENTOSVZ_LOGGER
 
 define("port", default=8000, help="run on the given port", type=int)
 
 
 class CreateVMHandler(tornado.web.RequestHandler):
     def get(self):
-        pass
+        self.write("Hello SIddharth")
 
     def post(self):
+        CENTOSVZ_LOGGER.debug("CentOSVZAdapterServer: post()")
         post_data = dict(urlparse.parse_qsl(self.request.body))
+        CENTOSVZ_LOGGER.debug("CentOSVZAdapterServer: post(); post_data = %s" % (str(post_data)))
         result = CentOSVZAdapter.create_vm(json.loads(post_data['lab_spec']))
         self.write(result)
         
@@ -51,14 +54,26 @@ class RestartVMHandler(tornado.web.RequestHandler):
 
 
 if __name__ == "__main__": 
+
+    CentOSVZAdapter.test_logging()
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapterServer: __main__()")
+
     tornado.options.parse_command_line()
-    config_spec = json.loads(open("../config/config.json").read())
-    options.port = config_spec["ADAPTER_CONFIG"]["SERVER_PORT"]    
+    current_file_path = os.path.dirname(os.path.abspath(__file__))
+    config_spec = json.loads(open(current_file_path + "/../config/config.json").read())
+    options.port = config_spec["ADAPTER_CONFIG"]["ADAPTER_PORT"]
+    create_uri = config_spec["ADAPTER_CONFIG"]["CREATE_URI"]
+    destroy_uri = config_spec["ADAPTER_CONFIG"]["DESTROY_URI"]
+    restart_uri = config_spec["ADAPTER_CONFIG"]["RESTART_URI"]
+
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapterServer: __main__() PORT=%s, CreateURI=%s, DestroyURI=%s, RestartURI=%s" % \
+                          (options.port, create_uri, destroy_uri, restart_uri))
+
     app = tornado.web.Application(
         handlers=[
-            (config_spec["ADAPTER_CONFIG"]["CREATE_URI"], CreateVMHandler),
-            (config_spec["ADAPTER_CONFIG"]["DESTROY_URI"], DestroyVMHandler),
-            (config_spec["ADAPTER_CONFIG"]["RESTART_URI"], RestartVMHandler)
+            (create_uri, CreateVMHandler),
+            (destroy_uri, DestroyVMHandler),
+            (restart_uri, RestartVMHandler)
         ],
         debug = True)
     http_server = tornado.httpserver.HTTPServer(app) 

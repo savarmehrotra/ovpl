@@ -29,30 +29,33 @@ class Controller:
                """ TODO: Undeploy , fnd proper place to invoke undeploy""" 
                self.undeploy_lab(lab_id)
             vmpoolmgr = VMPoolManager.VMPoolManager()
+            Logging.LOGGER.debug("Controller: test_lab(); invoking create_vm() on vmpoolmgr")
             lab_state = vmpoolmgr.create_vm(lab_spec)
+            Logging.LOGGER.debug("Controller: test_lab(): Returned from VMPool = %s" % (str(lab_state)))
             ip = lab_state['vm_info']['vm_ip']
             port = lab_state['vm_info']['vmm_port']
             vmmgrurl = "http://" + ip
+            Logging.LOGGER.debug("Controller: test_lab(): vmmgrurl = %s" % (vmmgrurl))
             try:
                 if LabManager.test_lab(vmmgrurl, port, lab_src_url, revision_tag):
                     self.update_state(lab_state)
-                    Logging.LOGGER.info("Controller.test_lab: test succcessful")
+                    Logging.LOGGER.info("Controller: test_lab(): test succcessful")
                     return ip
                 elif LabManager.test_lab(vmmgrurl, port, lab_src_url, revision_tag):
                     self.update_state(lab_state)
-                    Logging.LOGGER.info("Controller.test_lab: test succcessful")
+                    Logging.LOGGER.info("Controller: test_lab(): test succcessful")
                     return ip
                 else:
-                    Logging.LOGGER.error("Test failed")
+                    Logging.LOGGER.error("Controller: test_lab(); Test failed")
                     return "Test failed: See log file for errors"
             except Exception, e:
-                Logging.LOGGER.error("Test failed with error: " + str(e))
+                Logging.LOGGER.error("Controller: test_lab(); Test failed with error: " + str(e))
                 return "Test failed: See log file for errors"
                 """ TODO: Garbage collection clean up for the created VM """ 
             finally:
                 self.system.save()
         except Exception, e:
-            Logging.LOGGER.error("Test failed with error: " + str(e))
+            Logging.LOGGER.error("Controller: test_lab(): Test failed with error: " + str(e))
             return "Test failed: See log file for errors"
 
     def update_lab_spec(self, lab_spec, lab_id, lab_src_url, revision_tag):
@@ -78,7 +81,7 @@ if __name__ == '__main__':
     c = Controller()
     #print c.test_lab("ovpl01", "https://github.com/nrchandan/vlab-computer-programming")
     #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
-    print c.test_lab("cse08", "git@bitbucket.org:virtuallabs/cse08-cse08.git")
+    print c.test_lab("cse02", "git@bitbucket.org:virtuallabs/cse02-programming.git")
     #print c.test_lab("cse08", "http://10.4.14.2/cse08.git")
     #print c.test_lab("ovpl01", "https://github.com/vlead/ovpl")
     #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
