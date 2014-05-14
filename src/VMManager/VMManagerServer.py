@@ -19,7 +19,7 @@ import tornado.web
 from tornado.options import define, options
 
 import VMManager
-
+import Logging
 
 define("port", default=8089, help="run on the given port", type=int)
 
@@ -58,11 +58,15 @@ class ExecuteHandler(tornado.web.RequestHandler):
 class TestLabHandler(tornado.web.RequestHandler):
     def post(self):
         post_data = dict(urlparse.parse_qsl(self.request.body))
-        print post_data['lab_src_url']
+        Logging.LOGGER.info("VMManagerServer: TestLabHandler: post(): post_data = %s" % str(post_data))
         self.write(VMManager.test_lab(post_data['lab_src_url'], post_data.get('version', None)))
+
+    def get(self):
+        self.write("Hello World")
 
 
 if __name__ == "__main__":
+    Logging.LOGGER.info("VMManagerServer: __main()")
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[

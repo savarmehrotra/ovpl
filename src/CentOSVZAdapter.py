@@ -78,6 +78,7 @@ class InvalidVMIDException(Exception):
 
 
 def create_vm(lab_spec, vm_id=""):
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: create_vm()")
     """If no vm_id is specified, it is computed using the last two segments of
        an available IP address; vm_spec is an object """
     if vm_id == "":
@@ -88,11 +89,17 @@ def create_vm(lab_spec, vm_id=""):
     else:
         vm_id = validate_vm_id(vm_id)
     (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
+
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % \
+                          (ip_address, vm_id, vm_create_args, vm_set_args))
     try:
-        subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        subprocess.check_call(VZCTL + " start " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        subprocess.check_call(VZCTL + " set " + vm_id + vm_set_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        return init_vm(vm_id)
+        ret_code = subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        if ret_code == 0:
+            ret_code = subprocess.check_call(VZCTL + " start " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        if ret_code == 0:
+            ret_code = subprocess.check_call(VZCTL + " set " + vm_id + vm_set_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        if ret_code == 0:
+            return init_vm(vm_id)
     except subprocess.CalledProcessError, e:
         #raise e
         CENTOSVZ_LOGGER.error("Error creating VM: " + str(e))
@@ -110,27 +117,38 @@ def restart_vm(vm_id):
 start_vm = restart_vm
 
 def init_vm(vm_id):
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
     copy_vm_manager_files(vm_id)
     start_vm_manager(vm_id)
     # Return the VM's IP and port info
     response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": VM_MANAGER_PORT}
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: init_vm(): response = %s" % str(response))
     return response
 
 def copy_vm_manager_files(vm_id):
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: copy_vm_manager_files(): vm_id = %s" % vm_id)
+    current_file_path = os.path.dirname(os.path.abspath(__file__))
+    src_dir = current_file_path + VM_MANAGER_SRC_DIR
     dest_dir = "%s%s%s" % (VM_ROOT_DIR, vm_id, VM_MANAGER_DEST_DIR)
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: copy_vm_manager_files(): dest_dir = %s, src_dir = %s" % (dest_dir, src_dir))
     # Create the destination directory
     #os.makedirs(dest_dir)
     # Copy the files from source directory to dest. dir.
-    shutil.copytree(VM_MANAGER_SRC_DIR, dest_dir)
+    try:
+        shutil.copytree(src_dir, dest_dir)
+    except Exception, e:
+        CENTOSVZ_LOGGER.error("CentOSVZAdapter: copy_vm_manager_files():  dest_dir = %s, src_dir = %s, ERROR = %s" % \
+                              (dest_dir, src_dir, str(e)))
+
 
 def start_vm_manager(vm_id):
     command = VZCTL + " exec " + vm_id + " \"su - root -c \'python " + \
         VM_MANAGER_DEST_DIR + "/" + VM_MANAGER_SCRIPT + " &\'\""
-    CENTOSVZ_LOGGER.debug(command)
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: start_vm_manager(): command = %s" % command)
     try:
         subprocess.check_call(command, stdout=LOG_FD, stderr=LOG_FD, shell=True)
     except Exception, e:
-        CENTOSVZ_LOGGER.error("Error starting vm manager: " + str(e))
+        CENTOSVZ_LOGGER.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" % (cpmmand, str(e)))
         return False
 
 def get_resource_utilization():
@@ -215,7 +233,7 @@ def construct_vzctl_args(lab_specz={}):
 
 def find_available_ip():
     # not designed to be concurrent?
-    used_ips = subprocess.check_output(VZLIST, stderr=LOG_FD, shell=True)
+    #used_ips = subprocess.check_output(VZLIST, stderr=LOG_FD, shell=True)
     for subnet in SUBNET:
         ip_network = netaddr.IPNetwork(subnet)
         for ip in list(ip_network):
@@ -223,9 +241,10 @@ def find_available_ip():
                 # e.g. 192.0.2.0 or 192.0.2.255 for subnet 192.0.2.0/24
                 continue
             else:
-                ip_address = str(ip)
-                if ip_address not in used_ips:
-                    return ip_address
+                try:
+                    ret_code = subprocess.check_output(["ping", "-c", "1", str(ip)])
+                except Exception, e:
+                    return str(ip)
     # Raise an exception if no available_ip found?
 
 def find_os_template(os, os_version):
@@ -267,11 +286,10 @@ def setup_logging():
                                 LOG_FILENAME, when='midnight', backupCount=5)
 
     formatter = logging.Formatter(
-        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        '%(asctime)s - %(levelname)s : [%(filename)s:%(lineno)d] : %(message)s',
         datefmt='%Y-%m-%d %I:%M:%S %p')
     myhandler.setFormatter(formatter)
     CENTOSVZ_LOGGER.addHandler(myhandler)
-
 
 def test():
     #vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
@@ -287,8 +305,12 @@ def test():
     #destroy_vm("99102")
     #destroy_vm("99103")    
 
+def test_logging():
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: test_logging()")
+
 setup_logging()
 LOG_FD = open(LOG_FILENAME, 'a')
+
 if __name__ == "__main__":
     # Start an HTTP server and wait for invocation
     # Parse the invocation command and route to 
