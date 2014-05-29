@@ -6,6 +6,8 @@ import subprocess
 import shlex
 from exceptions import Exception
 import requests
+import time
+import math
 
 import Logging
 
@@ -124,15 +126,26 @@ def test_lab(vmmgr_ip, port, lab_src_url, version=None):
     url = '%s:%s%s' % (vmmgr_ip, port, TEST_LAB_API_URI)
     Logging.LOGGER.debug("LabManager.test_lab(): url = %s, payload = %s" % (url, str(payload)))
 
-    try:
-        response = requests.post(url=url, data=payload)
-        Logging.LOGGER.debug("LabManager.test_lab(): response = %s" % response)
-        return "Success" in response.text
-    except Exception, e:
-        Logging.LOGGER.error("LabManager.test_lab(): Error installing lab on VM: " + str(e))
-        raise Exception("Error installing lab on VM: " + str(e))
+    exception_str = ""
+    for i in (1,2,4,8,16):
+        time.sleep(i)
+        try:
+            response = requests.post(url=url, data=payload)
+            Logging.LOGGER.debug("LabManager.test_lab(): response = %s" % response)
+            return ("Success" in response.text, "Success")
+        except Exception, e:
+            exception_str = str(e)
+            attempts = {0:'first', 1:'second', 2:'third', 3:'fourth'}
+            Logging.LOGGER.error("LabManager.test_lab(): Error installing lab on VM for the %s attempt with error: %s" % \
+                                 (attempts[math.log(i)/math.log(2)], str(e)))
+    return (False, exception_str)
     
-
+if __name__ == '__main__':
+    (ret_val, ret_str) = test_lab('http://10.2.59.2', '8089', 'git@bitbucket.org:virtuallabs/cse02-programming.git')
+    if (ret_val):
+        print "Test Successful"
+    else:
+        print "Test Unsuccessful"
 
 
 
