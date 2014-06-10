@@ -116,6 +116,9 @@ def test_lab(vmmgr_ip, port, lab_src_url, version=None):
         # clone the repo in the VM
         # get the lab_spec
         # run Lab Action Runner
+    if not 'http' in vmmgr_ip:
+        raise Exception('Protocol not specified in VMManager host address!!')
+
     Logging.LOGGER.debug("LabManager.test_lab(): vmmgr_ip = %s, port = %s, lab_src_url = %s" % (vmmgr_ip, port, lab_src_url))
     payload = {"lab_src_url": lab_src_url, "version": version}
     current_file_path = os.path.dirname(os.path.abspath(__file__))
