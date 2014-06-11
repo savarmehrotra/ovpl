@@ -48,7 +48,7 @@ def execute(command):
     # do some validation
     try:
         Logging.LOGGER.info("Command executed: " + command)
-        return subprocess.check_output(command, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
+        return subprocess.check_output(command, stderr=Logging.LOG_FD, shell=True)
     except Exception, e:
         Logging.LOGGER.error("Execution failed: " + str(e))
         return "Error executing the command: " + str(e)
