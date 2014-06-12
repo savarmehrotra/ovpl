@@ -67,6 +67,7 @@ class TestLabHandler(tornado.web.RequestHandler):
 
 
 if __name__ == "__main__":
+    Logging.setup_logging()
     Logging.LOGGER.info("VMManagerServer: __main()")
     tornado.options.parse_command_line()
     app = tornado.web.Application(
