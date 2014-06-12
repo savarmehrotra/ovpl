@@ -4,7 +4,7 @@ VM_MANAGER_PORT = "8089"
 VM_MANAGER_DEST_DIR = "/root/VMManager"
 #run VMManagerServer with the default VMManager
 VM_MANAGER_SCRIPT = "VMManagerServer.py VMManager"
-VM_MANAGER_SRC_DIR = "/VMManager"
+VM_MANAGER_SRC_DIR = /"../VMManager"
 VM_ROOT_DIR = "/vz/root/"
 
 
