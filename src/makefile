@@ -1,6 +1,6 @@
 test: stop-server
 	python2 adapters/AdapterServer.py &
-	python2 VMManager/VMManagerServer.py &
+	@#python2 VMManager/VMManagerServer.py &
 	python2 ControllerServer.py &
 
 start-server:
