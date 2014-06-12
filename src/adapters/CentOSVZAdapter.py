@@ -80,7 +80,7 @@ class InvalidVMIDException(Exception):
 
 class CentOSVZAdapter:
 
-    def create_vm(lab_spec, vm_id=""):
+    def create_vm(self, lab_spec, vm_id=""):
         CENTOSVZ_LOGGER.debug("CentOSVZAdapter: create_vm()")
         """If no vm_id is specified, it is computed using the last two segments of
            an available IP address; vm_spec is an object """
