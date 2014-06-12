@@ -62,6 +62,7 @@ class TestLabHandler(tornado.web.RequestHandler):
         self.write(VMManager.test_lab(post_data['lab_src_url'], post_data.get('version', None)))
 
     def get(self):
+        Logging.LOGGER.info("VMManagerServer: TestLabHandler: get()")
         self.write("Hello World")
 
 

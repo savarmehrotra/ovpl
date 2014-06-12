@@ -87,6 +87,7 @@ def create_vm(lab_spec, vm_id=""):
         if m != None:
             vm_id = m.group(1) + m.group(2)
     else:
+        ip_address = None
         vm_id = validate_vm_id(vm_id)
     (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
 

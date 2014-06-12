@@ -37,16 +37,13 @@ class Controller:
             vmmgrurl = "http://" + ip
             Logging.LOGGER.debug("Controller: test_lab(): vmmgrurl = %s" % (vmmgrurl))
             try:
-                if LabManager.test_lab(vmmgrurl, port, lab_src_url, revision_tag):
-                    self.update_state(lab_state)
-                    Logging.LOGGER.info("Controller: test_lab(): test succcessful")
-                    return ip
-                elif LabManager.test_lab(vmmgrurl, port, lab_src_url, revision_tag):
+                (ret_val, ret_str) = LabManager.test_lab(vmmgrurl, port, lab_src_url, revision_tag)
+                if(ret_val):
                     self.update_state(lab_state)
                     Logging.LOGGER.info("Controller: test_lab(): test succcessful")
                     return ip
                 else:
-                    Logging.LOGGER.error("Controller: test_lab(); Test failed")
+                    Logging.LOGGER.error("Controller: test_lab(); Test failed with error:" + str(ret_str))
                     return "Test failed: See log file for errors"
             except Exception, e:
                 Logging.LOGGER.error("Controller: test_lab(); Test failed with error: " + str(e))
