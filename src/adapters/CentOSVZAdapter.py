@@ -43,7 +43,7 @@ import sh
 # VLEAD imports
 import VMUtils
 from dict2default import dict2default
-from settings import *
+import settings
 
 # UGLY DUCK PUNCHING: Backporting check_output from 2.7 to 2.6
 if "check_output" not in dir(subprocess):
@@ -85,7 +85,7 @@ class CentOSVZAdapter:
         """If no vm_id is specified, it is computed using the last two segments of
            an available IP address; vm_spec is an object """
         if vm_id == "":
-            ip_address = find_available_ip()
+            ip_address = VMUtils.find_available_ip()
             m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
             if m != None:
                 vm_id = m.group(1) + m.group(2)
@@ -106,14 +106,15 @@ class CentOSVZAdapter:
                 return vm_id
         except subprocess.CalledProcessError, e:
             CENTOSVZ_LOGGER.error("Error creating VM: " + str(e))
-            return -1
+            #raise e
+            return 105 
 
     def init_vm(self, vm_id):
         CENTOSVZ_LOGGER.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
         copy_vm_manager_files(vm_id)
-        start_vm_manager(vm_id)
+        self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
-        response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": VM_MANAGER_PORT}
+        response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": settings.VM_MANAGER_PORT}
         CENTOSVZ_LOGGER.debug("CentOSVZAdapter: init_vm(): response = %s" % str(response))
         return response
 
@@ -138,30 +139,15 @@ class CentOSVZAdapter:
     def start_vm(self, vm_id):
         self.restart_vm(self, vm_id) #HACK
 
-    def copy_vm_manager_files(self, vm_id):
-        CENTOSVZ_LOGGER.debug("CentOSVZAdapter: copy_vm_manager_files(): vm_id = %s" % vm_id)
-        current_file_path = os.path.dirname(os.path.abspath(__file__))
-        src_dir = current_file_path + VM_MANAGER_SRC_DIR
-        dest_dir = "%s%s%s" % (VM_ROOT_DIR, vm_id, VM_MANAGER_DEST_DIR)
-        CENTOSVZ_LOGGER.debug("CentOSVZAdapter: copy_vm_manager_files(): dest_dir = %s, src_dir = %s" % (dest_dir, src_dir))
-        # Create the destination directory
-        #os.makedirs(dest_dir)
-        # Copy the files from source directory to dest. dir.
-        try:
-            shutil.copytree(src_dir, dest_dir)
-        except Exception, e:
-            CENTOSVZ_LOGGER.error("CentOSVZAdapter: copy_vm_manager_files():  dest_dir = %s, src_dir = %s, ERROR = %s" % \
-                                  (dest_dir, src_dir, str(e)))
-
-
+    
     def start_vm_manager(self, vm_id):
-        command = VZCTL + " exec " + vm_id + " \"su - root -c \'python " + \
-            VM_MANAGER_DEST_DIR + "/" + VM_MANAGER_SCRIPT + " &\'\""
+        command = VZCTL + " exec " + str(vm_id) + " \"su - root -c \'python " + \
+            settings.VM_MANAGER_DEST_DIR + "/" + settings.VM_MANAGER_SCRIPT + " &\'\""
         CENTOSVZ_LOGGER.debug("CentOSVZAdapter: start_vm_manager(): command = %s" % command)
         try:
             subprocess.check_call(command, stdout=LOG_FD, stderr=LOG_FD, shell=True)
         except Exception, e:
-            CENTOSVZ_LOGGER.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" % (cpmmand, str(e)))
+            CENTOSVZ_LOGGER.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" % (command, str(e)))
             return False
 
     def get_resource_utilization(self):
@@ -190,6 +176,23 @@ class CentOSVZAdapter:
     def take_snapshot(self, vm_id):
         vm_id = validate_vm_id(vm_id)
         pass
+
+
+def copy_vm_manager_files(vm_id):
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: copy_vm_manager_files(): vm_id = %s" % vm_id)
+    current_file_path = os.path.dirname(os.path.abspath(__file__))
+    src_dir = current_file_path + settings.VM_MANAGER_SRC_DIR
+    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_MANAGER_DEST_DIR)
+    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: copy_vm_manager_files(): dest_dir = %s, src_dir = %s" % (dest_dir, src_dir))
+    # Create the destination directory
+    #os.makedirs(dest_dir)
+    # Copy the files from source directory to dest. dir.
+    try:
+        shutil.copytree(src_dir, dest_dir)
+    except Exception, e:
+        CENTOSVZ_LOGGER.error("CentOSVZAdapter: copy_vm_manager_files():  dest_dir = %s, src_dir = %s, ERROR = %s" % \
+                              (dest_dir, src_dir, str(e)))
+
 
 
 def get_vm_ip(vm_id):
@@ -222,8 +225,8 @@ def construct_vzctl_args(lab_specz={}):
 
     vm_spec = get_vm_spec()
     lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
-    host_name = lab_ID + "." + get_adapter_hostname()
-    ip_address = find_available_ip()
+    host_name = lab_ID + "." + settings.get_adapter_hostname()
+    ip_address = VMUtils.find_available_ip()
     os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
     (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
     (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
@@ -232,7 +235,7 @@ def construct_vzctl_args(lab_specz={}):
                      " --diskspace " + disk_soft + ":" + disk_hard + \
                      " --hostname " + host_name
     # Note to self: check ram format "0:256M" vs "256M"
-    vm_set_args = " --nameserver " + get_adapter_nameserver() + \
+    vm_set_args = " --nameserver " + settings.get_adapter_nameserver() + \
                   " --ram " + ram + \
                   " --swap " + swap + \
                   " --onboot yes" + \
@@ -268,7 +271,7 @@ def validate_vm_id(vm_id):
     vm_id = int(m.group(0))
     if vm_id <= 100:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
-    if vm_id > MAX_VM_ID:
+    if vm_id > settings.MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
 

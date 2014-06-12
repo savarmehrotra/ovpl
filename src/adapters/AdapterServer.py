@@ -35,7 +35,7 @@ class CreateVMHandler(tornado.web.RequestHandler):
         Logger.debug("post(); post_data = %s" % post_data)
 
         vm_id = AdapterInstace.create_vm(json.loads(post_data['lab_spec']))
-        Logger.debug("created VM id = " + vm_id)
+        Logger.debug("created VM id = " + str(vm_id))
         
         result = AdapterInstace.init_vm(vm_id)
 

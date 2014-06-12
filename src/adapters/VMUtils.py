@@ -88,6 +88,8 @@ def test_unit_conversion():
     assert convert_to_megs("some-nonsense") == 0
 
 
+import settings
+import netaddr
 #returns a free ip as a string for a container to bind to.
 def find_available_ip():
     #try and ping. if the IP does not respond, (gives wrong return code) return the IP as free
@@ -103,7 +105,7 @@ def find_available_ip():
             #reject IP's like  192.0.2.0 or 192.0.2.255 for subnet 192.0.2.0/24
             return not (ip == ip_network.network or ip == ip_network.broadcast)
 
-    for subnet in get_subnet():
+    for subnet in settings.get_subnet():
         ip_network = netaddr.IPNetwork(subnet)
         ip_addrs = list(ip_network)
 
@@ -111,7 +113,7 @@ def find_available_ip():
             if is_ip_usable(ip) and is_ip_free(ip):
                 return str(ip)
 
-    raise Exception("unable to find free ip in subnet ", get_subnet())
+    raise Exception("unable to find free ip in subnet ", settings.get_subnet())
     return None
 
 

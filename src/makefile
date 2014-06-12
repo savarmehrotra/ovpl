@@ -4,9 +4,9 @@ test: stop-server
 	python2 ControllerServer.py &
 
 start-server:
-	python2 ControllerServer.py &
-	python2 CentOSVZAdapterServer.py &
-
+	python2 adapters/AdapterServer.py &
+	python2 Controller.py &
+	
 stop-server:
 	-killall python2 #HACK!
 
