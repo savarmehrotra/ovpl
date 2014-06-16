@@ -7,6 +7,7 @@ __all__ = [
     ]
 
 import re
+import sh
 
 RAM = "256M"
 RAM_MAX = "2048M"
@@ -85,7 +86,6 @@ def test_unit_conversion():
     assert convert_to_megs("1024 K") == 1
     assert convert_to_megs(" 1mb  ") == 1
     assert convert_to_megs("some-nonsense") == 0
-
 
 if __name__ == '__main__':
     test()

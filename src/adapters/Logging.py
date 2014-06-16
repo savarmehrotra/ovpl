@@ -21,6 +21,6 @@ def setup_logging():
 
 if not os.path.isdir(current_dir + "/log"):
     os.mkdir(current_dir + "/log")
-LOGGER = logging.getLogger('VMManager')
+LOGGER = logging.getLogger('AdapterServer')
 setup_logging()
 LOG_FD = open(LOG_PATH, 'a')

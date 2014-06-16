@@ -1,5 +1,3 @@
-# Ignoring settings file
-settings.py
 # Defaults start from here.
 *.py[cod]
 

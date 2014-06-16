@@ -38,11 +38,13 @@ from logging.handlers import TimedRotatingFileHandler
 
 # Third party imports
 import netaddr
+import sh
 
 # VLEAD imports
 import VMUtils
 from dict2default import dict2default
-from settings import *
+import settings
+import BaseAdapter
 
 # UGLY DUCK PUNCHING: Backporting check_output from 2.7 to 2.6
 if "check_output" not in dir(subprocess):
@@ -77,106 +79,127 @@ class InvalidVMIDException(Exception):
         Exception.__init__(msg)
 
 
-def create_vm(lab_spec, vm_id=""):
-    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: create_vm()")
-    """If no vm_id is specified, it is computed using the last two segments of
-       an available IP address; vm_spec is an object """
-    if vm_id == "":
-        ip_address = find_available_ip()
-        m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
-        if m != None:
-            vm_id = m.group(1) + m.group(2)
-    else:
-        ip_address = None
+class CentOSVZAdapter(object):
+
+    def create_vm(self, lab_spec, vm_id=""):
+        CENTOSVZ_LOGGER.debug("CentOSVZAdapter: create_vm()")
+        """If no vm_id is specified, it is computed using the last two segments of
+           an available IP address; vm_spec is an object """
+        if vm_id == "":
+            ip_address = BaseAdapter.find_available_ip()
+            m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
+            if m != None:
+                vm_id = m.group(1) + m.group(2)
+        else:
+            ip_address = None
+            vm_id = validate_vm_id(vm_id)
+        (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
+
+        CENTOSVZ_LOGGER.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % \
+                              (ip_address, vm_id, vm_create_args, vm_set_args))
+        try:
+            ret_code = subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+            if ret_code == 0:
+                ret_code = subprocess.check_call(VZCTL + " start " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+            if ret_code == 0:
+                ret_code = subprocess.check_call(VZCTL + " set " + vm_id + vm_set_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+            if ret_code == 0:
+                return vm_id
+        except subprocess.CalledProcessError, e:
+            CENTOSVZ_LOGGER.error("Error creating VM: " + str(e))
+            #raise e
+            return 105 
+
+    def init_vm(self, vm_id):
+        CENTOSVZ_LOGGER.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
+        
+	success = True
+
+	success = success and  copy_vm_manager_files(vm_id)
+        success = success and self.start_vm_manager(vm_id)
+        # Return the VM's IP and port info
+        response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": settings.VM_MANAGER_PORT}
+        CENTOSVZ_LOGGER.debug("CentOSVZAdapter: init_vm(): success = %s, response = %s" % (success, response))
+        return (success, response)
+
+    def destroy_vm(self, vm_id):
         vm_id = validate_vm_id(vm_id)
-    (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
+        try:
+            subprocess.check_call(VZCTL + " stop " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+            subprocess.check_call(VZCTL + " destroy " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+            return "Success"
+        except subprocess.CalledProcessError, e:
+            CENTOSVZ_LOGGER.error("Error destroying VM: " + str(e))
+            return "Failed to destroy VM: " + str(e)
 
-    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % \
-                          (ip_address, vm_id, vm_create_args, vm_set_args))
-    try:
-        ret_code = subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        if ret_code == 0:
-            ret_code = subprocess.check_call(VZCTL + " start " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        if ret_code == 0:
-            ret_code = subprocess.check_call(VZCTL + " set " + vm_id + vm_set_args, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        if ret_code == 0:
-            return init_vm(vm_id)
-    except subprocess.CalledProcessError, e:
-        #raise e
-        CENTOSVZ_LOGGER.error("Error creating VM: " + str(e))
-        return (None, None, None)
+    def restart_vm(self, vm_id):
+        vm_id = validate_vm_id(vm_id)
+        try:
+            subprocess.check_call(VZCTL + " restart " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+        except subprocess.CalledProcessError, e:
+            raise e
+        return start_vm_manager(vm_id)
 
-def restart_vm(vm_id):
-    vm_id = validate_vm_id(vm_id)
-    try:
-        subprocess.check_call(VZCTL + " restart " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-    except subprocess.CalledProcessError, e:
-        raise e
-    return start_vm_manager(vm_id)
+    def start_vm(self, vm_id):
+        self.restart_vm(self, vm_id) #HACK
 
-# Function alias
-start_vm = restart_vm
+    
+    def start_vm_manager(self, vm_id):
+        command = VZCTL + " exec " + str(vm_id) + " \"su - root -c \'python " + \
+            settings.VM_MANAGER_DEST_DIR + "/" + settings.VM_MANAGER_SCRIPT + " &\'\""
+        CENTOSVZ_LOGGER.debug("CentOSVZAdapter: start_vm_manager(): command = %s" % command)
+        try:
+            subprocess.check_call(command, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+            return True
+	except Exception, e:
+            CENTOSVZ_LOGGER.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" % (command, str(e)))
+            return False
 
-def init_vm(vm_id):
-    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
-    copy_vm_manager_files(vm_id)
-    start_vm_manager(vm_id)
-    # Return the VM's IP and port info
-    response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": VM_MANAGER_PORT}
-    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: init_vm(): response = %s" % str(response))
-    return response
+    def get_resource_utilization(self):
+        pass
+
+    def stop_vm(self, vm_id):
+        vm_id = validate_vm_id(vm_id)
+        try:
+            subprocess.check_call(VZCTL + " stop " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
+            return "Success"
+        except subprocess.CalledProcessError, e:
+            CENTOSVZ_LOGGER.error("Error stopping VM: " + str(e))
+            return "Failed to stop VM: " + str(e)
+
+    def test_logging(self):
+        CENTOSVZ_LOGGER.debug("CentOSVZAdapter: test_logging()")
+
+    def is_running_vm(self, vm_id):
+        vm_id = validate_vm_id(vm_id)
+        pass
+
+    def migrate_vm(self, vm_id, destination):
+        vm_id = validate_vm_id(vm_id)
+        pass
+
+    def take_snapshot(self, vm_id):
+        vm_id = validate_vm_id(vm_id)
+        pass
+
 
 def copy_vm_manager_files(vm_id):
     CENTOSVZ_LOGGER.debug("CentOSVZAdapter: copy_vm_manager_files(): vm_id = %s" % vm_id)
     current_file_path = os.path.dirname(os.path.abspath(__file__))
-    src_dir = current_file_path + VM_MANAGER_SRC_DIR
-    dest_dir = "%s%s%s" % (VM_ROOT_DIR, vm_id, VM_MANAGER_DEST_DIR)
+    src_dir = current_file_path + settings.VM_MANAGER_SRC_DIR
+    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_MANAGER_DEST_DIR)
     CENTOSVZ_LOGGER.debug("CentOSVZAdapter: copy_vm_manager_files(): dest_dir = %s, src_dir = %s" % (dest_dir, src_dir))
     # Create the destination directory
     #os.makedirs(dest_dir)
     # Copy the files from source directory to dest. dir.
     try:
         shutil.copytree(src_dir, dest_dir)
+    	return True
     except Exception, e:
         CENTOSVZ_LOGGER.error("CentOSVZAdapter: copy_vm_manager_files():  dest_dir = %s, src_dir = %s, ERROR = %s" % \
                               (dest_dir, src_dir, str(e)))
+	return False
 
-
-def start_vm_manager(vm_id):
-    command = VZCTL + " exec " + vm_id + " \"su - root -c \'python " + \
-        VM_MANAGER_DEST_DIR + "/" + VM_MANAGER_SCRIPT + " &\'\""
-    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: start_vm_manager(): command = %s" % command)
-    try:
-        subprocess.check_call(command, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-    except Exception, e:
-        CENTOSVZ_LOGGER.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" % (cpmmand, str(e)))
-        return False
-
-def get_resource_utilization():
-    pass
-
-def stop_vm(vm_id):
-    vm_id = validate_vm_id(vm_id)
-    try:
-        subprocess.check_call(VZCTL + " stop " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        return "Success"
-    except subprocess.CalledProcessError, e:
-        CENTOSVZ_LOGGER.error("Error stopping VM: " + str(e))
-        return "Failed to stop VM: " + str(e)
-
-def destroy_vm(vm_id):
-    vm_id = validate_vm_id(vm_id)
-    try:
-        subprocess.check_call(VZCTL + " stop " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        subprocess.check_call(VZCTL + " destroy " + vm_id, stdout=LOG_FD, stderr=LOG_FD, shell=True)
-        return "Success"
-    except subprocess.CalledProcessError, e:
-        CENTOSVZ_LOGGER.error("Error destroying VM: " + str(e))
-        return "Failed to destroy VM: " + str(e)
-
-def is_running_vm(vm_id):
-    vm_id = validate_vm_id(vm_id)
-    pass
 
 def get_vm_ip(vm_id):
     vm_id = validate_vm_id(vm_id)
@@ -191,13 +214,6 @@ def get_vm_ip(vm_id):
     except subprocess.CalledProcessError, e:
         raise e
 
-def migrate_vm(vm_id, destination):
-    vm_id = validate_vm_id(vm_id)
-    pass
-
-def take_snapshot(vm_id):
-    vm_id = validate_vm_id(vm_id)
-    pass
 
 def construct_vzctl_args(lab_specz={}):
     """ Returns a tuple of vzctl create arguments and set arguments """
@@ -214,9 +230,9 @@ def construct_vzctl_args(lab_specz={}):
         return vm_spec
 
     vm_spec = get_vm_spec()
-    lab_ID = LAB_ID if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
-    host_name = lab_ID + "." + HOST_NAME
-    ip_address = find_available_ip()
+    lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
+    host_name = lab_ID + "." + settings.get_adapter_hostname()
+    ip_address = BaseAdapter.find_available_ip()
     os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
     (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
     (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
@@ -225,28 +241,13 @@ def construct_vzctl_args(lab_specz={}):
                      " --diskspace " + disk_soft + ":" + disk_hard + \
                      " --hostname " + host_name
     # Note to self: check ram format "0:256M" vs "256M"
-    vm_set_args = " --nameserver " + NAME_SERVER + \
+    vm_set_args = " --nameserver " + settings.get_adapter_nameserver() + \
                   " --ram " + ram + \
                   " --swap " + swap + \
                   " --onboot yes" + \
                   " --save"
     return (vm_create_args, vm_set_args)
 
-def find_available_ip():
-    # not designed to be concurrent?
-    #used_ips = subprocess.check_output(VZLIST, stderr=LOG_FD, shell=True)
-    for subnet in SUBNET:
-        ip_network = netaddr.IPNetwork(subnet)
-        for ip in list(ip_network):
-            if ip == ip_network.network or ip == ip_network.broadcast:
-                # e.g. 192.0.2.0 or 192.0.2.255 for subnet 192.0.2.0/24
-                continue
-            else:
-                try:
-                    ret_code = subprocess.check_output(["ping", "-c", "1", str(ip)])
-                except Exception, e:
-                    return str(ip)
-    # Raise an exception if no available_ip found?
 
 def find_os_template(os, os_version):
     # What to do when request comes for unavailable OS/version?
@@ -276,7 +277,7 @@ def validate_vm_id(vm_id):
     vm_id = int(m.group(0))
     if vm_id <= 100:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
-    if vm_id > MAX_VM_ID:
+    if vm_id > settings.MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
 
@@ -305,9 +306,6 @@ def test():
     #destroy_vm("99101")
     #destroy_vm("99102")
     #destroy_vm("99103")    
-
-def test_logging():
-    CENTOSVZ_LOGGER.debug("CentOSVZAdapter: test_logging()")
 
 setup_logging()
 LOG_FD = open(LOG_FILENAME, 'a')

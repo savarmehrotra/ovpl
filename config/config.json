@@ -8,14 +8,6 @@
         "GIT_CLONE_LOC":"/root/labs/lab-repo-cache/",
         "LAB_SPEC_LOC":"/scripts/labspec.json"
     },
-    
-    "ADAPTER_CONFIG": {
-        "ADAPTER_PORT":8000,
-        "CREATE_URI":"/api/1.0/vm/create",
-        "DESTROY_URI":"/api/1.0/vm/destroy",
-        "RESTART_URI":"/api/1.0/vm/restart",
-        "LOG_FILENAME":"/root/ovpl/log/centosvzadapter.log"
-    },
 
     "VMMANAGER_CONFIG": {
         "DISK_USAGE_URI":"/api/1.0/disk-usage",
@@ -31,6 +23,13 @@
         "LOG_FILENAME":"/root/VMManager/log/vmmanager.log"
     },
 
+    "API_ENDPOINTS": {
+	"__comment__":"used by vm pool manager",
+	"CREATE_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/create",
+	"DESTROY_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/destroy",
+	"RESTART_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/restart"
+    },
+    
     "VMPOOL_CONFIGURATION": {
         "VMPOOLS": [
             {
