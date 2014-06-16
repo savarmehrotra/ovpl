@@ -23,6 +23,13 @@
         "LOG_FILENAME":"/root/VMManager/log/vmmanager.log"
     },
 
+    "API_ENDPOINTS": {
+	"__comment__":"used by vm pool manager",
+	"CREATE_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/create",
+	"DESTROY_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/destroy",
+	"RESTART_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/restart"
+    },
+    
     "VMPOOL_CONFIGURATION": {
         "VMPOOLS": [
             {
@@ -49,10 +56,6 @@
                 "ADAPTERIP":"http://localhost",
                 "PORT":"8000"
             }
-        ],
-
-        "CREATE_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/create",
-        "DESTROY_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/destroy",
-        "RESTART_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/restart"
+        ]
     }
 }

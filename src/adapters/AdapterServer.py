@@ -34,10 +34,16 @@ class CreateVMHandler(tornado.web.RequestHandler):
         post_data = dict(urlparse.parse_qsl(self.request.body))
         Logger.debug("post(); post_data = %s" % post_data)
 
-        vm_id = AdapterInstace.create_vm(json.loads(post_data['lab_spec']))
+        vm_id = adapter_instance.create_vm(json.loads(post_data['lab_spec']))
         Logger.debug("created VM id = " + str(vm_id))
         
-        result = AdapterInstace.init_vm(vm_id)
+        (success, result) = adapter_instance.init_vm(vm_id)
+	
+	if not success:
+   	    self.set_status(500)
+	    Logger.debug("sucess status returned False from init_vm")
+	else:
+	   Logger.debug("success status returned True form init_vm")
 
         Logger.debug("init vm result = " + str(result))
         self.write(result)
@@ -49,7 +55,7 @@ class DestroyVMHandler(tornado.web.RequestHandler):
 
     def post(self):
         post_data = dict(urlparse.parse_qsl(self.request.body))
-        result = AdapterInstace.destroy_vm(post_data['vm_id'])
+        result = adapter_instance.destroy_vm(post_data['vm_id'])
         self.write(result)
 
 
@@ -88,11 +94,11 @@ if __name__ == "__main__":
     adapter_name = config_spec['ADAPTER_NAME']
     module = __import__(adapter_name)
     AdapterClass = getattr(module, adapter_name)
-    AdapterInstace = AdapterClass()
+    adapter_instance = AdapterClass()
     
 
     #make the Adapter log a test message
-    AdapterInstace.test_logging()
+    adapter_instance.test_logging()
 
     options.port = config_spec["ADAPTER_PORT"]
 

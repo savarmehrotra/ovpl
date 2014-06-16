@@ -21,8 +21,8 @@ class VMPoolManager:
         current_file_path = os.path.dirname(os.path.abspath(__file__))
         config_spec = json.loads(open(current_file_path + "/../config/config.json").read())
         pools = config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"]
-        create_uri = config_spec["VMPOOL_CONFIGURATION"]["CREATE_URI_ADAPTER_ENDPOINT"]
-        destroy_uri = config_spec["VMPOOL_CONFIGURATION"]["DESTROY_URI_ADAPTER_ENDPOINT"]
+        create_uri = config_spec["API_ENDPOINTS"]["CREATE_URI_ADAPTER_ENDPOINT"]
+        destroy_uri = config_spec["API_ENDPOINTS"]["DESTROY_URI_ADAPTER_ENDPOINT"]
 
         for pool in pools:
             self.add_vm_pool( pool["POOLID"], \

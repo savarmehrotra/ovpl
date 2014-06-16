@@ -4,7 +4,7 @@ class BaseAdapter:
 
 	def init_vm(vm_id):
 		raise Exception("BaseAdapter: unimplemented init_()")
-
+		return (False, "unimplemented") #success status, response string
 
 
 import settings
