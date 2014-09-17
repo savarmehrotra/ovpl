@@ -35,7 +35,7 @@ class EnvSetUp:
 
         
     def create_no_proxy_string(self):
-        from src.adapters import settings
+        import settings
         
         for subnet in settings.get_subnet():
             ip_network = netaddr.IPNetwork(subnet)

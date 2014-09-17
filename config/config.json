@@ -1,8 +1,8 @@
 {
 
     "ENVIRONMENT": {
-        "HTTP_PROXY":"",
-        "HTTPS_PROXY":""
+        "HTTP_PROXY":"proxy.iiit.ac.in:8080",
+        "HTTPS_PROXY":"proxy.iiit.ac.in:8080"
     },
     
     "CONTROLLER_CONFIG": {
