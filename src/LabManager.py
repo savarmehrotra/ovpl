@@ -10,6 +10,7 @@ import time
 import math
 
 import Logging
+from envsetup import EnvSetUp
 
 #GIT_CLONE_LOC = "./lab-repo-cache/"
 #LAB_SPEC_LOC = "/scripts/labspec.json"
@@ -20,7 +21,7 @@ class LabSpecInvalid(Exception):
         Exception(self, msg)
 
 def get_lab_reqs(lab_id, lab_src_url, version=None):
-
+    e = EnvSetUp()	
     Logging.LOGGER.debug("LabManager: get_lab_reqs():  Invoked from Controller")
     current_file_path = os.path.dirname(os.path.abspath(__file__))
     config_spec = json.loads(open(current_file_path + "/../config/config.json").read())
@@ -120,6 +121,7 @@ def test_lab(vmmgr_ip, port, lab_src_url, version=None):
         # run Lab Action Runner
     if not 'http' in vmmgr_ip:
         raise Exception('Protocol not specified in VMManager host address!!')
+    e = EnvSetUp()
 
     Logging.LOGGER.debug("LabManager.test_lab(): vmmgr_ip = %s, port = %s, lab_src_url = %s" % (vmmgr_ip, port, lab_src_url))
     payload = {"lab_src_url": lab_src_url, "version": version}
