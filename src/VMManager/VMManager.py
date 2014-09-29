@@ -81,7 +81,10 @@ def test_lab(lab_src_url, version=None):
     # get the appropriate the actions from lab_spec.json
     # run LabAction Runner
         # instantiate the object
-
+    from envsetup import EnvSetUp
+    e = EnvSetUp()
+    Logging.LOGGER.info("Environment http_proxy = %s" % os.environ["http_proxy"])
+    Logging.LOGGER.info("Environment https_proxy = %s" % os.environ["https_proxy"])
     def get_build_steps_spec(lab_spec):
         return {"build_steps": lab_spec['lab']['build_requirements']['platform']['build_steps']}
 
@@ -174,6 +177,6 @@ def test_lab(lab_src_url, version=None):
 
 
 if __name__ == "__main__":
-    test_lab("https://github.com/nrchandan/vlab-computer-programming")
+    test_lab("https://travula@bitbucket.org/virtual-labs/cse02-programming.git")
     print cpu_load()
     print mem_usage()

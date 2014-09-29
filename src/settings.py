@@ -15,7 +15,7 @@ MAX_VM_ID = 2147483644      # 32-bit; exact value based on trial-and-error
 
 
 def get_subnet():
-	SUBNET = ["10.2.56.12/28"]
+	SUBNET = ["10.2.58.12/28"]
 
 	assert isinstance(SUBNET, list)
 	return SUBNET
