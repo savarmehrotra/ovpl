@@ -85,6 +85,21 @@ def test_lab(lab_src_url, version=None):
     e = EnvSetUp()
     Logging.LOGGER.info("Environment http_proxy = %s" % os.environ["http_proxy"])
     Logging.LOGGER.info("Environment https_proxy = %s" % os.environ["https_proxy"])
+
+    def fill_aptconf():
+
+        try:
+            http_proxy = os.environ["http_proxy"]
+            https_proxy = os.environ["https_proxy"]
+            http_cmd = r'echo "Acquire::http::Proxy \"%s\";"%s'%(http_proxy, '>>/etc/apt/apt.conf')
+            https_cmd = r'echo "Acquire::https::Proxy \"%s\";"%s'%(https_proxy, '>>/etc/apt/apt.conf')
+            subprocess.check_call(http_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
+            subprocess.check_call(https_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
+        except Exception, e:
+            Logging.LOGGER.error("Writing to /etc/apt/apt.conf failed with error: %s" % (str(e)))
+            raise e
+
+        
     def get_build_steps_spec(lab_spec):
         return {"build_steps": lab_spec['lab']['build_requirements']['platform']['build_steps']}
 
@@ -147,6 +162,7 @@ def test_lab(lab_src_url, version=None):
             raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
 
     Logging.LOGGER.info("Starting test_lab")
+    fill_aptconf()
     repo_name = construct_repo_name()
     if repo_exists(repo_name):
         pull_repo(repo_name)

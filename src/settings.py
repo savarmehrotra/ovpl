@@ -46,7 +46,7 @@ def get_test_os_version():
 
 def get_adapter_nameserver():
 	# Required by CentOSVZAdapter.py
-	NAME_SERVER = "10.4.3.222"
+	NAME_SERVER = "inherit"
 
 	return NAME_SERVER
 

@@ -1,8 +1,8 @@
 {
 
     "ENVIRONMENT": {
-        "HTTP_PROXY":"proxy.vlabs.ac.in:8080",
-        "HTTPS_PROXY":"proxy.vlabs.ac.in:8080"
+        "HTTP_PROXY":"http://proxy.iiit.ac.in:8080",
+        "HTTPS_PROXY":"http://proxy.iiit.ac.in:8080"
     },
     
     "CONTROLLER_CONFIG": {

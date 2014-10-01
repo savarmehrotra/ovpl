@@ -35,12 +35,15 @@ class LabActionScript:
         self._state = LabActionScript.ACTION_EMPTY
 
     def run(self):
+        from envsetup import EnvSetUp
+        e = EnvSetUp()
         """Runs a command. Waits for the command to finish."""
         if len(self._cmd) == 0:
             Logging.LOGGER.error("LabActionScript::run() - No command to run")
             raise EmptyLabActionError("No command to run")
         try:
         	#self._cmd[0] = os.path.join(self._path_prefix, self._cmd[0])
+            Logging.LOGGER.debug("LabActionScript::run() - " + os.environ["http_proxy"])
             Logging.LOGGER.debug("LabActionScript::run() - " + self._cmd)
             subprocess.check_call(self._cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
             self._state = LabActionScript.ACTION_COMPLETED
