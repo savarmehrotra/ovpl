@@ -53,7 +53,7 @@ if __name__ == "__main__":
 # " " this folder for javascript, css .. files if any	
         static_path=os.path.join(os.path.dirname(__file__), "static"),
         debug = True)
-# here we need to pass tornado's application to the  httpserver instance
+# here we need to pass tornado's Application class instance to the  httpserver instance
     http_server = tornado.httpserver.HTTPServer(app) 
     current_file_path = os.path.dirname(os.path.abspath(__file__))
 # it will read port form .json file
