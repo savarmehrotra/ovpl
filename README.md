@@ -2,12 +2,22 @@ ovpl
 ====
 
 
-1. Edit the file ovpl/config/config.json to set the proxies
+1. Edit the file ovpl/config/config.json and 
+                 ovpl/src/VMManager/config.json 
+   to set the proxies. 
 
     "ENVIRONMENT": {
-        "HTTP_PROXY":"proxy.vlabs.ac.in:8080",
-        "HTTPS_PROXY":"proxy.vlabs.ac.in:8080"
+        "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
+        "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
     },
+
+   if no proxies are used, 
+    
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
+    },
+
 
 2. Do the same with the file ovpl/src/VMManager/config.json
 
