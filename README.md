@@ -27,6 +27,7 @@ ovpl
     SUBNET = ["10.2.58.12/28"]
 
 3. Run as a root.
+
 ```
 python ovpl/src/http_logging/http_logging_server.py &
 ```
@@ -40,11 +41,12 @@ python2 ovpl/src/adapters/AdapterServer.py &
 Make sure you run them seperately and do not invoke `make`
 
 4. View the logs at /root/logs/ovpl.log by
+
 ```
 tail -f /root/logs/ovpl.log
 ```
 
-6. Open the location `http://localhost:8080` from the browser and
+5. Open the location `http://localhost:8080` from the browser and
    provide the lab id and lab sources url.
 
 
