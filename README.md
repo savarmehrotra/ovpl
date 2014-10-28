@@ -20,7 +20,7 @@ ovpl
 ```
 
 
-2. Edit the file ovpl/src/settings.py to set the 
+2. Edit the file ovpl/src/adapters/settings.py to set the 
    SUBNET field to match with the subnet of your base machine
 
     If the ip address of your base machine is 10.2.58.XXX, 
