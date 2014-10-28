@@ -16,11 +16,12 @@ import os
 import subprocess
 import shlex
 import json
-import Logging
+import __init__
+from http_logging.http_logger import logger
 
 from LabActionRunner import LabActionRunner
 
-GIT_CLONE_LOC = "/root/VMManager/lab-repo-cache/"
+GIT_CLONE_LOC = "/root/"
 LAB_SPEC_LOC = "/scripts/labspec.json"
 
 class LabSpecInvalid(Exception):
@@ -47,30 +48,30 @@ if "check_output" not in dir(subprocess):
 def execute(command):
     # do some validation
     try:
-        Logging.LOGGER.info("Command executed: " + command)
-        return subprocess.check_output(command, stderr=Logging.LOG_FD, shell=True)
+        logger.info("Command executed: " + command)
+        return subprocess.check_output(command, shell=True)
     except Exception, e:
-        Logging.LOGGER.error("Execution failed: " + str(e))
+        logger.error("Execution failed: " + str(e))
         return "Error executing the command: " + str(e)
 
 def running_time():
-    Logging.LOGGER.info("Command executed: uptime")
+    logger.info("Command executed: uptime")
     return execute("uptime")
 
 def mem_usage():
-    Logging.LOGGER.info("Command executed: free -mg")
+    logger.info("Command executed: free -mg")
     return execute("free -mg")
 
 def disk_usage():
-    Logging.LOGGER.info("Command executed: df -h")
+    logger.info("Command executed: df -h")
     return execute("df -h")
 
 def running_processes():
-    Logging.LOGGER.info("Command executed: ps -e -o command")
+    logger.info("Command executed: ps -e -o command")
     return execute("ps -e -o command")
 
 def cpu_load():
-    Logging.LOGGER.info("Command executed: ps -e -o pcpu")
+    logger.info("Command executed: ps -e -o pcpu")
     return execute("ps -e -o pcpu | awk '{s+=$1} END {print s\"%\"}'")
 
 def test_lab(lab_src_url, version=None):
@@ -83,8 +84,8 @@ def test_lab(lab_src_url, version=None):
         # instantiate the object
     from envsetup import EnvSetUp
     e = EnvSetUp()
-    Logging.LOGGER.info("Environment http_proxy = %s" % os.environ["http_proxy"])
-    Logging.LOGGER.info("Environment https_proxy = %s" % os.environ["https_proxy"])
+    logger.info("Environment http_proxy = %s" % os.environ["http_proxy"])
+    logger.info("Environment https_proxy = %s" % os.environ["https_proxy"])
 
     def fill_aptconf():
 
@@ -93,10 +94,10 @@ def test_lab(lab_src_url, version=None):
             https_proxy = os.environ["https_proxy"]
             http_cmd = r'echo "Acquire::http::Proxy \"%s\";"%s'%(http_proxy, '>>/etc/apt/apt.conf')
             https_cmd = r'echo "Acquire::https::Proxy \"%s\";"%s'%(https_proxy, '>>/etc/apt/apt.conf')
-            subprocess.check_call(http_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
-            subprocess.check_call(https_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
+            subprocess.check_call(http_cmd, shell=True)
+            subprocess.check_call(https_cmd, shell=True)
         except Exception, e:
-            Logging.LOGGER.error("Writing to /etc/apt/apt.conf failed with error: %s" % (str(e)))
+            logger.error("Writing to /etc/apt/apt.conf failed with error: %s" % (str(e)))
             raise e
 
         
@@ -112,9 +113,11 @@ def test_lab(lab_src_url, version=None):
     def get_runtime_actions_steps(lab_spec):
         return lab_spec['lab']['runtime_requirements']['platform']['lab_actions']
 
-    def construct_repo_name():
+    def construct_repo_name(lab_id, lab_src_url):
+        logger.debug("lab_src_url: %s" % lab_src_url)
         repo = lab_src_url.split('/')[-1]
-        repo_name = repo[:-4] if repo[-4:] == ".git" else repo
+        repo_name = lab_id + (repo[:-4] if repo[-4:] == ".git" else repo)
+        logger.debug("repo_name: %s" % repo_name)
         return repo_name
 
     def repo_exists(repo_name):
@@ -122,20 +125,20 @@ def test_lab(lab_src_url, version=None):
 
     def clone_repo(repo_name):
         clone_cmd = "git clone %s %s%s" % (lab_src_url, GIT_CLONE_LOC,repo_name)
-        Logging.LOGGER.debug(clone_cmd)
+        logger.debug(clone_cmd)
         try:
-            subprocess.check_call(clone_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
+            subprocess.check_call(clone_cmd, shell=True)
         except Exception, e:
-            Logging.LOGGER.error("git clone failed for repo %s: %s" % (repo_name, str(e)))
+            logger.error("git clone failed for repo %s: %s" % (repo_name, str(e)))
             raise e
 
     def pull_repo(repo_name):
         pull_cmd = "git --git-dir=%s/.git pull" % (GIT_CLONE_LOC + repo_name)
-        Logging.LOGGER.debug(pull_cmd)
+        logger.debug(pull_cmd)
         try:
-            subprocess.check_call(pull_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD, shell=True)
+            subprocess.check_call(pull_cmd, shell=True)
         except Exception, e:
-            Logging.LOGGER.error("git pull failed for repo %s: %s" % (repo_name, str(e)))
+            logger.error("git pull failed for repo %s: %s" % (repo_name, str(e)))
             raise e
 
     def checkout_version(repo_name):
@@ -143,27 +146,28 @@ def test_lab(lab_src_url, version=None):
             try:
                 checkout_cmd = shlex.split("git --git-dir=%s checkout %s" \
                                     % ((GIT_CLONE_LOC + repo_name), version))
-                Logging.LOGGER.debug(checkout_cmd)
-                subprocess.check_call(checkout_cmd, stdout=Logging.LOG_FD, stderr=Logging.LOG_FD)
+                logger.debug(checkout_cmd)
+                subprocess.check_call(checkout_cmd, shell=True)
             except Exception, e:
-                Logging.LOGGER.error("git checkout failed for repo %s tag %s: %s" \
+                logger.error("git checkout failed for repo %s tag %s: %s" \
                                     % (repo_name, version, str(e)))
                 raise e
 
     def get_lab_spec(repo_name):
         repo_path = GIT_CLONE_LOC + repo_name + LAB_SPEC_LOC
         if not os.path.exists(repo_path):
-            Logging.LOGGER.error("Lab spec file not found")
+            logger.error("Lab spec file not found")
             raise LabSpecInvalid("Lab spec file not found")
         try:
             return json.loads(open(repo_path).read())
         except Exception, e:
-            Logging.LOGGER.error("Lab spec JSON invalid: " + str(e))
+            logger.error("Lab spec JSON invalid: " + str(e))
             raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
 
-    Logging.LOGGER.info("Starting test_lab")
+    logger.info("Starting test_lab")
     fill_aptconf()
-    repo_name = construct_repo_name()
+    repo_name = construct_repo_name("cse02", lab_src_url)
+    logger.debug("repo name = %s" % repo_name)
     if repo_exists(repo_name):
         pull_repo(repo_name)
     else:
@@ -172,7 +176,11 @@ def test_lab(lab_src_url, version=None):
 
     lab_spec = get_lab_spec(repo_name)
     try:
-        os.chdir(GIT_CLONE_LOC+repo_name+"/scripts")
+        dir_path = GIT_CLONE_LOC+repo_name+"/scripts"
+        os.chdir(dir_path)
+        logger.debug("Changed to Diretory: %s" % dir_path)
+        logger.debug("CWD: %s" % str(os.getcwd()))
+
         lar = LabActionRunner(get_build_installer_steps_spec(lab_spec))
         lar.run_install_source()
 
@@ -185,14 +193,14 @@ def test_lab(lab_src_url, version=None):
         lar = LabActionRunner(get_runtime_actions_steps(lab_spec))
         lar.run_init_lab()
         lar.run_start_lab()
-        Logging.LOGGER.info("Finishing test_lab: Success")
+        logger.info("Finishing test_lab: Success")
         return "Success"
     except Exception, e:
-        Logging.LOGGER.error("VMManager.test_lab failed: " + str(e))
+        logger.error("VMManager.test_lab failed: " + str(e))
         return "Test lab failed"
 
 
 if __name__ == "__main__":
-    test_lab("https://travula@bitbucket.org/virtual-labs/cse02-programming.git")
+    test_lab("https://bitbucket.org/virtual-labs/cse02-programming.git")
     print cpu_load()
     print mem_usage()

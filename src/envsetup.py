@@ -2,7 +2,7 @@ import os
 import sys
 import netaddr
 import json
-
+from adapters.settings import get_subnet
 
 class EnvSetUp:
 
@@ -19,7 +19,6 @@ class EnvSetUp:
         self.create_no_proxy_string()
         self.get_proxy_values()
         self.set_environment()
-
         
     def set_ovpl_directory_path(self):
         # The assumption here is that this script is in the src directory
@@ -35,9 +34,9 @@ class EnvSetUp:
 
         
     def create_no_proxy_string(self):
-        import settings
         
-        for subnet in settings.get_subnet():
+        
+        for subnet in get_subnet():
             ip_network = netaddr.IPNetwork(subnet)
             ip_addrs = list(ip_network)
 
@@ -45,7 +44,7 @@ class EnvSetUp:
             self.no_proxy += ip.__str__()
             self.no_proxy += ","
 
-        self.no_proxy += "localhost"
+        self.no_proxy += "localhost,10.2.58.129"
 
 
     def get_proxy_values(self):

@@ -1,21 +1,17 @@
+OVPL_SRC_DIR = "/../../../ovpl" #above ovpl directory 
+VM_ROOT_DIR = "/vz/root/"
+VM_DEST_DIR = "/root/"
+VMMANAGERSERVER_PATH="/root/ovpl/src/VMManager/"
 
-
-VM_MANAGER_PORT = "8089"
-VM_MANAGER_DEST_DIR = "/root/VMManager"
+VM_MANAGER_PORT = "9089"
 #run VMManagerServer with the default VMManager
 VM_MANAGER_SCRIPT = "VMManagerServer.py VMManager"
-VM_MANAGER_SRC_DIR = "/../VMManager"
-VM_ROOT_DIR = "/vz/root/"
-
-
 
 MAX_VM_ID = 2147483644      # 32-bit; exact value based on trial-and-error
 
 
-
-
 def get_subnet():
-	SUBNET = ["10.2.58.12/28"]
+	SUBNET = ["10.2.58.128/28"]
 
 	assert isinstance(SUBNET, list)
 	return SUBNET
