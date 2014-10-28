@@ -19,24 +19,25 @@ ovpl
     },
 
 
-2. Do the same with the file ovpl/src/VMManager/config.json
-
-3. Edit the file ovpl/src/settings.py to set the 
+2. Edit the file ovpl/src/settings.py to set the 
    SUBNET field to match with the subnet of your base machine
 
     If the ip address of your base machine is 10.2.58.XXX, 
     SUBNET = ["10.2.58.12/28"]
 
-4. Do the same with the file ovpl/src/adapters/settings.py
+3. Run as a root.
+`python ovpl/src/http_logging/http_logging_server.py &`
+`python2 ovpl/src/ControllerServer.py & `
+`python2 ovpl/src/adapters/AdapterServer.py &`
 
-5. change to source directory (ovpl/src ) and run make.
-   % make
+Make sure you run them seperately and do not invoke `make`
+
+4. View the logs at /root/logs/ovpl.log by
+`tail -f /root/logs/ovpl.log`
 
 6. Open the location http://localhost:8080 from the browser and
    provide the lab id and lab sources url.
 
-7. You can check the logs at ovpl/log/ovpl.log, and ovpl/log/centosadapter.log on the base machine.
-   The log on the container will be at /root/VMManager/log/vmmanager.log
 
 Steps to manually create a container
 ====
