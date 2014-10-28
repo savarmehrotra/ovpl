@@ -43,5 +43,3 @@ Steps to manually create a container
 1. vzctl create 101 --ostemplate ubuntu-12.04-custom-x86_64 --ipadd 10.2.58.3 --diskspace 10G:15.0G --hostname cse02.vlabs.ac.in
 2. vzctl start 101
 3. vzctl set 101 --nameserver inherit --ram 256M --swap 512M --onboot yes --save
-
-
