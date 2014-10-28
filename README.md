@@ -5,18 +5,19 @@ ovpl
 1. Edit the file ovpl/config/config.json and 
                  ovpl/src/VMManager/config.json 
    to set the proxies. 
-
+```
     "ENVIRONMENT": {
         "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
         "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
     },
-
+```
    if no proxies are used, 
-    
+```
     "ENVIRONMENT": {
         "HTTP_PROXY":"",
         "HTTPS_PROXY":""
     },
+```
 
 
 2. Edit the file ovpl/src/settings.py to set the 
@@ -26,16 +27,24 @@ ovpl
     SUBNET = ["10.2.58.12/28"]
 
 3. Run as a root.
-`python ovpl/src/http_logging/http_logging_server.py &`
-`python2 ovpl/src/ControllerServer.py & `
-`python2 ovpl/src/adapters/AdapterServer.py &`
+```
+python ovpl/src/http_logging/http_logging_server.py &
+```
+```
+python2 ovpl/src/ControllerServer.py &
+```
+```
+python2 ovpl/src/adapters/AdapterServer.py &
+```
 
 Make sure you run them seperately and do not invoke `make`
 
 4. View the logs at /root/logs/ovpl.log by
-`tail -f /root/logs/ovpl.log`
+```
+tail -f /root/logs/ovpl.log
+```
 
-6. Open the location http://localhost:8080 from the browser and
+6. Open the location `http://localhost:8080` from the browser and
    provide the lab id and lab sources url.
 
 
