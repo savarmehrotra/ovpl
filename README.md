@@ -2,7 +2,7 @@ ovpl
 ====
 
 
-1. Edit the file ovpl/config/config.json and 
+Edit the file ovpl/config/config.json and 
                  ovpl/src/VMManager/config.json 
    to set the proxies. 
 ```
@@ -20,13 +20,13 @@ ovpl
 ```
 
 
-2. Edit the file ovpl/src/adapters/settings.py to set the 
+Edit the file ovpl/src/adapters/settings.py to set the 
    SUBNET field to match with the subnet of your base machine
 
     If the ip address of your base machine is 10.2.58.XXX, 
     SUBNET = ["10.2.58.12/28"]
 
-3. Run as a root.
+Run as a root. Ensure no make is run.
 
 ```
 python ovpl/src/http_logging/http_logging_server.py &
@@ -38,15 +38,13 @@ python2 ovpl/src/ControllerServer.py &
 python2 ovpl/src/adapters/AdapterServer.py &
 ```
 
-Make sure you run them seperately and do not invoke `make`
-
-4. View the logs at /root/logs/ovpl.log by
+View the logs at /root/logs/ovpl.log by
 
 ```
 tail -f /root/logs/ovpl.log
 ```
 
-5. Open the location `http://localhost:8080` from the browser and
+Open the location `http://localhost:8080` from the browser and
    provide the lab id and lab sources url.
 
 
