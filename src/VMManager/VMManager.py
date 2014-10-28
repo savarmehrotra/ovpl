@@ -13,37 +13,11 @@
 # to do : handle exceptions
 
 import os
-import subprocess
-import shlex
 import json
 import __init__
 from http_logging.http_logger import logger
-
 from LabActionRunner import LabActionRunner
-
-GIT_CLONE_LOC = "/root/"
-LAB_SPEC_LOC = "/scripts/labspec.json"
-
-class LabSpecInvalid(Exception):
-    def __init__(self, msg):
-        Exception(self, msg)
-
-
-# Backporting check_output from 2.7 to 2.6
-if "check_output" not in dir(subprocess):
-    def f(*popenargs, **kwargs):
-        if 'stdout' in kwargs:
-            raise ValueError('stdout argument not allowed, it will be overridden.')
-        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-        output, unused_err = process.communicate()
-        retcode = process.poll()
-        if retcode:
-            cmd = kwargs.get("args")
-            if cmd is None:
-                cmd = popenargs[0]
-            raise subprocess.CalledProcessError(retcode, cmd)
-        return output
-    subprocess.check_output = f
+from utils.git_commands import *
 
 def execute(command):
     # do some validation
@@ -113,72 +87,23 @@ def test_lab(lab_src_url, version=None):
     def get_runtime_actions_steps(lab_spec):
         return lab_spec['lab']['runtime_requirements']['platform']['lab_actions']
 
-    def construct_repo_name(lab_id, lab_src_url):
-        logger.debug("lab_src_url: %s" % lab_src_url)
-        repo = lab_src_url.split('/')[-1]
-        repo_name = lab_id + (repo[:-4] if repo[-4:] == ".git" else repo)
-        logger.debug("repo_name: %s" % repo_name)
-        return repo_name
-
-    def repo_exists(repo_name):
-        return os.path.isdir(GIT_CLONE_LOC+repo_name)
-
-    def clone_repo(repo_name):
-        clone_cmd = "git clone %s %s%s" % (lab_src_url, GIT_CLONE_LOC,repo_name)
-        logger.debug(clone_cmd)
-        try:
-            subprocess.check_call(clone_cmd, shell=True)
-        except Exception, e:
-            logger.error("git clone failed for repo %s: %s" % (repo_name, str(e)))
-            raise e
-
-    def pull_repo(repo_name):
-        pull_cmd = "git --git-dir=%s/.git pull" % (GIT_CLONE_LOC + repo_name)
-        logger.debug(pull_cmd)
-        try:
-            subprocess.check_call(pull_cmd, shell=True)
-        except Exception, e:
-            logger.error("git pull failed for repo %s: %s" % (repo_name, str(e)))
-            raise e
-
-    def checkout_version(repo_name):
-        if version:
-            try:
-                checkout_cmd = shlex.split("git --git-dir=%s checkout %s" \
-                                    % ((GIT_CLONE_LOC + repo_name), version))
-                logger.debug(checkout_cmd)
-                subprocess.check_call(checkout_cmd, shell=True)
-            except Exception, e:
-                logger.error("git checkout failed for repo %s tag %s: %s" \
-                                    % (repo_name, version, str(e)))
-                raise e
-
-    def get_lab_spec(repo_name):
-        repo_path = GIT_CLONE_LOC + repo_name + LAB_SPEC_LOC
-        if not os.path.exists(repo_path):
-            logger.error("Lab spec file not found")
-            raise LabSpecInvalid("Lab spec file not found")
-        try:
-            return json.loads(open(repo_path).read())
-        except Exception, e:
-            logger.error("Lab spec JSON invalid: " + str(e))
-            raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
-
     logger.info("Starting test_lab")
     fill_aptconf()
-    repo_name = construct_repo_name("cse02", lab_src_url)
-    logger.debug("repo name = %s" % repo_name)
+    repo_name = construct_repo_name(lab_src_url)
+
     if repo_exists(repo_name):
         pull_repo(repo_name)
     else:
-        clone_repo(repo_name)
+        clone_repo(lab_src_url, repo_name)
+        
     checkout_version(repo_name)
-
     lab_spec = get_lab_spec(repo_name)
+    
     try:
-        dir_path = GIT_CLONE_LOC+repo_name+"/scripts"
-        os.chdir(dir_path)
-        logger.debug("Changed to Diretory: %s" % dir_path)
+        spec_path = get_spec_path(repo_name)
+        logger.debug("spec_path: %s" % spec_path)
+        os.chdir(spec_path)
+        logger.debug("Changed to Diretory: %s" % spec_path)
         logger.debug("CWD: %s" % str(os.getcwd()))
 
         lar = LabActionRunner(get_build_installer_steps_spec(lab_spec))

@@ -1,6 +1,4 @@
-
 {
-
     "ENVIRONMENT": {
         "HTTP_PROXY":"http://proxy.iiit.ac.in:8080",
         "HTTPS_PROXY":"https://proxy.iiit.ac.in:8080"
@@ -12,8 +10,9 @@
     },
 
     "LABMANAGER_CONFIG": {
-        "GIT_CLONE_LOC":"/root/labs/lab-repo-cache/",
-        "LAB_SPEC_LOC":"/scripts/labspec.json"
+        "GIT_CLONE_LOC":"/root/labs/",
+        "LAB_SPEC_DIR":"/scripts/",
+        "LAB_SPEC_FILE":"labspec.json"
     },
 
     "VMMANAGER_CONFIG": {
@@ -73,7 +72,7 @@
             "SERVER_IP": "10.2.58.128",
             "SERVER_PORT": "8239",
             "URI_ENDPOINT": "/log/",
-            "FILE_PATH": "/logs/"
+            "FILE_PATH": "/root/logs/"
         }
     }
 }

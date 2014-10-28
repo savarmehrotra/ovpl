@@ -22,7 +22,7 @@ class Controller:
         logger.debug("Controller.test_lab() for lab ID %s and git url %s" \
                             % (lab_id, lab_src_url))
         try:
-            lab_spec = LabManager.get_lab_reqs(lab_id, lab_src_url, revision_tag)
+            lab_spec = LabManager.get_lab_reqs(lab_src_url, revision_tag)
             self.update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
             if lab_spec['lab']['runtime_requirements']['hosting'] == 'dedicated':
                """ TODO: Undeploy , fnd proper place to invoke undeploy""" 

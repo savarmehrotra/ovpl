@@ -8,7 +8,8 @@ import os
 used_loggers = {}
 current_file_path = os.path.dirname(os.path.abspath(__file__))
 config_spec       = json.loads(open(current_file_path + "/../../config/config.json").read())
-FILE_PATH = current_file_path + config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["FILE_PATH"]
+#FILE_PATH = current_file_path + config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["FILE_PATH"]
+FILE_PATH = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["FILE_PATH"]
 
 if not os.path.isdir(FILE_PATH):
     os.mkdir(FILE_PATH)
@@ -21,7 +22,6 @@ def get_logger(name):
     else:
         logger = logging.getLogger(name)
         used_loggers[name] = logger
-        global FILE_PATH
         LOG_FILE_PATH = FILE_PATH + str(name) + '.log'
         print LOG_FILE_PATH
         timed_handler = logging.handlers.TimedRotatingFileHandler(
