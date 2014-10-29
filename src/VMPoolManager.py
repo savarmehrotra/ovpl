@@ -2,13 +2,13 @@
 VMPoolManager manages a set of VMPools i.e. maintain a list of available VMPools
 and decide which VMPool to use for creating a VM.
 """
+import json
+import os.path
 
 import VMPool
 from http_logging.http_logger import logger
-import json
-import os.path
 from State import State
-
+from utils.envsetup import EnvSetUp
 
 class VMPoolManager:
 
@@ -18,8 +18,8 @@ class VMPoolManager:
         self.system = State.Instance()
         
         self.VMPools = []
-        current_file_path = os.path.dirname(os.path.abspath(__file__))
-        config_spec = json.loads(open(current_file_path + "/../config/config.json").read())
+        e = EnvSetUp()
+        config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
         pools = config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"]
         create_uri = config_spec["API_ENDPOINTS"]["CREATE_URI_ADAPTER_ENDPOINT"]
         destroy_uri = config_spec["API_ENDPOINTS"]["DESTROY_URI_ADAPTER_ENDPOINT"]

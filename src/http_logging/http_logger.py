@@ -4,11 +4,11 @@ import logging
 from logging.handlers import HTTPHandler
 import json
 import __init__
-from envsetup import EnvSetUp
-def __create_logger(name):
+from utils.envsetup import EnvSetUp
 
-    current_file_path = os.path.dirname(os.path.abspath(__file__))
-    config_spec       = json.loads(open(current_file_path + "/../../config/config.json").read())
+def __create_logger(name):
+    e = EnvSetUp()
+    config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
     logserver_ip   = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["SERVER_IP"]
     logserver_port = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["SERVER_PORT"]
     logserver_uri  = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["URI_ENDPOINT"]
@@ -17,7 +17,7 @@ def __create_logger(name):
     logger.setLevel(log_level)
 
     if logger.handlers == []:
-        server = logserver_ip + ":" + logserver_port
+        server = logserver_ip + ":" + str(logserver_port)
         print server
         http_handler = HTTPHandler(host=server, url=logserver_uri, method="POST")
         logger.addHandler(http_handler)
@@ -29,7 +29,7 @@ logger = __create_logger("ovpl")
                 
 if __name__ == '__main__':
     import __init__
-    from envsetup import EnvSetUp
+    from utils.envsetup import EnvSetUp
     e = EnvSetUp()
     logger.debug("Hello World")
     GIT_CLONE_LOC = "/home/travula/"

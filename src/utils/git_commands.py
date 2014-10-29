@@ -3,7 +3,7 @@ import subprocess
 import json
 import __init__
 from http_logging.http_logger import logger
-from envsetup import EnvSetUp
+from utils.envsetup import EnvSetUp
 
 # Backporting check_output from 2.7 to 2.6
 if "check_output" not in dir(subprocess):
@@ -21,16 +21,14 @@ if "check_output" not in dir(subprocess):
         return output
     subprocess.check_output = f
 
-current_file_path = os.path.dirname(os.path.abspath(__file__))
-config_spec = json.loads(open(current_file_path + "/../../config/config.json").read())
+e = EnvSetUp()
+config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
 GIT_CLONE_LOC =  config_spec["LABMANAGER_CONFIG"]["GIT_CLONE_LOC"]
 LAB_SPEC_DIR =  config_spec["LABMANAGER_CONFIG"]["LAB_SPEC_DIR"]
 LAB_SPEC_FILE =  config_spec["LABMANAGER_CONFIG"]["LAB_SPEC_FILE"]
 logger.debug("GIT_CLONE_LOC = %s" % str(GIT_CLONE_LOC))
 logger.debug("LAB_SPEC_DIR = %s" % str(LAB_SPEC_DIR))
 logger.debug("LAB_SPEC_FILE = %s" % str(LAB_SPEC_FILE))
-
-e = EnvSetUp()	
 
 class LabSpecInvalid(Exception):
     def __init__(self, msg):

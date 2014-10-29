@@ -1,14 +1,16 @@
 # logging imports
 import logging
 import logging.handlers
+
 # other impors
 import json
 import os
 
+from utils.envsetup import EnvSetUp
+
+e = EnvSetUp()
 used_loggers = {}
-current_file_path = os.path.dirname(os.path.abspath(__file__))
-config_spec       = json.loads(open(current_file_path + "/../../config/config.json").read())
-#FILE_PATH = current_file_path + config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["FILE_PATH"]
+config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
 FILE_PATH = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["FILE_PATH"]
 
 if not os.path.isdir(FILE_PATH):

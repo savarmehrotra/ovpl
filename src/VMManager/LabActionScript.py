@@ -34,7 +34,7 @@ class LabActionScript:
         self._state = LabActionScript.ACTION_EMPTY
 
     def run(self):
-        from envsetup import EnvSetUp
+        from utils.envsetup import EnvSetUp
         #e = EnvSetUp()
         """Runs a command. Waits for the command to finish."""
         if len(self._cmd) == 0:

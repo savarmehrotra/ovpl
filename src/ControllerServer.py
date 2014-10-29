@@ -21,7 +21,7 @@ import tornado.options
 import tornado.web
 from tornado.options import define, options
 from http_logging.http_logger import logger
-from envsetup import EnvSetUp
+from utils.envsetup import EnvSetUp
 import Controller
 
 
@@ -50,9 +50,8 @@ if __name__ == "__main__":
         static_path=os.path.join(os.path.dirname(__file__), "static"),
         debug = True)
 
-    http_server = tornado.httpserver.HTTPServer(app) 
-    current_file_path = os.path.dirname(os.path.abspath(__file__))
-    config_spec = json.loads(open(current_file_path + "/../config/config.json").read())
+    http_server = tornado.httpserver.HTTPServer(app)
+    config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
     options.port = config_spec["CONTROLLER_CONFIG"]["SERVER_PORT"]
     logger.debug("ControllerServer: It will run on port : " + str(options.port))
     http_server.listen(options.port) 

@@ -8,7 +8,7 @@ import time
 import math
 
 from http_logging.http_logger import logger
-from envsetup import EnvSetUp
+from utils.envsetup import EnvSetUp
 from utils.git_commands import * 
 
 
@@ -37,12 +37,11 @@ def test_lab(vmmgr_ip, port, lab_src_url, version=None):
         # run Lab Action Runner
     if not 'http' in vmmgr_ip:
         raise Exception('Protocol not specified in VMManager host address!!')
-    e = EnvSetUp()
 
+    e = EnvSetUp()
     logger.debug("vmmgr_ip = %s, port = %s, lab_src_url = %s" % (vmmgr_ip, port, lab_src_url))
     payload = {"lab_src_url": lab_src_url, "version": version}
-    current_file_path = os.path.dirname(os.path.abspath(__file__))
-    config_spec = json.loads(open(current_file_path + "/../config/config.json").read())
+    config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
     TEST_LAB_API_URI = config_spec["VMMANAGER_CONFIG"]["TEST_LAB_URI"]
     url = '%s:%s%s' % (vmmgr_ip, port, TEST_LAB_API_URI)
     logger.debug("url = %s, payload = %s" % (url, str(payload)))

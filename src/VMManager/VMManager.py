@@ -56,7 +56,7 @@ def test_lab(lab_src_url, version=None):
     # get the appropriate the actions from lab_spec.json
     # run LabAction Runner
         # instantiate the object
-    from envsetup import EnvSetUp
+    from utils.envsetup import EnvSetUp
     e = EnvSetUp()
     logger.info("Environment http_proxy = %s" % os.environ["http_proxy"])
     logger.info("Environment https_proxy = %s" % os.environ["https_proxy"])

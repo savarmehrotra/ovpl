@@ -30,11 +30,10 @@ __all__ = [
 # Standard Library imports
 import __init__
 import re
-import subprocess
 import os
 import shutil
 from exceptions import Exception
-from http_logging.http_logger import logger
+
 
 # Third party imports
 import netaddr
@@ -45,24 +44,8 @@ import VMUtils
 from dict2default import dict2default
 import settings
 import BaseAdapter
-
-# UGLY DUCK PUNCHING: Backporting check_output from 2.7 to 2.6
-if "check_output" not in dir(subprocess):
-    def f(*popenargs, **kwargs):
-        if 'stdout' in kwargs:
-            raise ValueError('stdout argument not allowed, it will be overridden.')
-        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-        output, unused_err = process.communicate()
-        retcode = process.poll()
-        if retcode:
-            cmd = kwargs.get("args")
-            if cmd is None:
-                cmd = popenargs[0]
-            raise subprocess.CalledProcessError(retcode, cmd)
-        return output
-    subprocess.check_output = f
-
-
+from http_logging.http_logger import logger
+from utils.git_commands import *
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"

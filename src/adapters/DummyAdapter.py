@@ -19,12 +19,9 @@ __all__ = [
 
 # Standard Library imports
 import re
-import subprocess
 import os
 import shutil
 from exceptions import Exception
-from http_logging.http_logger import logger
-
 
 # Third party imports
 import netaddr
@@ -35,26 +32,8 @@ import BaseAdapter
 import VMUtils
 from dict2default import dict2default
 from settings import *
-
-
-
-# UGLY DUCK PUNCHING: Backporting check_output from 2.7 to 2.6
-if "check_output" not in dir(subprocess):
-    def f(*popenargs, **kwargs):
-        if 'stdout' in kwargs:
-            raise ValueError('stdout argument not allowed, it will be overridden.')
-        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-        output, unused_err = process.communicate()
-        retcode = process.poll()
-        if retcode:
-            cmd = kwargs.get("args")
-            if cmd is None:
-                cmd = popenargs[0]
-            raise subprocess.CalledProcessError(retcode, cmd)
-        return output
-    subprocess.check_output = f
-
-
+from utils.git_commands import *
+from http_logging.http_logger import logger
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"
@@ -63,11 +42,8 @@ IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
 #IP_ADDRESS_REGEX = 
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
 
-
-
 #list of IP addressses since we cannot expect vz to know cause it's a dummy
 IP_ADDRESSES = {}
-
 
 class InvalidVMIDException(Exception):
     def __init__(msg):

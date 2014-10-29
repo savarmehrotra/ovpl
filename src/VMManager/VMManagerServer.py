@@ -19,7 +19,7 @@ import tornado.options
 import tornado.web
 from tornado.options import define, options
 from http_logging.http_logger import logger
-from envsetup import EnvSetUp
+from utils.envsetup import EnvSetUp
 
 import VMManager
 
