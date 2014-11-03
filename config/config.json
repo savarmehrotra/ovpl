@@ -74,7 +74,7 @@
         "__comment__" : "level 10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL",
         "LOG_LEVEL":10 ,
         "LOGSERVER_CONFIGURATION": {
-            "SERVER_IP": "10.2.58.128",
+            "SERVER_IP": "localhost",
             "SERVER_PORT": 8239,
             "URI_ENDPOINT": "/log/",
             "FILE_PATH": "/root/logs/"
