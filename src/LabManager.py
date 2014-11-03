@@ -19,7 +19,7 @@ def get_lab_reqs(lab_src_url, version=None):
     repo_name = construct_repo_name(lab_src_url)
 
     if repo_exists(repo_name):
-        reset_repo(repo_name)
+#       reset_repo(repo_name)
         pull_repo(repo_name)
     else:
         clone_repo(lab_src_url, repo_name)
@@ -62,19 +62,19 @@ def test_lab(vmmgr_ip, port, lab_src_url, version=None):
     
 if __name__ == '__main__':
 
-   
-    (ret_val, ret_str) = test_lab('http://10.2.58.129', '9089', 'https://bitbucket.org/virtual-labs/cse02-programming.git')
+    (ret_val, ret_str) = test_lab('http://10.2.58.130', '9089', 'https://bitbucket.org/virtual-labs/cse02-programming.git')
     if (ret_val):
         logger.debug("Test Successful, ret_val = %s, ret_str = %s" % (str(ret_val), ret_str))
     else:
         logger.debug("Test UnSuccessful, ret_val = %s, ret_str = %s" % (str(ret_val), ret_str))
 
-   
-    '''
+
+    """
     try:
         lab_spec = get_lab_reqs('https://bitbucket.org/virtual-labs/cse02-programming.git', version=None)
         logger.debug("Lab spec: %s" % str(lab_spec))
     except Exception, e:
         logger.error("Test failed with error: " + str(e))
-'''
-
+"""
+    
+   

@@ -46,6 +46,7 @@ import settings
 import BaseAdapter
 from http_logging.http_logger import logger
 from utils.git_commands import *
+from utils.envsetup import EnvSetUp
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"
@@ -93,10 +94,9 @@ class CentOSVZAdapter(object):
 
     def init_vm(self, vm_id):
         logger.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
-        
-	success = True
-
-	success = success and  copy_vm_manager_files(vm_id)
+        success = True
+        success = success and  copy_ovpl_source(vm_id)
+        success = success and copy_lab_source(vm_id)
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
         response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": settings.VM_MANAGER_PORT}
@@ -164,21 +164,40 @@ class CentOSVZAdapter(object):
         pass
 
 
-def copy_vm_manager_files(vm_id):
-    current_file_path = os.path.dirname(os.path.abspath(__file__))
-    src_dir = current_file_path + settings.OVPL_SRC_DIR
-    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR)
-    logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
+def copy_files(src_dir, dest_dir):
+
     try:
         command = "rsync -arz --progress " + src_dir + " " + dest_dir
         logger.debug("Command = %s" % command)
         ret_code = subprocess.check_call(command, shell=True)
         if ret_code == 0:
-            logger.debug("Copy of OVPL code successful")
+            logger.debug("Copy successful")
             return True
         else:
             logger.debug("Copy Unsuccessful, return code is %s" % str(ret_code))
             return False
+    except Exception, e:
+        logger.error("ERROR = %s" % str(e))
+        return False
+
+def copy_ovpl_source(vm_id):
+    env = EnvSetUp()
+    src_dir =     env.get_ovpl_directory_path()
+    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR)
+    logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
+    try:
+        return copy_files(src_dir, dest_dir)
+    except Exception, e:
+        logger.error("ERROR = %s" % str(e))
+        return False
+
+def copy_lab_source(vm_id):
+
+    src_dir =     GIT_CLONE_LOC[:-1]
+    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR)
+    logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
+    try:
+        return copy_files(src_dir, dest_dir)
     except Exception, e:
         logger.error("ERROR = %s" % str(e))
         return False
@@ -284,7 +303,7 @@ if __name__ == "__main__":
     # Parse the invocation command and route to 
     # appropriate methods.
     #test()
-    if copy_vm_manager_files(584):
+    if copy_ovpl_source(584):
         logger.debug("test Successful")
     else:
         logger.debug("test UNSuccessful")

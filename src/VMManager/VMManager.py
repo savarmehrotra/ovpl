@@ -14,6 +14,8 @@
 
 import os
 import json
+import time
+
 import __init__
 from http_logging.http_logger import logger
 from LabActionRunner import LabActionRunner
@@ -74,7 +76,6 @@ def test_lab(lab_src_url, version=None):
             logger.error("Writing to /etc/apt/apt.conf failed with error: %s" % (str(e)))
             raise e
 
-        
     def get_build_steps_spec(lab_spec):
         return {"build_steps": lab_spec['lab']['build_requirements']['platform']['build_steps']}
 
@@ -90,15 +91,7 @@ def test_lab(lab_src_url, version=None):
     logger.info("Starting test_lab")
     fill_aptconf()
     repo_name = construct_repo_name(lab_src_url)
-
-    if repo_exists(repo_name):
-        pull_repo(repo_name)
-    else:
-        clone_repo(lab_src_url, repo_name)
-        
-    checkout_version(repo_name)
-    lab_spec = get_lab_spec(repo_name)
-    
+    lab_spec = get_lab_spec(repo_name)    
     try:
         spec_path = get_spec_path(repo_name)
         logger.debug("spec_path: %s" % spec_path)

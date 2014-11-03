@@ -43,7 +43,7 @@ class CreateVMHandler(tornado.web.RequestHandler):
    	    self.set_status(500)
 	    logger.debug("sucess status returned False from init_vm")
 	else:
-	   logger.debug("success status returned True form init_vm")
+	   logger.debug("success status returned True from init_vm")
 
         logger.debug("init vm result = " + str(result))
         self.write(result)
@@ -74,7 +74,6 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
 
     try:
-        current_file_path = os.path.dirname(os.path.abspath(__file__))
         config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
     except IOError as e:
         logger.error("unable to load config.json. Exception: " + str(e))

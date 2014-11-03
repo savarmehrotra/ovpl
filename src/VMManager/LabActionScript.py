@@ -1,6 +1,8 @@
 import subprocess
+import os
 import os.path
 from http_logging.http_logger import logger
+from utils.git_commands import *
 
 class EmptyLabActionError(Exception):
     pass
@@ -34,8 +36,6 @@ class LabActionScript:
         self._state = LabActionScript.ACTION_EMPTY
 
     def run(self):
-        from utils.envsetup import EnvSetUp
-        #e = EnvSetUp()
         """Runs a command. Waits for the command to finish."""
         if len(self._cmd) == 0:
             logger.error("LabActionScript::run() - No command to run")
@@ -44,14 +44,15 @@ class LabActionScript:
         	#self._cmd[0] = os.path.join(self._path_prefix, self._cmd[0])
             logger.debug("LabActionScript::run() - " + os.environ["http_proxy"])
             logger.debug("LabActionScript::run() - " + self._cmd)
-            subprocess.check_call(self._cmd, shell=True)
+            logger.debug("LabActionScript::run() - " + str(os.getcwd()))
+            output = subprocess.check_output(self._cmd, shell=True)
             self._state = LabActionScript.ACTION_COMPLETED
         except subprocess.CalledProcessError as cpe:
-            logger.error("LabActionScript::run() - " + str(cpe))
+            logger.error("LabActionScript::run() cpe - " + str(cpe))
             self._state = LabActionScript.ACTION_UNSUCCESSFUL
             print cpe
         except OSError as ose:
-            logger.error("LabActionScript::run() - " + str(ose))
+            logger.error("LabActionScript::run() ose - " + str(ose))
             self._state = LabActionScript.ACTION_UNSUCCESSFUL
             print ose
 
