@@ -1,6 +1,3 @@
-# Author: Chandan Gupta
-# Contact: chandan@vlabs.ac.in
-
 """ A module for managing VMs on CentOS - OpenVZ platform. """
 
 """ Open issues with the current version:
@@ -34,7 +31,6 @@ import os
 import shutil
 from exceptions import Exception
 
-
 # Third party imports
 import netaddr
 import sh
@@ -47,6 +43,7 @@ import BaseAdapter
 from http_logging.http_logger import logger
 from utils.git_commands import *
 from utils.envsetup import EnvSetUp
+from utils.execute_commands import *
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"
@@ -80,14 +77,14 @@ class CentOSVZAdapter(object):
         logger.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % \
                               (ip_address, vm_id, vm_create_args, vm_set_args))
         try:
-            ret_code = subprocess.check_call(VZCTL + " create " + vm_id + vm_create_args, shell=True)
+            (ret_code, output) = execute_command(VZCTL + " create " + vm_id + vm_create_args)
             if ret_code == 0:
-                ret_code = subprocess.check_call(VZCTL + " start " + vm_id, shell=True)
+                (ret_code,output) = execute_command(VZCTL + " start " + vm_id)
             if ret_code == 0:
-                ret_code = subprocess.check_call(VZCTL + " set " + vm_id + vm_set_args, shell=True)
+                (ret_code, output) = execute_command(VZCTL + " set " + vm_id + vm_set_args)
             if ret_code == 0:
                 return vm_id
-        except subprocess.CalledProcessError, e:
+        except Exception, e:
             logger.error("Error creating VM: " + str(e))
             #raise e
             return 105 
@@ -106,18 +103,18 @@ class CentOSVZAdapter(object):
     def destroy_vm(self, vm_id):
         vm_id = validate_vm_id(vm_id)
         try:
-            subprocess.check_call(VZCTL + " stop " + vm_id, shell=True)
-            subprocess.check_call(VZCTL + " destroy " + vm_id, shell=True)
+            execute_command(VZCTL + " stop " + vm_id)
+            execute_command(VZCTL + " destroy " + vm_id)
             return "Success"
-        except subprocess.CalledProcessError, e:
+        except Exception, e:
             logger.error("Error destroying VM: " + str(e))
             return "Failed to destroy VM: " + str(e)
 
     def restart_vm(self, vm_id):
         vm_id = validate_vm_id(vm_id)
         try:
-            subprocess.check_call(VZCTL + " restart " + vm_id, shell=True)
-        except subprocess.CalledProcessError, e:
+            execute_command(VZCTL + " restart " + vm_id)
+        except Exception, e:
             raise e
         return start_vm_manager(vm_id)
 
@@ -130,7 +127,7 @@ class CentOSVZAdapter(object):
             settings.VMMANAGERSERVER_PATH + settings.VM_MANAGER_SCRIPT + " &\'\""
         logger.debug("CentOSVZAdapter: start_vm_manager(): command = %s" % command)
         try:
-            subprocess.check_call(command, shell=True)
+            execute_command(command)
             return True
         except Exception, e:
             logger.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" % (command, str(e)))
@@ -142,9 +139,9 @@ class CentOSVZAdapter(object):
     def stop_vm(self, vm_id):
         vm_id = validate_vm_id(vm_id)
         try:
-            subprocess.check_call(VZCTL + " stop " + vm_id, shell=True)
+            execute_command(VZCTL + " stop " + vm_id)
             return "Success"
-        except subprocess.CalledProcessError, e:
+        except Exception, e:
             logger.error("Error stopping VM: " + str(e))
             return "Failed to stop VM: " + str(e)
 
@@ -169,7 +166,7 @@ def copy_files(src_dir, dest_dir):
     try:
         command = "rsync -arz --progress " + src_dir + " " + dest_dir
         logger.debug("Command = %s" % command)
-        ret_code = subprocess.check_call(command, shell=True)
+        (ret_code, output) = execute_command(command)
         if ret_code == 0:
             logger.debug("Copy successful")
             return True
@@ -205,14 +202,14 @@ def copy_lab_source(vm_id):
 def get_vm_ip(vm_id):
     vm_id = validate_vm_id(vm_id)
     try:
-        vzlist = subprocess.check_output(VZLIST + " | grep " + vm_id, shell=True)
+        (ret_code,vzlist) = execute_command(VZLIST + " | grep " + vm_id)
         if vzlist == "":
             return                                  # raise exception?
         ip_address = re.search(IP_ADDRESS_REGEX, vzlist)
         if ip_address != None:
             ip_address = ip_address.group(0)
         return ip_address
-    except subprocess.CalledProcessError, e:
+    except Exception, e:
         raise e
 
 

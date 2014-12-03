@@ -1,6 +1,3 @@
-# Author: Chandan Gupta
-# Contact: chandan@vlabs.ac.in
-
 """ An interface for managing VMs for a selected platform. """
 
 # Run this command for me, please.
@@ -20,12 +17,14 @@ import __init__
 from http_logging.http_logger import logger
 from LabActionRunner import LabActionRunner
 from utils.git_commands import *
+from utils.execute_commands import *
 
 def execute(command):
     # do some validation
     try:
         logger.info("Command executed: " + command)
-        return subprocess.check_output(command, shell=True)
+        (ret_code, output) = execute_command(command)
+        return output
     except Exception, e:
         logger.error("Execution failed: " + str(e))
         return "Error executing the command: " + str(e)
@@ -70,8 +69,8 @@ def test_lab(lab_src_url, version=None):
             https_proxy = os.environ["https_proxy"]
             http_cmd = r'echo "Acquire::http::Proxy \"%s\";"%s'%(http_proxy, '>>/etc/apt/apt.conf')
             https_cmd = r'echo "Acquire::https::Proxy \"%s\";"%s'%(https_proxy, '>>/etc/apt/apt.conf')
-            subprocess.check_call(http_cmd, shell=True)
-            subprocess.check_call(https_cmd, shell=True)
+            (ret_code, output) = execute_command(http_cmd)
+            (ret_code, output) = execute_command(https_cmd)
         except Exception, e:
             logger.error("Writing to /etc/apt/apt.conf failed with error: %s" % (str(e)))
             raise e

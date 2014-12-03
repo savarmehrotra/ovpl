@@ -1,25 +1,9 @@
 import os
-import subprocess
 import json
 import __init__
 from http_logging.http_logger import logger
+from utils.execute_commands import *
 from utils.envsetup import EnvSetUp
-
-# Backporting check_output from 2.7 to 2.6
-if "check_output" not in dir(subprocess):
-    def f(*popenargs, **kwargs):
-        if 'stdout' in kwargs:
-            raise ValueError('stdout argument not allowed, it will be overridden.')
-        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
-        output, unused_err = process.communicate()
-        retcode = process.poll()
-        if retcode:
-            cmd = kwargs.get("args")
-            if cmd is None:
-                cmd = popenargs[0]
-            raise subprocess.CalledProcessError(retcode, cmd)
-        return output
-    subprocess.check_output = f
 
 e = EnvSetUp()
 config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
@@ -51,42 +35,48 @@ def clone_repo(lab_src_url, repo_name):
     logger.debug("http_proxy: %s" % os.environ['http_proxy'])
     logger.debug("https_proxy: %s" % os.environ['https_proxy'])
     try:
-        subprocess.check_call(clone_cmd, shell=True)
+        (ret_code, output) = execute_command(clone_cmd)
+        logger.debug("Clone repo successful")
+        return True
     except Exception, e:
-        logger.error("git clone failed for repo %s: %s" % (repo_name, str(e)))
-        raise e
+        logger.error("Error Cloning the repository: " + str(e))
+        return False
+            
 
 def pull_repo(repo_name):
     pull_cmd = "git --git-dir=%s/.git pull" % (GIT_CLONE_LOC + repo_name)
-    logger.debug(pull_cmd)
+    logger.debug("pull cmd: %s" % pull_cmd)
     try:
-        subprocess.check_call(pull_cmd, shell=True)
+        (ret_code, output) = execute_command(pull_cmd)
+        logger.debug("Pull repo successful")
+        return True
     except Exception, e:
-        logger.error("git pull failed for repo %s: %s" % (repo_name, str(e)))
-        raise e
+        logger.error("Error Pulling the repository: " + str(e))
+        return False
 
 def reset_repo(repo_name):
-    logger.debug("reset_cmd = %s" % (GIT_CLONE_LOC + repo_name))
     reset_cmd = "git --git-dir=%s/.git reset --hard" % (GIT_CLONE_LOC + repo_name)
-    logger.debug("reset_cmd: %s" % (reset_cmd))
+    logger.debug("reset cmd: %s" % reset_cmd)
     try:
-        subprocess.check_call(reset_cmd, shell=True)
+        (ret_code, output) = execute_command(reset_cmd)
+        logger.debug("reset repo successful")
+        return True
     except Exception, e:
-        logger.error("git reset failed: %s %s" % (repo_name, str(e)))
-        raise e
+        logger.error("Error Resetting the repository: " + str(e))
+        return False
 
 def checkout_version(repo_name, version=None):
     if version:
+        checkout_cmd = "git --git-dir=%s checkout %s" \
+            % ((GIT_CLONE_LOC + repo_name), version)
         try:
-            checkout_cmd = "git --git-dir=%s checkout %s" \
-                % ((GIT_CLONE_LOC + repo_name), version)
-            logger.debug("checkout_cmd: %s" % checkout_cmd)
-            subprocess.check_call(checkout_cmd, shell=True)
+            (ret_code, output) = execute_command(reset_cmd)
+            logger.debug("reset repo successful")
+            return True
         except Exception, e:
-            logger.error("git checkout failed for repo %s tag %s: %s" \
-                % (repo_name, version, str(e)))
-            raise e
-
+            logger.error("Error Resetting the repository: " + str(e))
+            return False
+        
 def get_spec_path(repo_name):
     return GIT_CLONE_LOC + repo_name + LAB_SPEC_DIR
 
@@ -101,3 +91,7 @@ def get_lab_spec(repo_name):
     except Exception, e:
         logger.error("Lab spec JSON invalid: " + str(e))
         raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
+
+
+if __name__ == '__main__':
+    clone_repo("https://bitbucket.org/virtual-labs/cse02-programming.git", "cse02-programming")

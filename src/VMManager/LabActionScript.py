@@ -1,8 +1,8 @@
-import subprocess
 import os
 import os.path
 from http_logging.http_logger import logger
 from utils.git_commands import *
+from utils.execute_commands import *
 
 class EmptyLabActionError(Exception):
     pass
@@ -45,16 +45,11 @@ class LabActionScript:
             logger.debug("LabActionScript::run() - " + os.environ["http_proxy"])
             logger.debug("LabActionScript::run() - " + self._cmd)
             logger.debug("LabActionScript::run() - " + str(os.getcwd()))
-            output = subprocess.check_output(self._cmd, shell=True)
+            (ret_code, output) = execute_command(self._cmd)
             self._state = LabActionScript.ACTION_COMPLETED
-        except subprocess.CalledProcessError as cpe:
-            logger.error("LabActionScript::run() cpe - " + str(cpe))
+        except Exception, e:
             self._state = LabActionScript.ACTION_UNSUCCESSFUL
-            print cpe
-        except OSError as ose:
             logger.error("LabActionScript::run() ose - " + str(ose))
-            self._state = LabActionScript.ACTION_UNSUCCESSFUL
-            print ose
 
         return self
     
