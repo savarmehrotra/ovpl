@@ -56,8 +56,9 @@ class EnvSetUp:
         os.environ["https_proxy"] = self.https_proxy
         os.environ["no_proxy"] = self.no_proxy
         if "PYTHONPATH" in os.environ:
-            os.environ["PYTHONPATH"] += ":"
-            os.environ["PYTHONPATH"] += self.ovpl_directory_path
+            if self.ovpl_directory_path not in os.environ["PYTHONPATH"]:
+                os.environ["PYTHONPATH"] += ":"
+                os.environ["PYTHONPATH"] += self.ovpl_directory_path
         else:
             os.environ["PYTHONPATH"] = self.ovpl_directory_path
 
