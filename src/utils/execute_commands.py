@@ -37,3 +37,9 @@ def execute_command(cmd):
         raise ose
 
     return (return_code, output)
+
+if __name__ == '__main__':
+    try:
+        execute_command("git clone https://bitbucket.org/virtual-labs/cse02-programming.git /root/labs/cse02-programming")
+    except Exception, e:
+        logger.error("command execution failed: %s" % str(e))
