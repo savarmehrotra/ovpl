@@ -33,7 +33,7 @@ def execute_command(cmd):
         logger.error("Called Process Error: %s" % cpe)
         raise cpe
     except OSError as ose:
-        logger.error("OSError: %" % ose)
+        logger.error("OSError: %s" % ose)
         raise ose
 
     return (return_code, output)

@@ -26,7 +26,7 @@ class Controller:
             self.update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
             if lab_spec['lab']['runtime_requirements']['hosting'] == 'dedicated':
                """ TODO: Undeploy , fnd proper place to invoke undeploy""" 
-               self.undeploy_lab(lab_id)
+            #   self.undeploy_lab(lab_id)
             vmpoolmgr = VMPoolManager.VMPoolManager()
             logger.debug("Controller: test_lab(); invoking create_vm() on vmpoolmgr")
             lab_state = vmpoolmgr.create_vm(lab_spec)
