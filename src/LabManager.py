@@ -30,7 +30,6 @@ def get_lab_reqs(lab_src_url, version=None):
     except Exception, e:
         logger.error("Error: %s" % str(e))
         raise e
-        
 
 def test_lab(vmmgr_ip, port, lab_src_url, version=None):
     # make sure VM Manager is running

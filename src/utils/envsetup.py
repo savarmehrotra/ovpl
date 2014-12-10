@@ -36,14 +36,11 @@ class EnvSetUp:
     def create_no_proxy_string(self):
         
         for subnet in get_subnet():
-            ip_network = netaddr.IPNetwork(subnet)
-            ip_addrs = list(ip_network)
+            parts = subnet.split(".")
+            parts[2] = parts[3] = "0"
+            self.no_proxy = ".".join(parts) + "/16,"
 
-        for ip in ip_addrs:
-            self.no_proxy += ip.__str__()
-            self.no_proxy += ","
-
-        self.no_proxy += "localhost,10.2.58.129"
+        self.no_proxy += "localhost"
 
 
     def get_proxy_values(self):
