@@ -30,7 +30,7 @@ def find_available_ip():
     for subnet in settings.get_subnet():
         ip_network = netaddr.IPNetwork(subnet)
         ip_addrs = list(ip_network)
-        logger.debug("ip addresses: %s" % str(ip_addrs)
+        logger.debug("ip addresses: %s" % str(ip_addrs))
         for ip in ip_addrs:
             if is_ip_usable(ip) and is_ip_free(ip):
                 return str(ip)
