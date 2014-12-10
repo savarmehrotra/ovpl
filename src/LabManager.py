@@ -17,15 +17,17 @@ def get_lab_reqs(lab_src_url, version=None):
     e = EnvSetUp()	
     logger.debug("Will return lab spec")
     repo_name = construct_repo_name(lab_src_url)
+    try:
+        if repo_exists(repo_name):
+    #       reset_repo(repo_name)
+            pull_repo(repo_name)
+        else:
+            clone_repo(lab_src_url, repo_name)
 
-    if repo_exists(repo_name):
-#       reset_repo(repo_name)
-        pull_repo(repo_name)
-    else:
-        clone_repo(lab_src_url, repo_name)
-
-    checkout_version(repo_name, version)
-    return get_lab_spec(repo_name)
+        checkout_version(repo_name, version)
+        return get_lab_spec(repo_name)
+    except Exception, e:
+        logger.error("Error: %s" % str(e))
 
 def test_lab(vmmgr_ip, port, lab_src_url, version=None):
     # make sure VM Manager is running

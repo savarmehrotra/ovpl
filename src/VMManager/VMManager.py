@@ -88,10 +88,12 @@ def test_lab(lab_src_url, version=None):
         return lab_spec['lab']['runtime_requirements']['platform']['lab_actions']
 
     logger.info("Starting test_lab")
-    fill_aptconf()
-    repo_name = construct_repo_name(lab_src_url)
-    lab_spec = get_lab_spec(repo_name)    
+
+
     try:
+        fill_aptconf()
+        repo_name = construct_repo_name(lab_src_url)
+        lab_spec = get_lab_spec(repo_name)    
         spec_path = get_spec_path(repo_name)
         logger.debug("spec_path: %s" % spec_path)
         os.chdir(spec_path)

@@ -37,10 +37,9 @@ def clone_repo(lab_src_url, repo_name):
     try:
         (ret_code, output) = execute_command(clone_cmd)
         logger.debug("Clone repo successful")
-        return True
     except Exception, e:
         logger.error("Error Cloning the repository: " + str(e))
-        return False
+        raise e
             
 
 def pull_repo(repo_name):
@@ -49,10 +48,9 @@ def pull_repo(repo_name):
     try:
         (ret_code, output) = execute_command(pull_cmd)
         logger.debug("Pull repo successful")
-        return True
     except Exception, e:
         logger.error("Error Pulling the repository: " + str(e))
-        return False
+        raise e
 
 def reset_repo(repo_name):
     reset_cmd = "git --git-dir=%s/.git reset --hard" % (GIT_CLONE_LOC + repo_name)
@@ -60,10 +58,9 @@ def reset_repo(repo_name):
     try:
         (ret_code, output) = execute_command(reset_cmd)
         logger.debug("reset repo successful")
-        return True
     except Exception, e:
         logger.error("Error Resetting the repository: " + str(e))
-        return False
+        raise e
 
 def checkout_version(repo_name, version=None):
     if version:
@@ -72,10 +69,9 @@ def checkout_version(repo_name, version=None):
         try:
             (ret_code, output) = execute_command(reset_cmd)
             logger.debug("reset repo successful")
-            return True
         except Exception, e:
             logger.error("Error Resetting the repository: " + str(e))
-            return False
+            raise e
         
 def get_spec_path(repo_name):
     return GIT_CLONE_LOC + repo_name + LAB_SPEC_DIR
