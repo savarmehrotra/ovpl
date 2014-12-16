@@ -3,7 +3,7 @@
         "HTTP_PROXY":"http://proxy.iiit.ac.in:8080",
         "HTTPS_PROXY":"https://proxy.iiit.ac.in:8080"
     },
-    
+
     "CONTROLLER_CONFIG": {
         "SERVER_PORT":8080,
         "LOG_FILENAME":"/root/ovpl/log/ovpl.log"
@@ -19,7 +19,7 @@
         "DISK_USAGE_URI":"/api/1.0/disk-usage",
         "MEMORY_USAGE_URI":"/api/1.0/mem-usage",
         "RUNNING_TIME_URI":"/api/1.0/running-time",
-        "RUNNING_PROCESSES_URI":"/api/1.0/running-processes",        
+        "RUNNING_PROCESSES_URI":"/api/1.0/running-processes",
         "CPU_LOAD_URI":"/api/1.0/cpu_load",
         "EXECUTE_URI":"/api/1.0/execute/([\\w*\\d*\\%\\-]+)",
         "TEST_LAB_URI":"/api/1.0/test-lab",
@@ -32,7 +32,7 @@
 	"DESTROY_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/destroy",
 	"RESTART_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/restart"
     },
-    
+
     "VMPOOL_CONFIGURATION": {
         "VMPOOLS": [
             {
@@ -69,7 +69,7 @@
         "DESTROY_URI":"/api/1.0/vm/destroy",
         "RESTART_URI":"/api/1.0/vm/restart"
     },
-    
+
     "LOGGING_CONFIGURATION": {
         "__comment__" : "level 10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL",
         "LOG_LEVEL":10 ,
@@ -79,5 +79,10 @@
             "URI_ENDPOINT": "/log/",
             "FILE_PATH": "/root/logs/"
         }
+    },
+
+    "CONTAINER_CONFIG": {
+      "__comment__": "This is used when we want only 1 container with a static IP. Otherwise leave it blank."
+      "STATIC_IP_ADD": ""
     }
 }

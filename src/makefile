@@ -1,10 +1,10 @@
 test: stop-server
-#	python http_logging/http_logging_server.py &
+	python http_logging/http_logging_server.py &
 	python2 adapters/AdapterServer.py &
 	python2 ControllerServer.py &
 
 start-server:
-#	python http_logging/http_logging_server.py &
+	python http_logging/http_logging_server.py &
 	python2 adapters/AdapterServer.py &
 	python2 Controller.py &
 stop-server:

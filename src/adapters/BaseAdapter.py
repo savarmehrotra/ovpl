@@ -11,9 +11,39 @@ import settings
 import netaddr
 import sh
 from http_logging.http_logger import logger
+from utils.envsetup import EnvSetUp
+
+
+e = EnvSetUp()
+try:
+    config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
+except IOError as e:
+    logger.error("unable to load config.json. Exception: " + str(e))
+    raise e
+except  Exception as e:
+    logger.error("unable to parse config.json. Exception: " + str(e))
+
+
+# tries to find if a specific IP is given in the config file
+def get_ip_from_config():
+    try:
+        ip = config_spec['CONTAINER_CONFIG']['STATIC_IP_ADD']
+    except KeyError:
+        return False
+
+    if not ip or type(ip) is not str:
+        return False
+
+    return ip
 
 #returns a free ip as a string for a container to bind to.
 def find_available_ip():
+    # check first to see if this is using single, static IP for containers
+    # then return that only; else try to find new IP dynamically.
+    ip = get_ip_from_config()
+    if ip:
+        return ip
+
     #try and ping. if the IP does not respond, (gives wrong return code) return the IP as free
     def is_ip_free(ip):
         try:
@@ -30,7 +60,7 @@ def find_available_ip():
     for subnet in settings.get_subnet():
         ip_network = netaddr.IPNetwork(subnet)
         ip_addrs = list(ip_network)
-        logger.debug("ip addresses: %s" % str(ip_addrs))
+        #logger.debug("ip addresses: %s" % str(ip_addrs))
         for ip in ip_addrs:
             if is_ip_usable(ip) and is_ip_free(ip):
                 return str(ip)
