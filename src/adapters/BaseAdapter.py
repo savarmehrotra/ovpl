@@ -27,7 +27,7 @@ except  Exception as e:
 # tries to find if a specific IP is given in the config file
 def get_ip_from_config():
     try:
-        ip = config_spec['CONTAINER_CONFIG']['STATIC_IP_ADD']
+        ip = global config_spec['CONTAINER_CONFIG']['STATIC_IP_ADD']
     except KeyError:
         return False
 
