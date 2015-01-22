@@ -2,7 +2,7 @@ class BaseAdapter:
 	def create_vm(lab_spec):
 		raise Exception("BaseAdapter: unimplemented create_vm()")
 
-	def init_vm(vm_id):
+	def init_vm(vm_id, lab_repo_name):
 		raise Exception("BaseAdapter: unimplemented init_()")
 		return (False, "unimplemented") #success status, response string
 

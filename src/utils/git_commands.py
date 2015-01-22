@@ -24,7 +24,7 @@ def construct_repo_name(lab_src_url):
     repo = lab_src_url.split('/')[-1]
     repo_name = (repo[:-4] if repo[-4:] == ".git" else repo)
     logger.debug("repo_name: %s" % repo_name)
-    return repo_name
+    return str(repo_name)
 
 def repo_exists(repo_name):
     return os.path.isdir(GIT_CLONE_LOC+repo_name)

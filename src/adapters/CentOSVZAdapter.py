@@ -89,11 +89,11 @@ class CentOSVZAdapter(object):
             #raise e
             return 105 
 
-    def init_vm(self, vm_id):
+    def init_vm(self, vm_id, lab_repo_name):
         logger.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
         success = True
         success = success and  copy_ovpl_source(vm_id)
-        success = success and copy_lab_source(vm_id)
+        success = success and copy_lab_source(vm_id, lab_repo_name)
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
         response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": settings.VM_MANAGER_PORT}
@@ -188,10 +188,10 @@ def copy_ovpl_source(vm_id):
         logger.error("ERROR = %s" % str(e))
         return False
 
-def copy_lab_source(vm_id):
+def copy_lab_source(vm_id, lab_repo_name):
 
-    src_dir =     GIT_CLONE_LOC[:-1]
-    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR)
+    src_dir =     GIT_CLONE_LOC[:-1] + "/" + lab_repo_name
+    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR + "labs")
     logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
     try:
         return copy_files(src_dir, dest_dir)

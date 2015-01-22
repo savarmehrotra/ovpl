@@ -34,10 +34,13 @@ class CreateVMHandler(tornado.web.RequestHandler):
         post_data = dict(urlparse.parse_qsl(self.request.body))
         logger.debug("post(); post_data = %s" % post_data)
 
-        vm_id = adapter_instance.create_vm(json.loads(post_data['lab_spec']))
-        logger.debug("created VM id = " + str(vm_id))
+        lab_spec = json.loads(post_data['lab_spec'])
+        vm_id = adapter_instance.create_vm(lab_spec)
+        logger.debug("created VM id = %s" % str(vm_id))
         
-        (success, result) = adapter_instance.init_vm(vm_id)
+        lab_repo_name = lab_spec['lab_repo_name']
+        logger.debug("lab_repo_name = %s" % lab_repo_name)
+        (success, result) = adapter_instance.init_vm(vm_id, lab_repo_name)
 	
 	if not success:
    	    self.set_status(500)

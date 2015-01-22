@@ -12,6 +12,7 @@ import LabManager
 import VMPoolManager
 from State import State
 from http_logging.http_logger import logger
+from utils import git_commands
 
 class Controller:
     def __init__(self):
@@ -57,9 +58,11 @@ class Controller:
     def update_lab_spec(self, lab_spec, lab_id, lab_src_url, revision_tag):
         lab_spec['lab']['description']['id'] = lab_spec['lab_id'] = lab_id
         lab_spec['lab_src_url'] = lab_src_url
+        lab_spec['lab_repo_name'] = git_commands.construct_repo_name(lab_src_url)
         lab_spec['revision_tag'] = revision_tag
         lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
-
+        logger.debug("lab_repo_name: %s" %(lab_spec['lab_repo_name']))
+                
     def update_state(self, state):
         state['lab_history']['released_by'] = 'dummy'
         #state['lab_history']['released_on'] = strftime("%Y-%m-%d %H:%M:%S")

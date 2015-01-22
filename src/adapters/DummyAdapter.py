@@ -92,7 +92,7 @@ class DummyAdapter(object):
     # Function alias
     start_vm = restart_vm
 
-    def init_vm(self, vm_id):
+    def init_vm(self, vm_id, lab_repo_name):
         copy_vm_manager_files(vm_id)
         self.start_vm_manager(vm_id)
       
