@@ -4,8 +4,8 @@ import os
 class CreateAwsVM:
         
     region = "us-east-1"
-    conn_config = { "aws_access_key_id":"AKIAJEIRTMF3ITJBLNOA",
-            "aws_secret_access_key":"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"
+    conn_config = { "aws_access_key_id":"", 
+            "aws_secret_access_key":""
             }
         
     def __init__(self):
@@ -49,13 +49,32 @@ class CreateAwsVM:
             instance_ids.append(instance.id)
         instances_stopped = self.connection.stop_instances(instance_ids)
         return instances_stopped
+
+    def terminate_instances(self, filter=None):
+        instances = self.get_all_instances(filter)
+        running_instances = []
+        for instance in instances:
+            if instance.state not in ('terminated'):
+                running_instances.append(instance)
+        instance_ids = []
+        for instance in running_instances:
+            if(instance.get_attribute('disableApiTermination')['disableApiTermination']):
+                instance.modify_attribute('disableApiTermination', 'False')
+            instance_ids.append(instance.id)
+
+        instances_terminated = self.connection.terminate_instances(instance_ids)
+        return instances_terminated
     
 if __name__ == '__main__':
 #    os.environ['http_proxy']  = "http://proxy.iiit.ac.in:8080"
 #    os.environ['https_proxy'] = "http://proxy.iiit.ac.in:8080"
     c = CreateAwsVM()
-    filter = {'image_id':'ami-48400720'}
-    print map(c.get_few_fields, c.get_all_instances(filter))
+    filter1 = {'image_id':'ami-044d106c'}
+#    list = map(c.get_few_fields, c.get_all_instances())
+#    print list
+#    print "number of instances = %d" % (list.__len__())
+
+    print c.terminate_instances()
 #    print create_instance()
 #    print c.stop_instances(filter)
     
