@@ -4,6 +4,7 @@
 *~
 *#*
 .*#*
+*.html
 
 # the log directory
 log/*
