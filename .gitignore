@@ -1,7 +1,9 @@
 # Defaults start from here.
 *.py[cod]
 *.swp
-
+*#*
+*.#*
+*~
 # the log directory
 log/*
 
