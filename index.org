@@ -50,13 +50,17 @@
    Life cycle management is the ability to perform the following tasks on a
    lab: start, stop, backup, restore from a previous backup and test.  Having
    such functionality helps continuous releases of the software running the
-   lab.  This management of a lab is achieved through the following bunch of
-   scripts. These scripts are developed by the integrator.
+   lab.  This management of a lab is achieved through a bunch of scripts -
+   start, stop, backup, restore, test. These scripts are developed by the
+   integrator.
 
-   Auto deployment and life cycle management of a lab enable continuous
+   Auto deployment and life cycle management of labs enable continuous
    development, testing and release of software.  If the onus on the integrator
    is to make a lab auto-deployable with life-cycle management scripts, it is
    imperative for VLEAD to build a platform for continuous delivery
+   
+** Platform for Continuous Delivery
+
    
 
 
