@@ -45,7 +45,6 @@
    Lab integrator would still have to provide the specification of the machine
    on which the lab is deployed/configured.
 
-
 ** Life cycle management of labs
    Life cycle management is the ability to perform the following tasks on a
    lab: start, stop, backup, restore from a previous backup and test.  Having
@@ -61,14 +60,14 @@
    
 ** Platform for Continuous Delivery
 
+
+* Releases
+** Release 1.0.2 
+   ADS will run from a container and be able to create a container on the base
+   machine with centos and openvz and deploy a lab on this newly created container.
+** Release 1.0.3
+   ADS will run from a VM on amazon cloud and be able to create a VM and deploy
+   a lab on this newly created VM.
+
+
    
-
-
-
-
-   
-
-
-
-
-
