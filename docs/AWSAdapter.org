@@ -20,6 +20,29 @@ The =AWSAdapter= is an adapter for the AWS platform.
 
 * Design
 
+** General Adapter Design 
+According to ADS, every adapter must have certain interfaces. These
+interfaces enable other services to communicate to VMs, created by the
+adapter. The essential interfaces are listed below:
+1. create_vm(lab_spec)  TODO: Also capture signature of these functions
+2. start_vm
+3. stop_vm
+4. restart_vm
+5. start_vm_manager
+6. destroy_vm
+7. is_running_vm
+
+
+** AWS specific Design
+
+This comes from a configuration file which is not checked in the
+repository. Instead, a sample configuration file is checked in. A
+deployer is responsible for modifying this file and filling the
+appropriate values.
+
+** How to select:
+*** AMI (Amazon Machine Image)
+*** What instance-type to run?
 
 * Implementation
 
