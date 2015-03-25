@@ -1,0 +1,32 @@
+#+title: AWSAdapter for ADS
+#+PROPERTY: session *scratch*
+#+PROPERTY: results output
+#+PROPERTY: exports code
+#+SETUPFILE: org-templates/level-0.org
+#+OPTIONS: ^:nil
+
+* Introduction
+An adapter is an ADS component, which is responsible for creating and
+managing VMs on a particular platform. 
+
+The =AWSAdapter= is an adapter for the AWS platform. 
+
+* Requirements
+  1. =AWSAdapter= will create a VM on AWS based on the specification
+     given in the lab spec for a particular lab.
+     
+  2. =AWSAdapter= will copy the =VMManager= component and start the
+     =VMManager= service on port 9089 on the newly created VM.
+
+* Design
+
+
+* Implementation
+
+
+* Provisioning
+
+
+* Test Cases
+
+
