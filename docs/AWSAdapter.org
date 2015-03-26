@@ -13,37 +13,96 @@ The =AWSAdapter= is an adapter for the AWS platform.
 
 * Requirements
   1. =AWSAdapter= will create a VM on AWS based on the specification
-     given in the lab spec for a particular lab.
+     given in the lab spec for a particular lab. 
      
-  2. =AWSAdapter= will copy the =VMManager= component and start the
-     =VMManager= service on port 9089 on the newly created VM.
+  2. =AWSAdapter= will copy the =VMManager= component to the newly
+     created VM and start the =VMManager= service on port 9089.
 
 * Design
 
-** General Adapter Design 
+** General Adapter Design (REPHRASE) 
 According to ADS, every adapter must have certain interfaces. These
 interfaces enable other services to communicate to VMs, created by the
 adapter. The essential interfaces are listed below:
-1. create_vm(lab_spec)  TODO: Also capture signature of these functions
-2. start_vm
-3. stop_vm
-4. restart_vm
-5. start_vm_manager
-6. destroy_vm
-7. is_running_vm
+
+1. *create_vm* (self, lab_spec, dry_run=False)  
+      Creates a new VM. 
+      *Parameters*: lab_spec
+      *Return type*:
+      *Returns*: id of the newly created VM.
+
+2. *start_vm* (self, vm_id, dry_run=False)
+      Starts the VM identified by =vm_id=.
+      *Parameters*: vm_id - Each VM is given a unique id.
+      *Return type*:
+      *Returns*: connection gets established with the new vm id.
+
+3. *stop_vm* (self, vm_id, dry_run=False)
+      Stops the VM identified by =vm_id=.
+      *Parameters*: vm_id - Each VM is given a unique id.
+      *Return type*:
+      *Returns*:
+
+4. *restart_vm* (self, vm_id, dry_run=False)
+      Stops the VM identified by =vm_id= and then starts it again.
+      *Parameters*: vm_id - Each VM is given a unique id. 
+      *Return type*:
+      *Returns*: restarted VM's id.
+
+5. *start_vm_manager* (self, vm_id )
+      Starts the VM manager service inside the VM identified by =vm_id=.
+      *Parameters*: vm_id - Each VM is given a unique id. 
+      *Return type*:
+      *Returns*:     
+
+6. *destroy_vm* (self, vm_id, dry_run=False)
+      Terminates the VM identified by =vm_id=.
+      *Parameter*: vm_id - Each VM is given a unique id. 
+
+7. *is_running_vm* (self, vm_ip)
+      Checks if the VM is up and port 22 is reachable. It assumes that
+      VM is running the SSH service.
+      *Parameters*: vm_ip - The ip address of VM.
+      *Return type*:
+      *Returns*: 
+
+** AWS Specific Design (REPHRASE)
+Following parameters are used to connect with AWS API:
+
+1. *region*: Each data center is a region.
+
+2. *credentials*: Credentials are used to authenticate the API to
+   AWS. The REST API uses *access keys* as the credentials. The access
+   key has two parts:
+
+   + *Access Key ID* - It identifies the party responsible for service
+     requests. It is included in each request, so it's not a secret.
 
 
-** AWS specific Design
+   + *Secret Access Key* - Each Access Key ID has a Secret Access Key
+     associated with it. This key is just a long string of characters
+     (and not a file) that is used to calculate the digital signature
+     included in the request.
 
-This comes from a configuration file which is not checked in the
-repository. Instead, a sample configuration file is checked in. A
-deployer is responsible for modifying this file and filling the
+   Both region and credentials are required whenever a new connection
+   is established. Within this connection, a number of VMs could be
+   created.
+
+3. *subnet_id*:
+
+4. *security_group_ids*:
+
+5. *key_name*:
+
+These parameters come from a configuration file which is not checked
+in the repository. Instead, a sample configuration file is checked
+in. A deployer is responsible for modifying this file and filling the
 appropriate values.
 
-** How to select:
+** Strategies to select:
 *** AMI (Amazon Machine Image)
 *** What instance-type to run?
-
+    
 * Implementation
 
 
