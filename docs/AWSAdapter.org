@@ -19,57 +19,60 @@ The =AWSAdapter= is an adapter for the AWS platform.
      created VM and start the =VMManager= service on port 9089.
 
 * Design
-
 ** General Adapter Design (REPHRASE) 
-According to ADS, every adapter must have certain interfaces. These
-interfaces enable other services to communicate to VMs, created by the
-adapter. The essential interfaces are listed below:
+In the current design of ADS, a fixed set of interfaces to an adapter
+is already defined. An adapter is required to implement these
+interfaces. This enables other components/services of ADS to
+communicate with the adapter. The interfaces implemented by the
+AWSAdapter are listed below:
 
 1. *create_vm* (self, lab_spec, dry_run=False)  
       Creates a new VM. 
-      *Parameters*: lab_spec
-      *Return type*:
-      *Returns*: id of the newly created VM.
+      *Parameters*: lab_spec - 
+                    dry_run(bool) - Set to True if the operation should not actually run.
+      *Returns*: Instance id of the newly created Amazon VM.
 
 2. *start_vm* (self, vm_id, dry_run=False)
       Starts the VM identified by =vm_id=.
-      *Parameters*: vm_id - Each VM is given a unique id.
-      *Return type*:
-      *Returns*: connection gets established with the new vm id.
+      *Parameters*: vm_id - VM/instance id of the VM to be started.
+                    dry_run(bool) - Set to True if the operation should not actually run.
+      *Returns*: List of instances that got started.
 
 3. *stop_vm* (self, vm_id, dry_run=False)
       Stops the VM identified by =vm_id=.
-      *Parameters*: vm_id - Each VM is given a unique id.
-      *Return type*:
-      *Returns*:
+      *Parameters*: vm_id - VM/instance id of the VM to be started.
+                    dry_run(bool) - Set to True if the operation should not actually run.
+      *Returns*: List of instances that got stopped.
 
 4. *restart_vm* (self, vm_id, dry_run=False)
       Stops the VM identified by =vm_id= and then starts it again.
-      *Parameters*: vm_id - Each VM is given a unique id. 
-      *Return type*:
-      *Returns*: restarted VM's id.
+      *Parameters*: vm_id - VM/instance id of the VM to be started. 
+                    dry_run(bool) - Set to True if the operation should not actually run. 
+      *Returns*: List of instances that got restarted.
 
 5. *start_vm_manager* (self, vm_id )
       Starts the VM manager service inside the VM identified by =vm_id=.
-      *Parameters*: vm_id - Each VM is given a unique id. 
-      *Return type*:
-      *Returns*:     
+      *Parameters*: vm_id - VM/instance id of the VM to be started.
+      *Returns*: True if the VM Manager service has successfully started.     
 
 6. *destroy_vm* (self, vm_id, dry_run=False)
       Terminates the VM identified by =vm_id=.
-      *Parameter*: vm_id - Each VM is given a unique id. 
+      *Parameter*: vm_id - VM/instance id of the VM to be started.
+                   dry_run(bool) - Set to True if the operation should not actually run. 
+      *Returns*: List of instances that got terminated.
 
 7. *is_running_vm* (self, vm_ip)
       Checks if the VM is up and port 22 is reachable. It assumes that
       VM is running the SSH service.
       *Parameters*: vm_ip - The ip address of VM.
-      *Return type*:
-      *Returns*: 
+      *Returns*: True if the VM is up, else false.
 
 ** AWS Specific Design (REPHRASE)
-Following parameters are used to connect with AWS API:
+Following are the parameters which are needed to be configured in this
+adapter, for the adapter to be able to communicate with AWS APIs.
 
-1. *region*: Each data center is a region.
+1. *region*: The region in which an AWS connection is to be made to
+   create instances/VMs. Each region is a separate geographic area.
 
 2. *credentials*: Credentials are used to authenticate the API to
    AWS. The REST API uses *access keys* as the credentials. The access
@@ -77,7 +80,6 @@ Following parameters are used to connect with AWS API:
 
    + *Access Key ID* - It identifies the party responsible for service
      requests. It is included in each request, so it's not a secret.
-
 
    + *Secret Access Key* - Each Access Key ID has a Secret Access Key
      associated with it. This key is just a long string of characters
@@ -88,21 +90,25 @@ Following parameters are used to connect with AWS API:
    is established. Within this connection, a number of VMs could be
    created.
 
-3. *subnet_id*:
+3. *subnet_id*: The id of the subnet to be associated with an instance
+   or VM. This is used while creating an instance or VMs.
 
-4. *security_group_ids*:
+4. *security_group_ids*: A list of ids of the security groups to be
+   associated with an instance or VM. This is used while creating an
+   instance or VMs.
 
-5. *key_name*:
+5. *key_name*: The name of the key pair with which to launch
+   instances.
 
 These parameters come from a configuration file which is not checked
-in the repository. Instead, a sample configuration file is checked
+in to the repository. Instead, a sample configuration file is checked
 in. A deployer is responsible for modifying this file and filling the
 appropriate values.
 
-** Strategies to select:
-*** AMI (Amazon Machine Image)
-*** What instance-type to run?
-    
+** Other design and strategic decisions:
+*** What AMIs to support and how to select them based on the lab spec input?
+
+*** What instance types to support and how to select it based on the lab spec input?
 * Implementation
 
 
