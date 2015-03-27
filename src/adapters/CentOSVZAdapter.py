@@ -61,8 +61,8 @@ class CentOSVZAdapter(object):
 
     def create_vm(self, lab_spec, vm_id=""):
         logger.debug("CentOSVZAdapter: create_vm()")
-        """If no vm_id is specified, it is computed using the last two segments of
-           an available IP address; vm_spec is an object """
+        """If no vm_id is specified, it is computed using the last two segments"""
+        """of an available IP address; vm_spec is an object """
         if vm_id == "":
             ip_address = BaseAdapter.find_available_ip()
             m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
@@ -72,40 +72,84 @@ class CentOSVZAdapter(object):
         else:
             ip_address = None
             vm_id = validate_vm_id(vm_id)
+
         (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
 
-        logger.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % \
-                              (ip_address, vm_id, vm_create_args, vm_set_args))
+        logger.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % 
+                        (ip_address, vm_id, vm_create_args, vm_set_args))
+        
         try:
-            (ret_code, output) = execute_command(VZCTL + " create " + vm_id + vm_create_args)
+            command = (r'ssh -o "%s" %s "%s create %s %s"' % 
+                        (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS, 
+                            VZCTL, vm_id, vm_create_args))
+            logger.debug("CentOSVZAdapter: create_vm(): create command = %s" %
+                            command)
+            (ret_code, output) = execute_command(command)
+
             if ret_code == 0:
-                (ret_code,output) = execute_command(VZCTL + " start " + vm_id)
-            if ret_code == 0:
-                (ret_code, output) = execute_command(VZCTL + " set " + vm_id + vm_set_args)
-            if ret_code == 0:
-                return vm_id
+
+                command = (r'ssh -o "%s" %s "%s start %s"' %
+                            (settings.NO_STRICT_CHECKING,
+                            settings.BASE_IP_ADDRESS,
+                            VZCTL, vm_id))
+                logger.debug("CentOSVZAdapter: create_vm(): start command = %s" %
+                                command)
+                (ret_code,output) = execute_command(command)
+
+                if ret_code == 0:
+
+                    command = (r'ssh -o "%s" %s "%s set %s %s"' %
+                                (settings.NO_STRICT_CHECKING,
+                                settings.BASE_IP_ADDRESS,
+                                VZCTL, vm_id, vm_set_args))
+                    logger.debug("CentOSVZAdapter: create_vm(): set command = %s" %
+                                    command)
+                    (ret_code, output) = execute_command(command)
+
+                    if ret_code == 0:
+                        return (True, vm_id)
+
         except Exception, e:
             logger.error("Error creating VM: " + str(e))
             #raise e
-            return 105 
+            return (False, -1) 
 
     def init_vm(self, vm_id, lab_repo_name):
         logger.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
         success = True
+        success = success and copy_public_key(vm_id)
         success = success and  copy_ovpl_source(vm_id)
         success = success and copy_lab_source(vm_id, lab_repo_name)
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
-        response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id), "vmm_port": settings.VM_MANAGER_PORT}
-        logger.debug("CentOSVZAdapter: init_vm(): success = %s, response = %s" % (success, response))
+        response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id),
+                    "vmm_port": settings.VM_MANAGER_PORT}
+        logger.debug("CentOSVZAdapter: init_vm(): success = %s, response = %s" %
+                        (success, response))
         return (success, response)
 
     def destroy_vm(self, vm_id):
         vm_id = validate_vm_id(vm_id)
         try:
-            execute_command(VZCTL + " stop " + vm_id)
-            execute_command(VZCTL + " destroy " + vm_id)
-            return "Success"
+
+            command = (r'ssh -o "%s" %s "%s stop %s"' %
+                        (settings.NO_STRICT_CHECKING,
+                        settings.BASE_IP_ADDRESS,
+                        VZCTL, vm_id))
+            logger.debug("CentOSVZAdapter: destroy_vm(): stop command = %s" %
+                            command)
+            (ret_code,output) = execute_command(command)
+
+            if ret_code == 0:
+                command = (r'ssh -o "%s" %s "%s destroy %s"' %
+                            (settings.NO_STRICT_CHECKING,
+                            settings.BASE_IP_ADDRESS,
+                            VZCTL, vm_id))
+                logger.debug("CentOSVZAdapter: destroy_vm(): destroy command = %s" %
+                                command)
+                (ret_code,output) = execute_command(command)
+                if ret_code == 0:
+                    return "Success"
         except Exception, e:
             logger.error("Error destroying VM: " + str(e))
             return "Failed to destroy VM: " + str(e)
@@ -113,7 +157,13 @@ class CentOSVZAdapter(object):
     def restart_vm(self, vm_id):
         vm_id = validate_vm_id(vm_id)
         try:
-            execute_command(VZCTL + " restart " + vm_id)
+            command = (r'ssh -o "%s" %s "%s restart %s"' %
+                        (settings.NO_STRICT_CHECKING,
+                        settings.BASE_IP_ADDRESS,
+                        VZCTL, vm_id))
+            logger.debug("CentOSVZAdapter: restart_vm(): restart command = %s" %
+                            command)
+            (ret_code,output) = execute_command(command)
         except Exception, e:
             raise e
         return start_vm_manager(vm_id)
@@ -123,14 +173,24 @@ class CentOSVZAdapter(object):
 
     
     def start_vm_manager(self, vm_id):
-        command = VZCTL + " exec " + str(vm_id) + " \"su - root -c \'python " + \
-            settings.VMMANAGERSERVER_PATH + settings.VM_MANAGER_SCRIPT + " &\'\""
-        logger.debug("CentOSVZAdapter: start_vm_manager(): command = %s" % command)
+
+        ip_address = get_vm_ip(vm_id)
+        start_vm_manager_command = ("python %s%s %s" %
+                                    (settings.VMMANAGERSERVER_PATH,
+                                    settings.VM_MANAGER_SCRIPT,
+                                    ">>/root/vm.log 2>&1 </dev/null &" ))
+        command = (r"ssh -o '%s' %s%s '%s'" %
+                    (settings.NO_STRICT_CHECKING,
+                    "root@", ip_address,
+                    start_vm_manager_command))
+        logger.debug("CentOSVZAdapter: start_vm_manager(): command = %s" %
+                        command)
         try:
-            execute_command(command)
+            (ret_code,output) = execute_command(command)
             return True
         except Exception, e:
-            logger.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" % (command, str(e)))
+            logger.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" %
+                            (command, str(e)))
             return False
 
     def get_resource_utilization(self):
@@ -139,8 +199,15 @@ class CentOSVZAdapter(object):
     def stop_vm(self, vm_id):
         vm_id = validate_vm_id(vm_id)
         try:
-            execute_command(VZCTL + " stop " + vm_id)
+            command = (r'ssh -o "%s" %s "%s stop %s"' %
+                        (settings.NO_STRICT_CHECKING,
+                        settings.BASE_IP_ADDRESS,
+                        VZCTL, vm_id))
+            logger.debug("CentOSVZAdapter: stop_vm(): command = %s" %
+                            command)
+            (ret_code,output) = execute_command(command)
             return "Success"
+        
         except Exception, e:
             logger.error("Error stopping VM: " + str(e))
             return "Failed to stop VM: " + str(e)
@@ -160,11 +227,38 @@ class CentOSVZAdapter(object):
         vm_id = validate_vm_id(vm_id)
         pass
 
+def copy_public_key(vm_id):
+
+    try:
+        public_key_file = ("%s%s%s%s" %
+                            (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
+                            settings.VM_DEST_DIR, ".ssh/id_rsa.pub"))
+
+        authorized_key_file = ("%s%s%s%s" %
+                                (settings.VM_ROOT_DIR, vm_id,
+                                settings.VM_DEST_DIR, ".ssh/authorized_keys"))
+    
+        logger.debug("public key location = %s, authorized key location = %s" %
+                    (public_key_file, authorized_key_file))
+        command = (r'ssh -o "%s" %s "%s %s > %s"' %
+                    (settings.NO_STRICT_CHECKING,
+                    settings.BASE_IP_ADDRESS,
+                    "/bin/cat", public_key_file, authorized_key_file))
+        logger.debug("command to cpy the public key = %s" % command)
+        (ret_code,output) = execute_command(command)
+        return True
+    except Exception, e:
+        logger.error("ERROR = %s" % str(e))
+        return False
+
 
 def copy_files(src_dir, dest_dir):
 
     try:
-        command = "rsync -arz --progress " + src_dir + " " + dest_dir
+        copy_command = "rsync -arz --progress " + src_dir + " " + dest_dir
+        logger.debug("copy command = %s" % copy_command)
+        command = (r'ssh %s "%s"' %
+                    (settings.BASE_IP_ADDRESS, copy_command))
         logger.debug("Command = %s" % command)
         (ret_code, output) = execute_command(command)
         if ret_code == 0:
@@ -177,22 +271,35 @@ def copy_files(src_dir, dest_dir):
         logger.error("ERROR = %s" % str(e))
         return False
 
+        
 def copy_ovpl_source(vm_id):
-    env = EnvSetUp()
-    src_dir =     env.get_ovpl_directory_path()
+
+    src_dir =  "%s%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
+                           settings.VM_DEST_DIR, "ovpl")
     dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR)
     logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
+
     try:
-        return copy_files(src_dir, dest_dir)
+        return copy_files(str(src_dir), str(dest_dir))
     except Exception, e:
         logger.error("ERROR = %s" % str(e))
         return False
 
 def copy_lab_source(vm_id, lab_repo_name):
 
-    src_dir =     GIT_CLONE_LOC[:-1] + "/" + lab_repo_name
-    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR + "labs")
-    logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
+    directories = GIT_CLONE_LOC.split("/")
+    labs_dir = directories[-2]
+    src_dir =  "%s%s%s%s%s%s" % (settings.VM_ROOT_DIR,                         
+                                 settings.ADS_SERVER_VM_ID,                    
+                                 settings.VM_DEST_DIR, labs_dir,               
+                                 "/", lab_repo_name)  
+
+    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id,                        
+                           settings.VM_DEST_DIR + "labs")
+                           
+    logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
+                 (vm_id, src_dir, dest_dir))
+    
     try:
         return copy_files(src_dir, dest_dir)
     except Exception, e:
@@ -202,7 +309,11 @@ def copy_lab_source(vm_id, lab_repo_name):
 def get_vm_ip(vm_id):
     vm_id = validate_vm_id(vm_id)
     try:
-        (ret_code,vzlist) = execute_command(VZLIST + " | grep " + vm_id)
+        command = (r'ssh -o "%s" %s "%s | grep %s"' %
+                    (settings.NO_STRICT_CHECKING,
+                    settings.BASE_IP_ADDRESS,
+                    VZLIST, vm_id))
+        (ret_code,vzlist) = execute_command(command)
         if vzlist == "":
             return                                  # raise exception?
         ip_address = re.search(IP_ADDRESS_REGEX, vzlist)
@@ -273,8 +384,8 @@ def validate_vm_id(vm_id):
     if m == None:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be numeric.")
     vm_id = int(m.group(0))
-#    if vm_id <= 100:
-#        raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
+    if vm_id <= 100:
+        raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
     if vm_id > settings.MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
