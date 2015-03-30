@@ -24,7 +24,8 @@ requires = [
     'requests',
     'pymongo',
     'netaddr',
-    'sh'
+    'sh',
+    'boto'
 ]
 
 
@@ -35,9 +36,9 @@ setup(
     license='MIT',
     author='VLEAD',
     author_email='engg@virtual-labs.ac.in',
-    description='One-VM-per-Lab: Automated deployment environment',
+    description='Automated Deployment Service',
     long_description=__doc__,
-    #packages=['src', 'config', 'scripts'],
+    # packages=['src', 'config', 'scripts'],
     packages=['src'],
     zip_safe=False,
     platforms='any',

@@ -3,6 +3,9 @@
 """ Open issues with the current version:
     1.
 """
+# FIXME: the current adapter uses the ubuntu user of the new created AMI and
+# uses the home directory of the ubuntu user. FIx this to use the root user and
+# the home directory of the root user
 
 __all__ = [
     'create_vm',
@@ -12,41 +15,35 @@ __all__ = [
     'start_vm_manager',
     'destroy_vm',
     'is_running_vm',
-    'migrate_vm',
-    'get_resource_utilization',
-    'take_snapshot',
-    'InvalidVMIDException',
+    'get_vm_ip'
 ]
 
 # Standard Library imports
 import os
 import json
-#import sys
 import socket
 from time import sleep
 
 # Third party imports
-# aws library
+# AWS library
 from boto import ec2
 
-# VLEAD imports
+# ADS imports
 import VMUtils
 from dict2default import dict2default
 import settings
-import BaseAdapter
 from http_logging.http_logger import logger
-from utils.git_commands import *
 from utils.envsetup import EnvSetUp
+from utils.git_commands import *
 from utils.execute_commands import *
 
 # import the AWS configuration
 import aws_config as config
 
-#GIT_CLONE_LOC = "labs"
-
 
 class AMINotFound(Exception):
     pass
+
 
 class AWSKeyFileNotFound(Exception):
     pass
@@ -66,14 +63,20 @@ class AWSAdapter(object):
     security_group_ids = config.security_group_ids
     key_name = config.key_file_name
 
+    # FIXME: change this root; when we get the AMI to have root login fixed.
+    # the user name of the VM that is been created; this user will be used to
+    # perform further operations on that VM.
+    VM_USER = 'ubuntu'
+
     def __init__(self):
         # check if the key_file exists, else throw an error! again the key file
         # should not be checked in, but the deployer has to manually copy it in
         # this location
         cur_dir = os.path.dirname(os.path.abspath(__file__))
-        key_file_path = os.path.join(cur_dir, self.key_name+'.pem')
+        self.key_file_path = os.path.join(cur_dir, self.key_name+'.pem')
+
         # logger.debug("Key file path: %s", key_file_path)
-        if not os.path.isfile(key_file_path):
+        if not os.path.isfile(self.key_file_path):
             msg = 'Make sure you have the key file: "%s.pem" ' % self.key_name
             msg += ' placed in the same directory as the adapter file'
             raise AWSKeyFileNotFound(msg)
@@ -86,11 +89,10 @@ class AWSAdapter(object):
     def create_vm(self, lab_spec, dry_run=False):
         logger.debug("AWSAdapter: create_vm()")
 
-        # (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
-        (ami_id, instance_type) = construct_ec2_args(lab_spec)
+        (ami_id, instance_type) = self._construct_ec2_params(lab_spec)
 
-        logger.debug("AWSAdapter: creating VM with following params:\
-                     instance_type: %s, AMI id: %s" % (instance_type, ami_id))
+        logger.debug("AWSAdapter: creating VM with following params: " +
+                     "instance_type: %s, AMI id: %s" % (instance_type, ami_id))
 
         reservation = self.connection.\
             run_instances(ami_id,
@@ -101,52 +103,58 @@ class AWSAdapter(object):
                           dry_run=dry_run)
 
         instance = reservation.instances[0]
-        instance.add_tag('Name', 'test.aws.adapter')
+        instance.add_tag('Name', 'ads-test.aws.adapter')
 
         logger.debug("AWSAdapter: created VM: %s" % instance)
         return instance.id
 
+    # initialize the VM by copying relevant ADS component (VM Manager) and the
+    # lab sources, and start the VM Manager..
     def init_vm(self, vm_id, lab_repo_name):
-        vm_ip_addr = self.get_vm_ip(vm_id)
-
-        logger.debug("ip add of instance id %s is %s" % (vm_id, vm_ip_addr))
-
-        ## FIXME: remove the following
-        line1 = "Host {0}".format(vm_ip_addr)
-        line2 = "ProxyCommand /usr/bin/corkscrew proxy.vlabs.ac.in 8080 %h %p ~/.proxy_auth"
-        command = "echo \"%s\" >> /home/ecthiender/.ssh/config" % line1.strip()
-        execute_command(command)
-        command = "echo \"%s\" >> /home/ecthiender/.ssh/config" % line2.strip()
-        execute_command(command)
-
+        """
+        initialize the VM by copying relevant ADS component (VM Manager) and
+        the lab sources, and start the VM Manager..
+        """
         logger.debug("AWSAdapter: init_vm(): vm_id = %s" % vm_id)
 
+        vm_ip_addr = self.get_vm_ip(vm_id)
+
+        logger.debug("instance id: %s; IP addr: %s" % (vm_id, vm_ip_addr))
+
+        # wait until the VM is up with the SSH service..
+        # until then we won't be able to go ahead with later steps..
         while not self.is_running_vm(vm_ip_addr):
-            print "waiting for SSH to be up..."
-            sleep(3)
-
-        #success = init_copy_files(vm_ip_addr)
-        #if not success:
-        #    return False
-
-        success = copy_ovpl_source(vm_ip_addr)
-        if not success:
-            return False
-
-        success = copy_lab_source(vm_ip_addr, lab_repo_name)
-        if not success:
-            return False
-
-        success = self.start_vm_manager(vm_id)
-        if not success:
-            return False
+            logger.debug("AWSAdapter: VM %s: waiting for SSH to be up..." %
+                         vm_ip_addr)
+            sleep(4)
 
         # Return the VM's IP and port info
-        response = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
-                    "vmm_port": settings.VM_MANAGER_PORT}
-        logger.debug("AWSAdapter: init_vm(): success = %s, response = %s" % (success, response))
+        info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
+                "vmm_port": settings.VM_MANAGER_PORT}
 
-        return (success, response)
+        # enable root login into the machine. some AMIs don't support root login
+        # at all. Workaround to enable root login after the machine has booted.
+        # TODO: figure out if there is a better way to doing it.
+        #success = self._enable_root_login(vm_ip_addr)
+        #if not success:
+        #    return (success, info)
+
+        success = self._copy_ovpl_source(vm_ip_addr)
+        if not success:
+            return (success, info)
+
+        success = self._copy_lab_source(vm_ip_addr, lab_repo_name)
+        if not success:
+            return (success, info)
+
+        success = self.start_vm_manager(vm_ip_addr)
+        if not success:
+            return (success, info)
+
+        logger.debug("AWSAdapter: init_vm(): success = %s, response = %s" %
+                     (success, info))
+
+        return (success, info)
 
     def stop_vm(self, vm_id, dry_run=False):
         logger.debug("AWSAdapter: stop_vm(): vm_id = %s" % vm_id)
@@ -163,45 +171,48 @@ class AWSAdapter(object):
         return self.connection.terminate_instances([vm_id], dry_run=dry_run)
 
     def restart_vm(self, vm_id, dry_run=False):
+        logger.debug("AWSAdapter: restart_vm(): vm_id: %s" % vm_id)
         stopped_instances = self.stop_vm(vm_id, dry_run=dry_run)
+        logger.debug("AWSAdapter: stopped instances: %s" % stopped_instances)
         started_instances = self.start_vm(vm_id, dry_run=dry_run)
+        logger.debug("AWSAdapter: started instances: %s" % started_instances)
         return started_instances
 
-    def start_vm_manager(self, vm_id):
-        return None
-        command = VZCTL + " exec " + str(vm_id) + " \"su - root -c \'python " + \
-            settings.VMMANAGERSERVER_PATH + settings.VM_MANAGER_SCRIPT + " &\'\""
-        logger.debug("CentOSVZAdapter: start_vm_manager(): command = %s" % command)
+    # start the VM Manager component on the lab VM
+    def start_vm_manager(self, vm_ip_addr):
+        logger.debug("AWSAdapter: Attempting to start VMMgr: vm_ip:%s"
+                     % (vm_ip_addr))
+
+        ssh_command = "ssh -i {0} -o StrictHostKeyChecking=no {1}@{2} ".\
+            format(self.key_file_path, self.VM_USER, vm_ip_addr)
+
+        vmmgr_cmd = "'sudo python {0}{1} >> vmmgr.log 2>&1 < /dev/null &'".\
+            format("/home/ubuntu/ovpl/", "src/VMManager/VMManagerServer.py")
+
+        command = ssh_command + vmmgr_cmd
+
+        logger.debug("AWSAdapter: start_vm_manager(): command = %s" % command)
+
         try:
             execute_command(command)
-            return True
         except Exception, e:
-            logger.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" % (command, str(e)))
+            logger.error("AWSAdapter: start_vm_manager(): " +
+                         "command = %s, ERROR = %s" % (command, str(e)))
             return False
+
+        return True
 
     # take an aws instance_id and return its ip address
     def get_vm_ip(self, vm_id):
         logger.debug("AWSAdapter: get_vm_ip(%s)" % (vm_id))
 
-        # FIXME: remove it when running ADS from AWS cluster
-        # sometimes if this function is called immediately after creating the VM
-        # the VM does not get a public ip address assigned to it.
-        # so a HACK for now to wait until it gets a public ip
-        while True:
-            reservations = self.connection.get_all_instances(instance_ids=[vm_id])
-            instance = reservations[0].instances[0]
-            logger.debug("AWSAdapter: instance: %s with id: %s" %
-                        (instance.__dict__, vm_id))
+        reservations = self.connection.get_all_instances(instance_ids=[vm_id])
+        instance = reservations[0].instances[0]
 
-            if instance.ip_address is not None:
-                break
-            logger.debug("AWSAdapter: IP address of instance is %s"
-                         % instance.ip_address)
-            logger.debug("AWSAdapter: waiting for the VM to be up..")
-            sleep(5)
+        logger.debug("AWSAdapter: Private IP address of instance is: %s" %
+                     instance.private_ip_address)
 
-        logger.debug("AWSAdapter: got ip addr: %s" % (instance.ip_address))
-        return instance.ip_address
+        return instance.private_ip_address
 
     def get_resource_utilization(self):
         pass
@@ -213,203 +224,240 @@ class AWSAdapter(object):
     # check if the VM is up and port 22 is reachable
     # assumption is VM is running the SSH service
     def is_running_vm(self, vm_ip):
-        #vm_id = validate_vm_id(vm_id)
+        logger.debug("AWSAdapter: is_running_vm(): VM IP: %s" % vm_ip)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
+            logger.debug("AWSAdapter: trying to connect to port 22 of: %s" %
+                         vm_ip)
             s.connect((vm_ip, 22))
-            print "VM: Port 22 reachable"
+            logger.debug("AWSAdapter: VM %s: SSH is up.." % vm_ip)
             return True
         except socket.error as e:
-            print "VM: Error on connect: %s" % e
+            logger.debug("AWSAdapter: VM %s: Error connecting to SSH: %s" %
+                         (vm_ip, e))
+            logger.debug("AWSAdapter: retrying to reach port 22..")
             s.close()
             return False
 
     def migrate_vm(self, vm_id, destination):
-        #vm_id = validate_vm_id(vm_id)
         pass
 
     def take_snapshot(self, vm_id):
-        #vm_id = validate_vm_id(vm_id)
         pass
 
+    def _enable_root_login(self, remote_user, vm_ip):
+        ssh_command = "ssh -i {0} -o StrictHostKeyChecking=no {1}@{2} ".\
+            format(self.key_file_path, remote_user, vm_ip)
+        cp_cmd = "'sudo cp ~/.ssh/authorized_keys /root/.ssh/authorized_keys'"
 
-# FIXME: change this root; when we get the AMI to have root login fixed.
-VM_USER = 'ubuntu'
+        command = ssh_command + cp_cmd
 
-def init_copy_files(ip_addr):
-    # Before rsync can be used to copy files or before running commands on
-    # instance using SSH we should add key-pair and accept SSH fingerprint
-    # NOTE that accepting SSH fingerprint in this manner is susceptible to
-    # MITM attacks.
-    cur_dir = os.path.dirname(os.path.abspath(__file__))
-    key_file_path = os.path.join(cur_dir, config.key_file_name+'.pem')
-
-    try:
-        execute_command("ssh-add {0}".format(key_file_path))
-    except Exception, e:
-        logger.debug("Error adding key-pair to VM: %s" % str(e))
-        return False
-
-    try:
-        execute_command("ssh -o StrictHostKeyChecking=no ubuntu@{0} 'ls'".\
-                        format(ip_addr))
-    except Exception, e:
-        logger.debug("Error accepting SSH fingerprint of VM: %s" % str(e))
-        return False
-
-    return True
-
-
-def copy_files(src_dir, dest_dir):
-    cur_dir = os.path.dirname(os.path.abspath(__file__))
-    key_file_path = os.path.join(cur_dir, config.key_file_name+'.pem')
-
-    try:
-        command = "scp -i {0} -r -o StrictHostKeyChecking=no {1} {2}".\
-            format(key_file_path, src_dir, dest_dir)
-
-        #command = "rsync -varz --progress {0} {1}".format(src_dir, dest_dir)
-
-        logger.debug("Command = %s" % command)
-        (ret_code, output) = execute_command(command)
-        if ret_code == 0:
-            logger.debug("Copy successful")
-            return True
-        else:
-            logger.debug("Copy Unsuccessful, return code is %s" % str(ret_code))
+        logger.debug("AWSAdapter: _enable_root_login(): command = %s" % command)
+        try:
+            execute_command(command)
+        except Exception, e:
+            logger.debug("Error enabling root login. Error: " % str(e))
             return False
-    except Exception, e:
-        logger.error("ERROR = %s" % str(e))
-        return False
 
+        return True
 
-def copy_ovpl_source(ip_addr):
-    env = EnvSetUp()
-    src_dir = env.get_ovpl_directory_path()
-    #FIXME: change the following /home/VM_USER to settings.VM_DEST_DIR
-    dest_dir = "{0}@{1}:{2}ovpl/".format(VM_USER, ip_addr, "/home/"+VM_USER+"/")
+    # copy files using rsync given src and dest dirs
+    def _copy_files(self, src_dir, dest_dir):
+        try:
+            command = "rsync -avzr -e \"ssh -i {0} -o StrictHostKeyChecking=no\" {1} {2}".\
+                format(self.key_file_path, src_dir, dest_dir)
 
-    logger.debug("ip_address = %s, src_dir=%s, dest_dir=%s" %
-                 (ip_addr, src_dir, dest_dir))
+            logger.debug("Command = %s" % command)
+            (ret_code, output) = execute_command(command)
 
-    try:
-        return copy_files(src_dir, dest_dir)
-    except Exception, e:
-        logger.error("ERROR = %s" % str(e))
-        print 'ERROR= %s' % (str(e))
-        return False
+            if ret_code == 0:
+                logger.debug("Copy successful")
+                return True
+            else:
+                logger.debug("Copy Unsuccessful, return code is %s" %
+                             str(ret_code))
+                return False
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            return False
 
+    # copy the ADS source into the newly created lab VM
+    def _copy_ovpl_source(self, ip_addr):
+        env = EnvSetUp()
+        src_dir = env.get_ovpl_directory_path()
+        # FIXME: change the following /home/VM_USER to settings.VM_DEST_DIR
+        dest_dir = "{0}@{1}:{2}".format(self.VM_USER, ip_addr,
+                                        "/home/"+self.VM_USER+"/")
 
-def copy_lab_source(ip_addr, lab_repo_name):
-    src_dir = GIT_CLONE_LOC[:-1] + "/" + lab_repo_name
-    #FIXME: change the following /home/VM_USER to settings.VM_DEST_DIR
-    dest_dir = "{0}@{1}:{2}labs/".format(VM_USER, ip_addr, "/home/"+VM_USER+"/")
+        logger.debug("ip_address = %s, src_dir=%s, dest_dir=%s" %
+                     (ip_addr, src_dir, dest_dir))
 
-    logger.debug("ip_address = %s, src_dir=%s, dest_dir=%s" % (ip_addr, src_dir, dest_dir))
+        try:
+            return self._copy_files(src_dir, dest_dir)
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            print 'ERROR= %s' % (str(e))
+            return False
 
-    try:
-        return copy_files(src_dir, dest_dir)
-    except Exception, e:
-        logger.error("ERROR = %s" % str(e))
-        print 'ERROR= %s' % (str(e))
-        return False
+    # copy the lab source into the newly created lab VM
+    def _copy_lab_source(self, ip_addr, lab_repo_name):
+        src_dir = GIT_CLONE_LOC[:-1] + "/" + lab_repo_name
 
+        # FIXME: change the following /home/VM_USER to settings.VM_DEST_DIR
+        dest_dir = "{0}@{1}:{2}labs/".format(self.VM_USER, ip_addr,
+                                             "/home/"+self.VM_USER+"/")
 
-def get_vm_spec(lab_spec):
-    """ Parse out VM related requirements from a given lab_spec """
+        logger.debug("ip_address = %s, src_dir=%s, dest_dir=%s" %
+                     (ip_addr, src_dir, dest_dir))
 
-    lab_spec = dict2default(lab_spec)
-    runtime_reqs = lab_spec['lab']['runtime_requirements']
-    vm_spec = {
-        "lab_ID": lab_spec['lab']['description']['id'],
-        "os": runtime_reqs['platform']['os'],
-        "os_version": runtime_reqs['platform']['osVersion'],
-        "ram": runtime_reqs['platform']['memory']['min_required'],
-        "diskspace": runtime_reqs['platform']['storage']['min_required'],
-        "swap": runtime_reqs['platform']['memory']['swap']
-    }
-    return vm_spec
+        try:
+            return self._copy_files(src_dir, dest_dir)
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            print 'ERROR= %s' % (str(e))
+            return False
 
+    def _construct_ec2_params(self, lab_spec):
+        """
+        Returns a tuple of AWS VM parameters - the AMI id and the instance type
+        based on the runtime parameters in the lab_spec
+        """
 
-def construct_ec2_args(lab_spec):
-    """
-    Returns a tuple of aws vm arguments - AMI id and instance type based
-    on the lab_spec parameters
-    """
-    available_instance_types = [
-        {'ram': 1024, 'instance_type': 't2.micro'},
-        {'ram': 2048, 'instance_type': 't2.small'}
-        #{'ram': 4096, 'instance_type': 't2.micro'}
-    ]
+        # get the availabe instance types from the config
+        available_instance_types = config.available_instance_types
 
-    vm_spec = get_vm_spec(lab_spec)
+        # get the vm specs from the lab spec
+        vm_spec = self._get_vm_spec(lab_spec)
 
-    if 'slug' in lab_spec['lab']['description']:
-        hostname = "%s.%s" % (slug, settings.get_adapter_hostname())
-    else:
-        if vm_spec["lab_ID"] == "":
-            lab_ID = settings.get_test_lab_id()
+        # derive hostname from the slug given in labspec
+        if 'slug' in lab_spec['lab']['description']:
+            hostname = "%s.%s" % (slug, settings.get_adapter_hostname())
         else:
-            lab_ID = vm_spec["lab_ID"]
-        hostname = "%s.%s" % (lab_ID, settings.get_adapter_hostname())
+            if vm_spec["lab_ID"] == "":
+                lab_ID = settings.get_test_lab_id()
+            else:
+                lab_ID = vm_spec["lab_ID"]
+            hostname = "%s.%s" % (lab_ID, settings.get_adapter_hostname())
 
-    ami_id = find_ec2_ami(vm_spec["os"], vm_spec["os_version"])
+        logger.debug("AWSAdapter: hostname of the lab: %s" % hostname)
 
-    (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
+        # pass OS and OS version and get a relavant AMI id for the corresponding
+        # image
+        ami_id = self._find_ec2_ami(vm_spec["os"], vm_spec["os_version"])
 
-    # convert stupid RAM string in 'M' to an integer
-    ram = int(ram[:-1])
-    if ram < 2048:
-        instance_type = available_instance_types[0]['instance_type']
-    else:
-        instance_type = available_instance_types[1]['instance_type']
+        # use someone's super intelligent method to get RAM in megs- in a string
+        # with 'M' appended at the end!! </sarcasm>
+        (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
 
-    #(disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
-    #print disk_soft, disk_hard
+        # convert stupid RAM string in 'M' to an integer
+        # no idea why would one deal with RAM values in strings!!
+        ram = int(ram[:-1])
+        if ram < 2048:
+            instance_type = available_instance_types[0]['instance_type']
+        else:
+            instance_type = available_instance_types[1]['instance_type']
 
-    return (ami_id, instance_type)
+        return (ami_id, instance_type)
 
+    def _get_vm_spec(self, lab_spec):
+        """ Parse out VM related requirements from a given lab_spec """
 
-def find_ec2_ami(os, os_version):
-    """
-    Find a suitable AMI from the list of supported AMIs from the given OS and
-    OS version. If not a suitable OS is found, raise appropriate Exception
-    """
-    supported_amis = [
-        #{'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-5ca18834'},
-        {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-58b49c30'},
-        {'os': 'UBUNTU', 'version': '14.04', 'ami_id': 'ami-9a562df2'},
-        {'os': 'CENTOS', 'version': '6.6', 'ami_id': 'ami-61655b08'},
-        {'os': 'DEBIAN', 'version': '7.0', 'ami_id': 'ami-e0efab88'}
-    ]
+        lab_spec = dict2default(lab_spec)
+        runtime_reqs = lab_spec['lab']['runtime_requirements']
+        vm_spec = {
+            "lab_ID": lab_spec['lab']['description']['id'],
+            "os": runtime_reqs['platform']['os'],
+            "os_version": runtime_reqs['platform']['osVersion'],
+            "ram": runtime_reqs['platform']['memory']['min_required'],
+            "diskspace": runtime_reqs['platform']['storage']['min_required'],
+            "swap": runtime_reqs['platform']['memory']['swap']
+        }
+        return vm_spec
 
-    if os == "" or os_version == "":
-        raise AMINotFound('No corresponding AMI for the given OS found')
+    def _find_ec2_ami(self, os, os_version):
+        """
+        Find a suitable AMI from the list of supported AMIs from the given OS
+        and OS version. If not a suitable OS is found, raise appropriate
+        Exception
+        """
+        supported_amis = config.supported_amis
 
-    # sanitize input
-    os = os.strip().upper()
-    os_version = os_version.strip()
+        if os == "" or os_version == "":
+            raise AMINotFound('No corresponding AMI for the given OS found')
 
-    if os == 'UBUNTU' and os_version == '12':
-        os_version = '12.04'
+        # sanitize input
+        os = os.strip().upper()
+        os_version = os_version.strip()
 
-    # filter the supported_amis list by the os and the by the version
-    filtered_os = filter(lambda x: x['os'] == os, supported_amis)
-    chosen_ami = filter(lambda x: x['version'] == os_version, filtered_os)
+        if os == 'UBUNTU' and os_version == '12':
+            os_version = '12.04'
 
-    if not chosen_ami or not len(chosen_ami):
-        raise AMINotFound('No corresponding AMI for the given OS found')
+        if os == 'UBUNTU' and os_version == '14':
+            os_version = '14.04'
 
-    # chose the item; there should be only one.
-    chosen_ami = chosen_ami[0]
+        # filter the supported_amis list by the os and the by the version
+        filtered_os = filter(lambda x: x['os'] == os, supported_amis)
+        chosen_ami = filter(lambda x: x['version'] == os_version, filtered_os)
 
-    print chosen_ami
-    return chosen_ami['ami_id']
+        if not chosen_ami or not len(chosen_ami):
+            raise AMINotFound('No corresponding AMI for the given OS found')
+
+        # chose the item; there should be only one.
+        chosen_ami = chosen_ami[0]
+
+        logger.debug("Choosing AMI: %s; based on input OS: %s, version: %s" %
+                     (chosen_ami, os, os_version))
+
+        return chosen_ami['ami_id']
+
+    # install the dependencies to start/run the VM Manager..
+    # FIXME: remove this portion..as this cannot be platform independent and
+    # dependencies can change over time. Not a good idea. The AMIs used should
+    # have all the dependencies installed.
+    def _install_own_dependencies(self, vm_ip_addr):
+        logger.debug("AWSAdapter: _install_own_dependencies()")
+
+        # SSH pre-command to execute commands on the remote host
+        ssh_command = "ssh -i {0} -t -t -o StrictHostKeyChecking=no {1}@{2} ".\
+            format(self.key_file_path, self.VM_USER, vm_ip_addr)
+
+        # install build essential and python-dev and python pip
+        packages = ("build-essential", "python-dev", "python-pip")
+
+        install_deps = "'sudo apt-get update;sudo apt-get install -y {0}'".\
+            format(" ".join(packages))
+
+        install_deps_cmd = ssh_command + install_deps
+
+        logger.debug("AWSAdapter: _install_own_dependencies(): command = %s" %
+                     install_deps_cmd)
+        try:
+            execute_command(install_deps_cmd)
+        except Exception, e:
+            logger.error("AWSAdapter: _install_own_dependencies(): " +
+                         "command: %s, ERROR: %s" % (install_deps_cmd, str(e)))
+            return False
+
+        # run the ADS setup.py to install its dependencies
+        install_ads_cmd = ssh_command + "'cd {0}; sudo python setup.py install'".\
+            format("/home/ubuntu/ovpl")
+
+        logger.debug("AWSAdapter: _install_own_dependencies(): command = %s" %
+                     install_ads_cmd)
+
+        try:
+            execute_command(install_ads_cmd)
+        except Exception, e:
+            logger.error("AWSAdapter: _install_own_dependencies(): " +
+                         "command = %s, ERROR = %s" %
+                         (install_ads_cmd, str(e)))
+            return False
+
+        return True
 
 
 if __name__ == "__main__":
 
-    #find_ec2_ami('cent OS', '6.5')
     f = open('../scripts/labspec.json', 'r')
     lspec = json.loads(f.read())
     obj = AWSAdapter()
@@ -423,5 +471,3 @@ if __name__ == "__main__":
         print 'Something went wrong'
     else:
         print 'Success'
-    #obj.get_vm_ip('i-5e8622a2')
-    #obj.destroy_vm(instance_id)

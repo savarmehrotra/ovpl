@@ -1,7 +1,7 @@
-OVPL_SRC_DIR = "/../../../ovpl" #above ovpl directory
+OVPL_SRC_DIR = "../../../ovpl" #above ovpl directory
 VM_ROOT_DIR = "/vz/root/"
 VM_DEST_DIR = "/root/"
-VMMANAGERSERVER_PATH="/root/ovpl/src/VMManager/"
+VMMANAGERSERVER_PATH="../src/VMManager/"
 VM_MANAGER_PORT = "9089"
 
 #run VMManagerServer with the default VMManager
