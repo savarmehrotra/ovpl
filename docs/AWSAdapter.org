@@ -27,45 +27,45 @@ communicate with the adapter. The interfaces implemented by the
 AWSAdapter are listed below:
 
 1. *create_vm* (self, lab_spec, dry_run=False)  
-      Creates a new VM. 
-      *Parameters*: lab_spec - 
-                    dry_run(bool) - Set to True if the operation should not actually run.
-      *Returns*: Instance id of the newly created Amazon VM.
+     + Creates a new VM. 
+     + *Parameters*: lab_spec - 
+                     dry_run(bool) - Set to True if the operation should not actually run.
+     + *Returns*: Instance id of the newly created Amazon VM.
 
 2. *start_vm* (self, vm_id, dry_run=False)
-      Starts the VM identified by =vm_id=.
-      *Parameters*: vm_id - VM/instance id of the VM to be started.
-                    dry_run(bool) - Set to True if the operation should not actually run.
-      *Returns*: List of instances that got started.
+     + Starts the VM identified by =vm_id=.
+     + *Parameters*: vm_id - VM/instance id of the VM to be started.
+                     dry_run(bool) - Set to True if the operation should not actually run.
+     + *Returns*: List of instances that got started.
 
 3. *stop_vm* (self, vm_id, dry_run=False)
-      Stops the VM identified by =vm_id=.
-      *Parameters*: vm_id - VM/instance id of the VM to be started.
-                    dry_run(bool) - Set to True if the operation should not actually run.
-      *Returns*: List of instances that got stopped.
+      + Stops the VM identified by =vm_id=.
+      + *Parameters*: vm_id - VM/instance id of the VM to be started.
+                      dry_run(bool) - Set to True if the operation should not actually run.
+      + *Returns*: List of instances that got stopped.
 
 4. *restart_vm* (self, vm_id, dry_run=False)
-      Stops the VM identified by =vm_id= and then starts it again.
-      *Parameters*: vm_id - VM/instance id of the VM to be started. 
+      + Stops the VM identified by =vm_id= and then starts it again.
+      + *Parameters*: vm_id - VM/instance id of the VM to be started.
                     dry_run(bool) - Set to True if the operation should not actually run. 
-      *Returns*: List of instances that got restarted.
+      + *Returns*: List of instances that got restarted.
 
 5. *start_vm_manager* (self, vm_id )
-      Starts the VM manager service inside the VM identified by =vm_id=.
-      *Parameters*: vm_id - VM/instance id of the VM to be started.
-      *Returns*: True if the VM Manager service has successfully started.     
+      + Starts the VM manager service inside the VM identified by =vm_id=.
+      + *Parameters*: vm_id - VM/instance id of the VM to be started.
+      + *Returns*: True if the VM Manager service has successfully started.     
 
 6. *destroy_vm* (self, vm_id, dry_run=False)
-      Terminates the VM identified by =vm_id=.
-      *Parameter*: vm_id - VM/instance id of the VM to be started.
+      + Terminates the VM identified by =vm_id=.
+      + *Parameter*: vm_id - VM/instance id of the VM to be started.
                    dry_run(bool) - Set to True if the operation should not actually run. 
-      *Returns*: List of instances that got terminated.
+      + *Returns*: List of instances that got terminated.
 
 7. *is_running_vm* (self, vm_ip)
-      Checks if the VM is up and port 22 is reachable. It assumes that
-      VM is running the SSH service.
-      *Parameters*: vm_ip - The ip address of VM.
-      *Returns*: True if the VM is up, else false.
+      + Checks if the VM is up and port 22 is reachable. It assumes that
+        VM is running the SSH service.
+      + *Parameters*: vm_ip - The ip address of VM.
+      + *Returns*: True if the VM is up, else false.
 
 ** AWS Specific Design (REPHRASE)
 Following are the parameters which are needed to be configured in this
