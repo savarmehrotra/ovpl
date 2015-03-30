@@ -42,10 +42,18 @@ import aws_config as config
 
 
 class AMINotFound(Exception):
+    """
+    use this exception class to raise an exception when a suitable AMI is not
+    found
+    """
     pass
 
 
 class AWSKeyFileNotFound(Exception):
+    """
+    use this exception class to raise exceptions when AWS .pem key file is
+    not found in the current directory
+    """
     pass
 
 
@@ -135,9 +143,9 @@ class AWSAdapter(object):
         # enable root login into the machine. some AMIs don't support root login
         # at all. Workaround to enable root login after the machine has booted.
         # TODO: figure out if there is a better way to doing it.
-        #success = self._enable_root_login(vm_ip_addr)
-        #if not success:
-        #    return (success, info)
+        # success = self._enable_root_login(vm_ip_addr)
+        # if not success:
+        #     return (success, info)
 
         success = self._copy_ovpl_source(vm_ip_addr)
         if not success:
