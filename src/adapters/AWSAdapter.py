@@ -3,9 +3,6 @@
 """ Open issues with the current version:
     1.
 """
-# FIXME: the current adapter uses the ubuntu user of the new created AMI and
-# uses the home directory of the ubuntu user. FIx this to use the root user and
-# the home directory of the root user
 
 __all__ = [
     'create_vm',
@@ -70,11 +67,11 @@ class AWSAdapter(object):
     subnet_id = config.subnet_id
     security_group_ids = config.security_group_ids
     key_name = config.key_file_name
+    vm_name_tag = config.vm_tag
 
-    # FIXME: change this root; when we get the AMI to have root login fixed.
-    # the user name of the VM that is been created; this user will be used to
-    # perform further operations on that VM.
-    VM_USER = 'ubuntu'
+    # the username of the destination VMs; this username will be used to SSH and
+    # perform operations on the VM
+    VM_USER = 'root'
 
     def __init__(self):
         # check if the key_file exists, else throw an error! again the key file
@@ -111,7 +108,8 @@ class AWSAdapter(object):
                           dry_run=dry_run)
 
         instance = reservation.instances[0]
-        instance.add_tag('Name', 'ads-test.aws.adapter')
+
+        instance.add_tag('Name', self.vm_name_tag)
 
         logger.debug("AWSAdapter: created VM: %s" % instance)
         return instance.id
@@ -136,16 +134,9 @@ class AWSAdapter(object):
                          vm_ip_addr)
             sleep(4)
 
-        # Return the VM's IP and port info
+        # Return the VM's id, IP and port of VM Mgr
         info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
                 "vmm_port": settings.VM_MANAGER_PORT}
-
-        # enable root login into the machine. some AMIs don't support root login
-        # at all. Workaround to enable root login after the machine has booted.
-        # TODO: figure out if there is a better way to doing it.
-        # success = self._enable_root_login(vm_ip_addr)
-        # if not success:
-        #     return (success, info)
 
         success = self._copy_ovpl_source(vm_ip_addr)
         if not success:
@@ -194,8 +185,8 @@ class AWSAdapter(object):
         ssh_command = "ssh -i {0} -o StrictHostKeyChecking=no {1}@{2} ".\
             format(self.key_file_path, self.VM_USER, vm_ip_addr)
 
-        vmmgr_cmd = "'sudo python {0}{1} >> vmmgr.log 2>&1 < /dev/null &'".\
-            format("/home/ubuntu/ovpl/", "src/VMManager/VMManagerServer.py")
+        vmmgr_cmd = "'python {0}{1} >> vmmgr.log 2>&1 < /dev/null &'".\
+            format(settings.VMMANAGERSERVER_PATH, settings.VM_MANAGER_SCRIPT)
 
         command = ssh_command + vmmgr_cmd
 
@@ -212,12 +203,12 @@ class AWSAdapter(object):
 
     # take an aws instance_id and return its ip address
     def get_vm_ip(self, vm_id):
-        logger.debug("AWSAdapter: get_vm_ip(%s)" % (vm_id))
+        logger.debug("AWSAdapter: get_vm_ip(): vm_id: %s" % (vm_id))
 
         reservations = self.connection.get_all_instances(instance_ids=[vm_id])
         instance = reservations[0].instances[0]
 
-        logger.debug("AWSAdapter: Private IP address of instance is: %s" %
+        logger.debug("AWSAdapter: IP address of the instance is: %s" %
                      instance.private_ip_address)
 
         return instance.private_ip_address
@@ -253,30 +244,15 @@ class AWSAdapter(object):
     def take_snapshot(self, vm_id):
         pass
 
-    def _enable_root_login(self, remote_user, vm_ip):
-        ssh_command = "ssh -i {0} -o StrictHostKeyChecking=no {1}@{2} ".\
-            format(self.key_file_path, remote_user, vm_ip)
-        cp_cmd = "'sudo cp ~/.ssh/authorized_keys /root/.ssh/authorized_keys'"
-
-        command = ssh_command + cp_cmd
-
-        logger.debug("AWSAdapter: _enable_root_login(): command = %s" % command)
-        try:
-            execute_command(command)
-        except Exception, e:
-            logger.debug("Error enabling root login. Error: " % str(e))
-            return False
-
-        return True
-
     # copy files using rsync given src and dest dirs
     def _copy_files(self, src_dir, dest_dir):
-        try:
-            command = "rsync -avzr -e \"ssh -i {0} -o StrictHostKeyChecking=no\" {1} {2}".\
-                format(self.key_file_path, src_dir, dest_dir)
+        cmd = "rsync -azr -e 'ssh -i {0} -o StrictHostKeyChecking=no' {1} {2}".\
+            format(self.key_file_path, src_dir, dest_dir)
 
-            logger.debug("Command = %s" % command)
-            (ret_code, output) = execute_command(command)
+        logger.debug("Command = %s" % cmd)
+
+        try:
+            (ret_code, output) = execute_command(cmd)
 
             if ret_code == 0:
                 logger.debug("Copy successful")
@@ -293,9 +269,9 @@ class AWSAdapter(object):
     def _copy_ovpl_source(self, ip_addr):
         env = EnvSetUp()
         src_dir = env.get_ovpl_directory_path()
-        # FIXME: change the following /home/VM_USER to settings.VM_DEST_DIR
+
         dest_dir = "{0}@{1}:{2}".format(self.VM_USER, ip_addr,
-                                        "/home/"+self.VM_USER+"/")
+                                        settings.VM_DEST_DIR)
 
         logger.debug("ip_address = %s, src_dir=%s, dest_dir=%s" %
                      (ip_addr, src_dir, dest_dir))
@@ -311,9 +287,8 @@ class AWSAdapter(object):
     def _copy_lab_source(self, ip_addr, lab_repo_name):
         src_dir = GIT_CLONE_LOC[:-1] + "/" + lab_repo_name
 
-        # FIXME: change the following /home/VM_USER to settings.VM_DEST_DIR
         dest_dir = "{0}@{1}:{2}labs/".format(self.VM_USER, ip_addr,
-                                             "/home/"+self.VM_USER+"/")
+                                             settings.VM_DEST_DIR)
 
         logger.debug("ip_address = %s, src_dir=%s, dest_dir=%s" %
                      (ip_addr, src_dir, dest_dir))
@@ -418,50 +393,6 @@ class AWSAdapter(object):
 
         return chosen_ami['ami_id']
 
-    # install the dependencies to start/run the VM Manager..
-    # FIXME: remove this portion..as this cannot be platform independent and
-    # dependencies can change over time. Not a good idea. The AMIs used should
-    # have all the dependencies installed.
-    def _install_own_dependencies(self, vm_ip_addr):
-        logger.debug("AWSAdapter: _install_own_dependencies()")
-
-        # SSH pre-command to execute commands on the remote host
-        ssh_command = "ssh -i {0} -t -t -o StrictHostKeyChecking=no {1}@{2} ".\
-            format(self.key_file_path, self.VM_USER, vm_ip_addr)
-
-        # install build essential and python-dev and python pip
-        packages = ("build-essential", "python-dev", "python-pip")
-
-        install_deps = "'sudo apt-get update;sudo apt-get install -y {0}'".\
-            format(" ".join(packages))
-
-        install_deps_cmd = ssh_command + install_deps
-
-        logger.debug("AWSAdapter: _install_own_dependencies(): command = %s" %
-                     install_deps_cmd)
-        try:
-            execute_command(install_deps_cmd)
-        except Exception, e:
-            logger.error("AWSAdapter: _install_own_dependencies(): " +
-                         "command: %s, ERROR: %s" % (install_deps_cmd, str(e)))
-            return False
-
-        # run the ADS setup.py to install its dependencies
-        install_ads_cmd = ssh_command + "'cd {0}; sudo python setup.py install'".\
-            format("/home/ubuntu/ovpl")
-
-        logger.debug("AWSAdapter: _install_own_dependencies(): command = %s" %
-                     install_ads_cmd)
-
-        try:
-            execute_command(install_ads_cmd)
-        except Exception, e:
-            logger.error("AWSAdapter: _install_own_dependencies(): " +
-                         "command = %s, ERROR = %s" %
-                         (install_ads_cmd, str(e)))
-            return False
-
-        return True
 
 
 if __name__ == "__main__":
