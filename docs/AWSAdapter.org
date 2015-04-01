@@ -9,47 +9,174 @@
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. 
 
-The =AWSAdapter= is an adapter for the AWS platform. 
-
+The =AWSAdapter= is an adapter for the AWS platform.  In the following
+document, words *instance* and *VM* have been used interchangeably.
 * Requirements
   1. =AWSAdapter= will create a VM on AWS based on the specification
-     given in the lab spec for a particular lab.
+     given in the lab spec for a particular lab. 
      
-  2. =AWSAdapter= will copy the =VMManager= component and start the
-     =VMManager= service on port 9089 on the newly created VM.
+  2. =AWSAdapter= will copy the =VMManager= component to the newly
+     created VM and start the =VMManager= service on port 9089.
 
 * Design
+** Interfaces 
+In the current design of ADS, a fixed set of interfaces to an adapter
+is already defined. An adapter is required to implement these
+interfaces. This enables other components/services of ADS to
+communicate with the adapter. The interfaces implemented by the
+AWSAdapter are listed below:
 
-** General Adapter Design 
-According to ADS, every adapter must have certain interfaces. These
-interfaces enable other services to communicate to VMs, created by the
-adapter. The essential interfaces are listed below:
-1. create_vm(lab_spec)  TODO: Also capture signature of these functions
-2. start_vm
-3. stop_vm
-4. restart_vm
-5. start_vm_manager
-6. destroy_vm
-7. is_running_vm
+1. *create_vm* (self, lab_spec, dry_run=False)  
+     
+     Creates a new VM.
+ 
+     *Parameters*: 
+                 + lab_spec - Lists the lab and VM related reqirements.
+                 + dry_run(bool) - Set to True if the operation should not actually run.
 
+     *Returns*: Instance id of the newly created Amazon VM.
 
-** AWS specific Design
+2. *start_vm* (self, vm_id, dry_run=False)
+     
+     Starts the VM identified by =vm_id=.
 
-This comes from a configuration file which is not checked in the
-repository. Instead, a sample configuration file is checked in. A
-deployer is responsible for modifying this file and filling the
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+                 + dry_run(bool) - Set to True if the operation should not actually run.
+    
+     *Returns*: List of instances that got started.
+
+3. *stop_vm* (self, vm_id, dry_run=False)
+     
+     Stops the VM identified by =vm_id=.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+                 + dry_run(bool) - Set to True if the operation should not actually run.
+     
+     *Returns*: List of instances that got stopped.
+
+4. *restart_vm* (self, vm_id, dry_run=False)
+     
+     Stops the VM identified by =vm_id= and then starts it again.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+                 + dry_run(bool) - Set to True if the operation should not actually run. 
+     
+     *Returns*: List of instances that got restarted.
+
+5. *start_vm_manager* (self, vm_id )
+    
+     Starts the VM manager service inside the VM identified by =vm_id=.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+     
+     *Returns*: True if the VM Manager service has successfully started.     
+
+6. *destroy_vm* (self, vm_id, dry_run=False)
+     
+     Terminates the VM identified by =vm_id=.
+     
+     *Parameters*: 
+                 + vm_id - VM/instance id of the VM to be started.
+                 + dry_run(bool) - Set to True if the operation should not actually run. 
+     
+     *Returns*: List of instances that got terminated.
+
+7. *is_running_vm* (self, vm_ip)
+     
+     Checks if the VM is up and port 22 is reachable. It assumes that
+     VM is running the SSH service.
+     
+     *Parameters*: 
+                 + vm_ip - The ip address of VM.
+     
+     *Returns*: True if the VM is up, else False.
+
+** Internal Design
+Following are the parameters which are needed to be configured in this
+adapter, for the adapter to be able to communicate with AWS APIs.
+
+1. *region*: The data centre region in which an AWS connection is to
+   be made to create instances/VMs. Each region is a separate
+   geographic area. More information about AWS regions [[http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html][here]].
+
+2. *credentials*: Credentials are used to authenticate the API to
+   AWS. The REST API uses *access keys* as the credentials. The access
+   key has two parts:
+
+   + *Access Key ID* - It identifies the party responsible for service
+     requests. It is included in each request, so it's not a secret.
+
+   + *Secret Access Key* - Each Access Key ID has a Secret Access Key
+     associated with it. This key is just a long string of characters
+     (and not a file) that is used to calculate the digital signature
+     included in the request. More information [[http://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html][here]].
+
+   Both region and credentials are required whenever a new connection
+   is established. Within this connection, a number of VMs could be
+   created.
+
+3. *subnet_id*: The id of the subnet to be associated with an instance
+   or VM. This is used while creating an instance or VMs. More
+   information [[http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html][here]].
+
+4. *security_group_ids*: A list of ids of the security groups to be
+   associated with an instance or VM. This is used while creating an
+   instance or VMs. More information about security groups [[http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html][here]].
+
+5. *key_name*: The name of the key pair with which to launch
+   instances. More information [[http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html][here]].
+
+These parameters come from a configuration file which is not checked
+in to the repository. Instead, a sample configuration file is checked
+in. A deployer is responsible for modifying this file and filling the
 appropriate values.
 
-** How to select:
-*** AMI (Amazon Machine Image)
-*** What instance-type to run?
+*** Sequence Diagram of AWSAdapter
+[[./Sequence diagram of AWSAdapter.png]]
 
-* Implementation
+Following is the sequence of events that occur when a lab is deployed
+on AWS using AWSAdapter:
 
+1. VM Pool Manager sends an HTTP Request to Adapter Server indicating
+   that a VM needs to be created. It also passes the lab spec that
+   includes VM requirements.
 
-* Provisioning
+2. On receiving this request, the Adapter Server calls the create_vm()
+   function of AWSAdapter and hands over the lab spec to it.
 
+3. Based on lab spec(as mentioned in strategic decisions), the
+   AWSAdapter selects an AMI and instance type for the VM.
 
+4. It creates a VM on AWS Cluster.
+
+5. The VM/instance id of the newly created VM is returned to the
+   Adapter Server.
+
+6. The Adapter Server now calls the init_vm() function of AWSAdapter.
+
+7. This initializes the newly created VM on AWS Cluster by copying
+   relevant ADS component (VM Manager) and lab sources, and starting
+   the VM Manager.
+
+8. Once this service has started, the AWSAdapter sends back a tuple to
+   the Adapter Server consisting of a boolean value(that indicates
+   success/failure), instance/VM id of the VM on AWS Cluster, ip
+   address of the VM, and port on which the VM Manager service is
+   running.
+
+9. The latter three are forwarded by Adapter Server as HTTP response
+   to the VM Pool Manager.
+ 
+** Other design and strategic decisions:
+*** What AMIs to support and how to select them based on the lab spec input?
+    
+*** What instance types to support and how to select it based on the lab spec input?
+   
+
+* Implementation 
 * Test Cases
-
-
+ 
