@@ -40,7 +40,7 @@ def clone_repo(lab_src_url, repo_name):
     except Exception, e:
         logger.error("Error Cloning the repository: " + str(e))
         raise e
-            
+
 
 def pull_repo(repo_name):
     pull_cmd = "git --git-dir=%s/.git pull" % (GIT_CLONE_LOC + repo_name)
@@ -72,7 +72,7 @@ def checkout_version(repo_name, version=None):
         except Exception, e:
             logger.error("Error Resetting the repository: " + str(e))
             raise e
-        
+
 def get_spec_path(repo_name):
     return GIT_CLONE_LOC + repo_name + LAB_SPEC_DIR
 
