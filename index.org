@@ -65,8 +65,6 @@
    imperative for VLEAD to build a platform for continuous delivery
    
 ** Platform for Continuous Delivery
-<<<<<<< HEAD
-
 
 * Releases
 ** Release v1.0.2 
