@@ -9,8 +9,8 @@
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. 
 
-The =AWSAdapter= is an adapter for the AWS platform. 
-
+The =AWSAdapter= is an adapter for the AWS platform.  In the following
+document, the words *instance* and *VM* have been used interchangeably.
 * Requirements
   1. =AWSAdapter= will create a VM on AWS based on the specification
      given in the lab spec for a particular lab. 
@@ -19,7 +19,7 @@ The =AWSAdapter= is an adapter for the AWS platform.
      created VM and start the =VMManager= service on port 9089.
 
 * Design
-** General Adapter Design (REPHRASE) 
+** Interfaces 
 In the current design of ADS, a fixed set of interfaces to an adapter
 is already defined. An adapter is required to implement these
 interfaces. This enables other components/services of ADS to
@@ -65,14 +65,15 @@ AWSAdapter are listed below:
       + Checks if the VM is up and port 22 is reachable. It assumes that
         VM is running the SSH service.
       + *Parameters*: vm_ip - The ip address of VM.
-      + *Returns*: True if the VM is up, else false.
+      + *Returns*: True if the VM is up, else False.
 
-** AWS Specific Design (REPHRASE)
+** Internal Design
 Following are the parameters which are needed to be configured in this
 adapter, for the adapter to be able to communicate with AWS APIs.
 
-1. *region*: The region in which an AWS connection is to be made to
-   create instances/VMs. Each region is a separate geographic area.
+1. *region*: The data centre region in which an AWS connection is to
+   be made to create instances/VMs. Each region is a separate
+   geographic area. More information about AWS regions [[http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html][here]].
 
 2. *credentials*: Credentials are used to authenticate the API to
    AWS. The REST API uses *access keys* as the credentials. The access
@@ -84,26 +85,30 @@ adapter, for the adapter to be able to communicate with AWS APIs.
    + *Secret Access Key* - Each Access Key ID has a Secret Access Key
      associated with it. This key is just a long string of characters
      (and not a file) that is used to calculate the digital signature
-     included in the request.
+     included in the request. More information [[http://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html][here]].
 
    Both region and credentials are required whenever a new connection
    is established. Within this connection, a number of VMs could be
    created.
 
 3. *subnet_id*: The id of the subnet to be associated with an instance
-   or VM. This is used while creating an instance or VMs.
+   or VM. This is used while creating an instance or VMs. More
+   information [[http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_Subnets.html][here]].
 
 4. *security_group_ids*: A list of ids of the security groups to be
    associated with an instance or VM. This is used while creating an
-   instance or VMs.
+   instance or VMs. More information about security groups [[http://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/VPC_SecurityGroups.html][here]].
 
 5. *key_name*: The name of the key pair with which to launch
-   instances.
+   instances. More information [[http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html][here]].
 
 These parameters come from a configuration file which is not checked
 in to the repository. Instead, a sample configuration file is checked
 in. A deployer is responsible for modifying this file and filling the
 appropriate values.
+
+*** Sequence Diagram of AWSAdapter
+[[./Sequence diagram of AWSAdapter.png]]
 
 ** Other design and strategic decisions:
 *** What AMIs to support and how to select them based on the lab spec input?
