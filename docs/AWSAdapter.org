@@ -10,7 +10,7 @@ An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. 
 
 The =AWSAdapter= is an adapter for the AWS platform.  In the following
-document, the words *instance* and *VM* have been used interchangeably.
+document, words *instance* and *VM* have been used interchangeably.
 * Requirements
   1. =AWSAdapter= will create a VM on AWS based on the specification
      given in the lab spec for a particular lab. 
@@ -27,45 +27,73 @@ communicate with the adapter. The interfaces implemented by the
 AWSAdapter are listed below:
 
 1. *create_vm* (self, lab_spec, dry_run=False)  
-     + Creates a new VM. 
-     + *Parameters*: lab_spec - 
-                     dry_run(bool) - Set to True if the operation should not actually run.
-     + *Returns*: Instance id of the newly created Amazon VM.
+     
+     Creates a new VM.
+ 
+     *Parameters*: 
+                 + lab_spec - Lists the lab and VM related reqirements.
+                 + dry_run(bool) - Set to True if the operation should not actually run.
+
+     *Returns*: Instance id of the newly created Amazon VM.
 
 2. *start_vm* (self, vm_id, dry_run=False)
-     + Starts the VM identified by =vm_id=.
-     + *Parameters*: vm_id - VM/instance id of the VM to be started.
-                     dry_run(bool) - Set to True if the operation should not actually run.
-     + *Returns*: List of instances that got started.
+     
+     Starts the VM identified by =vm_id=.
+
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+                 + dry_run(bool) - Set to True if the operation should not actually run.
+    
+     *Returns*: List of instances that got started.
 
 3. *stop_vm* (self, vm_id, dry_run=False)
-      + Stops the VM identified by =vm_id=.
-      + *Parameters*: vm_id - VM/instance id of the VM to be started.
-                      dry_run(bool) - Set to True if the operation should not actually run.
-      + *Returns*: List of instances that got stopped.
+     
+     Stops the VM identified by =vm_id=.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+                 + dry_run(bool) - Set to True if the operation should not actually run.
+     
+     *Returns*: List of instances that got stopped.
 
 4. *restart_vm* (self, vm_id, dry_run=False)
-      + Stops the VM identified by =vm_id= and then starts it again.
-      + *Parameters*: vm_id - VM/instance id of the VM to be started.
-                    dry_run(bool) - Set to True if the operation should not actually run. 
-      + *Returns*: List of instances that got restarted.
+     
+     Stops the VM identified by =vm_id= and then starts it again.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+                 + dry_run(bool) - Set to True if the operation should not actually run. 
+     
+     *Returns*: List of instances that got restarted.
 
 5. *start_vm_manager* (self, vm_id )
-      + Starts the VM manager service inside the VM identified by =vm_id=.
-      + *Parameters*: vm_id - VM/instance id of the VM to be started.
-      + *Returns*: True if the VM Manager service has successfully started.     
+    
+     Starts the VM manager service inside the VM identified by =vm_id=.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+     
+     *Returns*: True if the VM Manager service has successfully started.     
 
 6. *destroy_vm* (self, vm_id, dry_run=False)
-      + Terminates the VM identified by =vm_id=.
-      + *Parameter*: vm_id - VM/instance id of the VM to be started.
-                   dry_run(bool) - Set to True if the operation should not actually run. 
-      + *Returns*: List of instances that got terminated.
+     
+     Terminates the VM identified by =vm_id=.
+     
+     *Parameters*: 
+                 + vm_id - VM/instance id of the VM to be started.
+                 + dry_run(bool) - Set to True if the operation should not actually run. 
+     
+     *Returns*: List of instances that got terminated.
 
 7. *is_running_vm* (self, vm_ip)
-      + Checks if the VM is up and port 22 is reachable. It assumes that
-        VM is running the SSH service.
-      + *Parameters*: vm_ip - The ip address of VM.
-      + *Returns*: True if the VM is up, else False.
+     
+     Checks if the VM is up and port 22 is reachable. It assumes that
+     VM is running the SSH service.
+     
+     *Parameters*: 
+                 + vm_ip - The ip address of VM.
+     
+     *Returns*: True if the VM is up, else False.
 
 ** Internal Design
 Following are the parameters which are needed to be configured in this
@@ -110,16 +138,45 @@ appropriate values.
 *** Sequence Diagram of AWSAdapter
 [[./Sequence diagram of AWSAdapter.png]]
 
+Following is the sequence of events that occur when a lab is deployed
+on AWS using AWSAdapter:
+
+1. VM Pool Manager sends an HTTP Request to Adapter Server indicating
+   that a VM needs to be created. It also passes the lab spec that
+   includes VM requirements.
+
+2. On receiving this request, the Adapter Server calls the create_vm()
+   function of AWSAdapter and hands over the lab spec to it.
+
+3. Based on lab spec(as mentioned in strategic decisions), the
+   AWSAdapter selects an AMI and instance type for the VM.
+
+4. It creates a VM on AWS Cluster.
+
+5. The VM/instance id of the newly created VM is returned to the
+   Adapter Server.
+
+6. The Adapter Server now calls the init_vm() function of AWSAdapter.
+
+7. This initializes the newly created VM on AWS Cluster by copying
+   relevant ADS component (VM Manager) and lab sources, and starting
+   the VM Manager.
+
+8. Once this service has started, the AWSAdapter sends back a tuple to
+   the Adapter Server consisting of a boolean value(that indicates
+   success/failure), instance/VM id of the VM on AWS Cluster, ip
+   address of the VM, and port on which the VM Manager service is
+   running.
+
+9. The latter three are forwarded by Adapter Server as HTTP response
+   to the VM Pool Manager.
+ 
 ** Other design and strategic decisions:
 *** What AMIs to support and how to select them based on the lab spec input?
-
+    
 *** What instance types to support and how to select it based on the lab spec input?
-* Implementation
+   
 
-
-* Provisioning
-
-
+* Implementation 
 * Test Cases
-
-
+ 
