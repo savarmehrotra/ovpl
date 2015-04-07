@@ -1,6 +1,6 @@
 {
     "ENVIRONMENT": {
-        "HTTP_PROXY":""",
+        "HTTP_PROXY":"",
         "HTTPS_PROXY":""
     },
 
