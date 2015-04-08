@@ -7,92 +7,104 @@
 
 * Introduction
 An adapter is an ADS component, which is responsible for creating and
-managing VMs on a particular platform. 
+managing VMs on a particular platform.
 
-The =AWSAdapter= is an adapter for the AWS platform.  In the following
-document, words *instance* and *VM* have been used interchangeably.
+The =AWSAdapter= is an adapter for the AWS platform.
+
+In the following document, the words *instance* and *VM* have been used
+interchangeably.
+
 * Requirements
   1. =AWSAdapter= will create a VM on AWS based on the specification
-     given in the lab spec for a particular lab. 
-     
+     given in the lab spec for a particular lab.
+
   2. =AWSAdapter= will copy the =VMManager= component to the newly
      created VM and start the =VMManager= service.
 
+  3. Pre-requisites for the =AWSAdapter=:
+     + The =AdapterServer= which communicates with this adapter is running on
+       AWS.
+     + The =AdapterServer= is configured to use the =AWSAdapter=.
+     + Appropriate parameters for the adapter are configured in the
+       =aws_config.py= file (explained below).
+     + The AWS key pair is placed in the appropriate location, which is same
+       as what is configured in the =aws_config.py= file.
+
 * Design
-** Interfaces 
+** Interfaces
 In the current design of ADS, a fixed set of interfaces to an adapter
 is already defined. An adapter is required to implement these
 interfaces. This enables other components/services of ADS to
 communicate with the adapter. The interfaces implemented by the
 AWSAdapter are listed below:
 
-1. *create_vm* (self, lab_spec, dry_run=False)  
-     
+1. *create_vm* (self, lab_spec, dry_run=False)
+
      Creates a new VM.
- 
-     *Parameters*: 
+
+     *Parameters*:
                  + lab_spec - Lists the lab and VM related reqirements.
                  + dry_run(bool) - Set to True if the operation should not actually run.
 
      *Returns*: Instance id of the newly created Amazon VM.
 
 2. *start_vm* (self, vm_id, dry_run=False)
-     
+
      Starts the VM identified by =vm_id=.
 
      *Parameters*:
                  + vm_id - VM/instance id of the VM to be started.
                  + dry_run(bool) - Set to True if the operation should not actually run.
-    
+
      *Returns*: List of instances that got started.
 
 3. *stop_vm* (self, vm_id, dry_run=False)
-     
+
      Stops the VM identified by =vm_id=.
-     
+
      *Parameters*:
                  + vm_id - VM/instance id of the VM to be started.
                  + dry_run(bool) - Set to True if the operation should not actually run.
-     
+
      *Returns*: List of instances that got stopped.
 
 4. *restart_vm* (self, vm_id, dry_run=False)
-     
+
      Stops the VM identified by =vm_id= and then starts it again.
-     
+
      *Parameters*:
                  + vm_id - VM/instance id of the VM to be started.
-                 + dry_run(bool) - Set to True if the operation should not actually run. 
-     
+                 + dry_run(bool) - Set to True if the operation should not actually run.
+
      *Returns*: List of instances that got restarted.
 
 5. *start_vm_manager* (self, vm_id )
-    
+
      Starts the VM manager service inside the VM identified by =vm_id=.
-     
+
      *Parameters*:
                  + vm_id - VM/instance id of the VM to be started.
-     
-     *Returns*: True if the VM Manager service has successfully started.     
+
+     *Returns*: True if the VM Manager service has successfully started.
 
 6. *destroy_vm* (self, vm_id, dry_run=False)
-     
+
      Terminates the VM identified by =vm_id=.
-     
-     *Parameters*: 
+
+     *Parameters*:
                  + vm_id - VM/instance id of the VM to be started.
-                 + dry_run(bool) - Set to True if the operation should not actually run. 
-     
+                 + dry_run(bool) - Set to True if the operation should not actually run.
+
      *Returns*: List of instances that got terminated.
 
 7. *is_running_vm* (self, vm_ip)
-     
+
      Checks if the VM is up and port 22 is reachable. It assumes that
      VM is running the SSH service.
-     
-     *Parameters*: 
+
+     *Parameters*:
                  + vm_ip - The ip address of VM.
-     
+
      *Returns*: True if the VM is up, else False.
 
 ** Configuration Parameters
@@ -170,6 +182,7 @@ on AWS using AWSAdapter:
 
 9. The latter three are forwarded by Adapter Server as HTTP response
    to the VM Pool Manager.
+<<<<<<< HEAD
  
 ** Other design and strategic decisions:
 *** What AMIs to support and how to select them based on the lab spec input?
@@ -240,3 +253,19 @@ ssh <username>@ssh-tunnel.vlabs.ac.in
 
 4. What about the credentials checked in =ovpl/src/adapters= of
    provisioned VM(ADS on AWS)?
+=======
+
+** TODO Strategic decisions:
+*** What OS/AMIs to support?
+*** How to select an AMI based on the lab spec input?
+*** What machine configuration/instance types to support?
+*** How to select an instance type based on the lab spec input?
+
+** TODO Other related documentation
+*** How to create an AMI for lab deployment?
+
+* Implementation
+
+* Test Cases
+
+>>>>>>> 9b0f4475746d9ef3bd35efe2184f34380ac48fea
