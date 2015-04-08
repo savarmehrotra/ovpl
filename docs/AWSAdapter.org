@@ -19,7 +19,7 @@ interchangeably.
      given in the lab spec for a particular lab.
 
   2. =AWSAdapter= will copy the =VMManager= component to the newly
-     created VM and start the =VMManager= service on port 9089.
+     created VM and start the =VMManager= service.
 
   3. Pre-requisites for the =AWSAdapter=:
      + The =AdapterServer= which communicates with this adapter is running on
@@ -107,7 +107,7 @@ AWSAdapter are listed below:
 
      *Returns*: True if the VM is up, else False.
 
-** Internal Design
+** Configuration Parameters
 Following are the parameters which are needed to be configured in this
 adapter, for the adapter to be able to communicate with AWS APIs.
 
@@ -183,6 +183,7 @@ on AWS using AWSAdapter:
 9. The latter three are forwarded by Adapter Server as HTTP response
    to the VM Pool Manager.
 
+ 
 ** TODO Strategic decisions:
 *** What OS/AMIs to support?
 *** How to select an AMI based on the lab spec input?
@@ -192,7 +193,57 @@ on AWS using AWSAdapter:
 ** TODO Other related documentation
 *** How to create an AMI for lab deployment?
 
+
 * Implementation
 
-* Test Cases
+* Testing
+** Objective
++ To validate the creation of a VM on AWS platform.
++ To ensure that all the ADS services are running on this VM.
++ To validate that a lab is successfully deployed on this VM.
+
+We are testing at the application level, that is verifying that the
+entire application functions together according to the requirements.
+
+** Assumptions
++ The test cases are written and tested for AWSAdapter.
++ Access is permissible only from IIIT (vlead).
++ Only the Ubuntu 12.04 AMI mentioned in the sample config works as of
+  now.
++ The username (of the provisioned VM) is *ubuntu* - do we need to
+  give this???
+
+** Testing Environment
+
+1. A VM is provisioned on AWS, such that it is able to access the
+   internet.
+2. The *state* of this instance/VM is *running*.
+3. In this VM, =ADS= repository is cloned.
+4. The =sample_aws_config.py= file present in =ovpl/src/adapters= is
+   changed to use appropriate subnet, security group and key name.
+
+
+** Test Cases
+*** Case 01: Creation of a Virtual Machine on AWS platform.
+The objective of this test case is to test the creation of a virtual
+machine on AWS. =create_vm()= in *AWSAdapter* is responsible in ADS
+for creation of virtual machine. A VM will be created in this test
+scenario and the creation is tested by pinging vm-id on successful
+creation.
+
+*** Case 02: Copying VMManager files to VM (or Checking if VMManager service is running successfully)?
+The objective of this test case is to test whether the VMManager files
+are copied to the VM. These VMManager files are essential to build and
+deploy a lab in VM. In this scenario, , copy VMManager files, test for
+the copy. ????
+
+
+
+
+
+
+
+
+
+
 
