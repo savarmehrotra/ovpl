@@ -1,0 +1,78 @@
+#+TITLE:     openvz-adapter.org
+#+AUTHOR:    VLEAD   
+#+DATE:      2015-04-07 Tue
+
+* Introduction
+An adapter is an ADS component, which is responsible for creating and
+managing VMs on a particular platform. 
+
+The =OpenVZAdapter= is an adapter for the CentOS platform.  In the following
+document, words *instance* and *VM* have been used interchangeably.
+* Requirements
+  1. =OpenVZAdapter= will create a VM on CentOS based on the specification
+     given in the lab spec for a particular lab. 
+     
+  2. =OpenVZAdapter= will copy the =VMManager= component to the newly
+     created VM and start the =VMManager= service.
+* Design
+** Interfaces
+In the current design of ADS, a fixed set of interfaces to an adapter
+is already defined. An adapter is required to implement these
+interfaces. This enables other components/services of ADS to
+communicate with the adapter. The interfaces implemented by the
+OpenVZAdapter are listed below:
+
+1. *create_vm* (self, lab_spec, vm_id="")   
+     Creates a new VM.
+ 
+     *Parameters*: 
+                 + lab_spec - Lists the lab and VM related reqirements.
+                 + vm_id - If no vm_id is specified, it is computed using the last two segments of an available IP address.
+
+     *Returns*: Instance id of the newly created VM.
+
+2. *start_vm* (self, vm_id)
+     
+     Starts the VM identified by =vm_id=.
+
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+    
+     *Returns*: List of instances that got started.
+
+3. *stop_vm* (self, vm_id)
+     
+     Stops the VM identified by =vm_id=.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+          
+     *Returns*: List of instances that got stopped.
+
+4. *restart_vm* (self, vm_id)
+     
+     Stops the VM identified by =vm_id= and then starts it again.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started. 
+     
+     *Returns*: List of instances that got restarted.
+
+5. *start_vm_manager* (self, vm_id )
+    
+     Starts the VM manager service inside the VM identified by =vm_id=.
+     
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be started.
+     
+     *Returns*: True if the VM Manager service has successfully started.     
+
+6. *destroy_vm* (self, vm_id)
+     
+     Terminates the VM identified by =vm_id=.
+     
+     *Parameters*: 
+                 + vm_id - VM/instance id of the VM to be started. 
+     
+     *Returns*: List of instances that got terminated.
+
