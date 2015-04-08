@@ -184,16 +184,20 @@ on AWS using AWSAdapter:
    to the VM Pool Manager.
 <<<<<<< HEAD
  
-** Other design and strategic decisions:
-*** What AMIs to support and how to select them based on the lab spec input?
-    
-*** What instance types to support and how to select it based on the lab spec input?
-   
+** TODO Strategic decisions:
+*** What OS/AMIs to support?
+*** How to select an AMI based on the lab spec input?
+*** What machine configuration/instance types to support?
+*** How to select an instance type based on the lab spec input?
+
+** TODO Other related documentation
+*** How to create an AMI for lab deployment?
+
 
 * Implementation
+
 * Testing
 ** Objective
-What are we trying to test exactly? What type of testing?
 + To validate the creation of a VM on AWS platform.
 + To ensure that all the ADS services are running on this VM.
 + To validate that a lab is successfully deployed on this VM.
@@ -234,38 +238,12 @@ deploy a lab in VM. In this scenario, , copy VMManager files, test for
 the copy. ????
 
 
-** How to Test?(and show using tables with results?)
-Assuming that the testing environment is all set up, we can perform
-the following steps to run the test cases:
 
-1. ssh to the ssh-tunnel with your ldap account
-#+BEGIN_SRC
-ssh <username>@ssh-tunnel.vlabs.ac.in
-#+END_SRC
 
-2. The Amazon private key should be present in the home directory.
 
-3. ssh into the already provisioned VM, using Amazon private key,
-   username and public IP of the VM.
-   #+BEGIN_SRC    
-   ssh -i <Amazon private key> <username>@<public-IP>
-   #+END_SRC
 
-4. What about the credentials checked in =ovpl/src/adapters= of
-   provisioned VM(ADS on AWS)?
-=======
 
-** TODO Strategic decisions:
-*** What OS/AMIs to support?
-*** How to select an AMI based on the lab spec input?
-*** What machine configuration/instance types to support?
-*** How to select an instance type based on the lab spec input?
 
-** TODO Other related documentation
-*** How to create an AMI for lab deployment?
 
-* Implementation
 
-* Test Cases
 
->>>>>>> 9b0f4475746d9ef3bd35efe2184f34380ac48fea
