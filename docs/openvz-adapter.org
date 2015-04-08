@@ -108,5 +108,5 @@ OpenVZAdapter are listed below:
 
 * Test Cases
 ** Testing Creation of VM
-** Testing Initialization VM
+** Testing Initialization of VM
  
