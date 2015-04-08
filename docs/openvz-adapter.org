@@ -6,14 +6,15 @@
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. 
 
-The =OpenVZAdapter= is an adapter for the CentOS platform.  In the following
-document, words *instance* and *VM* have been used interchangeably.
+The =OpenVZAdapter= is an adapter for the CentOS platform. In the following document, words =container= and =VM= have been used interchangeably. 
 * Requirements
-  1. =OpenVZAdapter= will create a VM on CentOS based on the specification
-     given in the lab spec for a particular lab. 
-     
-  2. =OpenVZAdapter= will copy the =VMManager= component to the newly
-     created VM and start the =VMManager= service.
+ 
+  1. =OpenVZAdapter= will create a container on CentOS OpenVZ as a hypervisor based on the specification
+     given in the lab spec of a particular lab.
+
+  2. =OpenVZAdapter= will copy the =ADS code=  to the newly
+     created container and start the =VMManager= service.
+
 * Design
 ** Interfaces
 In the current design of ADS, a fixed set of interfaces to an adapter
