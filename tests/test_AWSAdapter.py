@@ -7,8 +7,10 @@ from src.adapters.AWSAdapter import AWSAdapter
 
 class TestAWSAdapter(unittest.TestCase):
     def setUp(self):
-        self.lab_spec = json.loads(open("./ovpl/scripts/labspec.json").read())
-        self.adapter = AWSAdapter()          
+        # hardcoded paths are not flexible. this will only work if I run it from
+        # the top-level of ovpl directory..
+        self.lab_spec = json.loads(open("scripts/labspec.json").read())
+        self.adapter = AWSAdapter()
 
     def test_create_vm(self):
         vm_id = self.adapter.create_vm(self.lab_spec)
@@ -17,7 +19,8 @@ class TestAWSAdapter(unittest.TestCase):
         if os.system("ping -c 1 " + vm_ip) == 0:
             print "VM successfully created"
 
-if __name__ == "__main__" :
-    unittest.main()
+        # TODO: testcases should have some assert statement. check python unit
+        # testing
 
- 
+if __name__ == "__main__":
+    unittest.main()
