@@ -113,13 +113,16 @@ on CentOS platform using CentOS OpenVZAdapter:
 * Implementation
 ** configuration steps
 1) Edit the file =ovpl/config/config.json= and =ovpl/src/VMManager/config.json=  to set the proxies. 
+
 ```
     "ENVIRONMENT": {
         "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
         "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
     },
 ```
+
    if no proxies are used, 
+
 ```
     "ENVIRONMENT": {
         "HTTP_PROXY":"",
