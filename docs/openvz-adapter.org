@@ -77,3 +77,35 @@ OpenVZAdapter are listed below:
      
      *Returns*: List of instances that got terminated.
 
+* Implementation
+** configuration steps
+1) Edit the file =ovpl/config/config.json= and =ovpl/src/VMManager/config.json=  to set the proxies. 
+```
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
+        "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
+    },
+```
+   if no proxies are used, 
+```
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
+    },
+```
+
+2) Edit the file =ovpl/src/adapters/settings.py= to set the 
+
+    Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
+    base machine on which containers are created.
+
+    Set ADS_SERVER_VM_ID to CTID of container running ADS.
+    ADS_SERVER_VM_ID = "<CTID>" 
+
+    SUBNET field to match with the subnet of your base machine
+    If the ip address of your base machine is 10.2.58.XXX, 
+    SUBNET = ["10.2.58.12/28"]
+
+
+
+
