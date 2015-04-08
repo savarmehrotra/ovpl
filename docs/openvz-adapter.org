@@ -107,6 +107,6 @@ OpenVZAdapter are listed below:
     SUBNET = ["10.2.58.12/28"]
 
 * Test Cases
-** Testing Create VM
-** Testing Initialize VM
+** Testing Creation of VM
+** Testing Initialization VM
  
