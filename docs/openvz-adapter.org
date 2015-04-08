@@ -76,7 +76,7 @@ OpenVZAdapter are listed below:
                  + vm_id - VM/instance id of the VM to be started. 
      
      *Returns*: List of instances that got terminated.
-
+   
 * Implementation
 ** configuration steps
 1) Edit the file =ovpl/config/config.json= and =ovpl/src/VMManager/config.json=  to set the proxies. 
@@ -106,6 +106,7 @@ OpenVZAdapter are listed below:
     If the ip address of your base machine is 10.2.58.XXX, 
     SUBNET = ["10.2.58.12/28"]
 
-
-
-
+* Test Cases
+** Testing Create VM
+** Testing Initialize VM
+ 
