@@ -63,7 +63,7 @@ AWSAdapter are listed below:
      Stops the VM identified by =vm_id=.
 
      *Parameters*:
-                 + vm_id - VM/instance id of the VM to be started.
+                 + vm_id - VM/instance id of the VM to be stopped.
                  + dry_run(bool) - Set to True if the operation should not actually run.
 
      *Returns*: List of instances that got stopped.
@@ -73,7 +73,7 @@ AWSAdapter are listed below:
      Stops the VM identified by =vm_id= and then starts it again.
 
      *Parameters*:
-                 + vm_id - VM/instance id of the VM to be started.
+                 + vm_id - VM/instance id of the VM to be started again.
                  + dry_run(bool) - Set to True if the operation should not actually run.
 
      *Returns*: List of instances that got restarted.
@@ -83,7 +83,7 @@ AWSAdapter are listed below:
      Starts the VM manager service inside the VM identified by =vm_id=.
 
      *Parameters*:
-                 + vm_id - VM/instance id of the VM to be started.
+                 + vm_id - VM/instance id of the VM.
 
      *Returns*: True if the VM Manager service has successfully started.
 
@@ -92,7 +92,7 @@ AWSAdapter are listed below:
      Terminates the VM identified by =vm_id=.
 
      *Parameters*:
-                 + vm_id - VM/instance id of the VM to be started.
+                 + vm_id - VM/instance id of the VM to be terminated.
                  + dry_run(bool) - Set to True if the operation should not actually run.
 
      *Returns*: List of instances that got terminated.
@@ -199,28 +199,19 @@ on AWS using AWSAdapter:
 * Testing
 ** Objective
 + To validate the creation of a VM on AWS platform.
-+ To ensure that all the ADS services are running on this VM.
-+ To validate that a lab is successfully deployed on this VM.
++ To ensure that the VMManager service is running on this VM.
 
-We are testing at the application level, that is verifying that the
-entire application functions together according to the requirements.
-
-** Assumptions
-+ The test cases are written and tested for AWSAdapter.
-+ Access is permissible only from IIIT (vlead).
-+ Only the Ubuntu 12.04 AMI mentioned in the sample config works as of
-  now.
-+ The username (of the provisioned VM) is *ubuntu* - do we need to
-  give this???
-
+This is achieved through unit testing.
 ** Testing Environment
 
 1. A VM is provisioned on AWS, such that it is able to access the
    internet.
 2. The *state* of this instance/VM is *running*.
-3. In this VM, =ADS= repository is cloned.
-4. The =sample_aws_config.py= file present in =ovpl/src/adapters= is
-   changed to use appropriate subnet, security group and key name.
+   
+
+** Assumptions
+1. The test cases are written and tested for AWSAdapter.
+2. =ADS= is configured and running in the provisioned VM.
 
 
 ** Test Cases
@@ -231,14 +222,17 @@ for creation of virtual machine. A VM will be created in this test
 scenario and the creation is tested by pinging vm-id on successful
 creation.
 
+#+BEGIN_SRC 
+
+
+#+END_SRC
+
+
 *** Case 02: Copying VMManager files to VM (or Checking if VMManager service is running successfully)?
 The objective of this test case is to test whether the VMManager files
 are copied to the VM. These VMManager files are essential to build and
 deploy a lab in VM. In this scenario, , copy VMManager files, test for
 the copy. ????
-
-
-
 
 
 
