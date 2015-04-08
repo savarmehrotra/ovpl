@@ -20,17 +20,16 @@ security_group_ids = ['security group id1', 'security group id 2']
 # Its a list of dictionaries.
 # Each dictionary must contain the ami_id, os and version fields describing each
 # AMI. More details can also be given like tag names etc.
+# NOTE: The following can be used w/o modifications. Leave it as it is.
 supported_amis = [
-    # {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-5ca18834'},
-    # {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-58b49c30'},
-    # {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-c46054ac'},
     {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-9c3b0cf4'},
-    {'os': 'UBUNTU', 'version': '14.04', 'ami_id': 'ami-9a562df2'},
-    {'os': 'CENTOS', 'version': '6.6', 'ami_id': 'ami-61655b08'},
-    {'os': 'DEBIAN', 'version': '7.0', 'ami_id': 'ami-e0efab88'}
+    # {'os': 'UBUNTU', 'version': '14.04', 'ami_id': 'ami-9a562df2'},
+    # {'os': 'CENTOS', 'version': '6.6', 'ami_id': 'ami-61655b08'},
+    # {'os': 'DEBIAN', 'version': '7.0', 'ami_id': 'ami-e0efab88'}
 ]
 
 # Configure here the available/supported instance types
+# NOTE: The following can be used w/o modifications. Leave it as it is.
 available_instance_types = [
     {'ram': 1024, 'instance_type': 't2.micro'},
     {'ram': 2048, 'instance_type': 't2.small'}
