@@ -182,7 +182,7 @@ on AWS using AWSAdapter:
 
 9. The latter three are forwarded by Adapter Server as HTTP response
    to the VM Pool Manager.
-<<<<<<< HEAD
+
  
 ** TODO Strategic decisions:
 *** What OS/AMIs to support?
