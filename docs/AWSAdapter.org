@@ -205,10 +205,10 @@ This is achieved through unit testing.
 ** Testing Environment
 
 1. A VM is provisioned on AWS, such that it is able to access the
-   internet.
+   internet.  
 2. The *state* of this instance/VM is *running*.
    
-
+TODO - Where to mention setting up of this (1) testing environment?
 ** Assumptions
 1. =ADS= is configured and running in the provisioned VM.
 2. The test cases are written and tested for AWSAdapter.
