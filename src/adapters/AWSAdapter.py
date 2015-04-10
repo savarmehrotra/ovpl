@@ -12,7 +12,8 @@ __all__ = [
     'start_vm_manager',
     'destroy_vm',
     'is_running_vm',
-    'get_vm_ip'
+    'get_vm_ip',
+    'get_instance'
 ]
 
 # Standard Library imports
@@ -212,6 +213,15 @@ class AWSAdapter(object):
                      instance.private_ip_address)
 
         return instance.private_ip_address
+
+    # take an aws instance_id and return the instance object
+    def get_instance(self, vm_id):
+        logger.debug("AWSAdapter: get_instance(): vm_id: %s" % (vm_id))
+
+        reservations = self.connection.get_all_instances(instance_ids=[vm_id])
+        instance = reservations[0].instances[0]
+
+        return instance
 
     def get_resource_utilization(self):
         pass
