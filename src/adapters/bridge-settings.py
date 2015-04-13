@@ -1,0 +1,6 @@
+auto eth0
+iface eth0 inet static
+        address x.x.x.x
+        netmask 255.255.252.0
+        up /sbin/ip route add 10.100.1.1 dev eth0
+        up /sbin/ip route add default via 10.100.1.1
