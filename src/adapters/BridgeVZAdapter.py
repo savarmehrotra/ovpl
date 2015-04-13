@@ -134,13 +134,22 @@ class BridgeVZAdapter(object):
         logger.debug("CentOSVZAdapter: create_vm(): create command = %s" %
                          command)
         (ret_code, output) = execute_command(command)
+      
+        dns_ip = "nameserver 10.100.1.5"
+        command = (r'ssh -o "%s" %s "%s"' %
+                   (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS,
+                     "echo"+ dns_ip +">> /vz/root/" + vm_id + "/etc/resolv.conf "))
+        logger.debug("CentOSVZAdapter: copy network settings): create command = %s" %
+                         command)
+        (ret_code, output) = execute_command(command)
+       
+        command = (r'ssh -o "%s" %s "%s"' %
+                   (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS,
+                     "/etc/init.d/networking restart"))
+        logger.debug("CentOSVZAdapter: restart network): create command = %s" %
+                         command)
+        (ret_code, output) = execute_command(command)
 
-
-        '''
-        with open('/vz/root/' +vm_id + '/etc/network/interfaces', 'a') as outfile:
-            with open(fileToSearch) as infile:
-                outfile.write(infile.read())
-        '''
 
     def init_vm(self, vm_id, lab_repo_name):
         logger.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
@@ -415,7 +424,7 @@ def validate_vm_id(vm_id):
     if m == None:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be numeric.")
     vm_id = int(m.group(0))
-    if vm_id <= 100:
+    if vm_id <= 0:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
     if vm_id > settings.MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")

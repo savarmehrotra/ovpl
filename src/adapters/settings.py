@@ -14,7 +14,7 @@ MAX_VM_ID = 2147483644 # 32-bit; exact value based on trial-and-error
 
 def get_subnet():
     # Subnet: IP addresses will be picked from and assigend to lab VMs
-    SUBNET = ["10.100.106.2/22"] 
+    SUBNET = ["10.100.2.3/22"] 
     assert isinstance(SUBNET, list)
     return SUBNET
 
