@@ -53,6 +53,7 @@ VZLIST = "/usr/sbin/vzlist -a"
 IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
 #IP_ADDRESS_REGEX = 
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
+ip_address=None
 
 class InvalidVMIDException(Exception):
     def __init__(msg):
@@ -66,6 +67,7 @@ class BridgeVZAdapter(object):
         """If no vm_id is specified, it is computed using the last two segments"""
         """of an available IP address; vm_spec is an object """
         if vm_id == "":
+            global ip_address
             ip_address = BaseAdapter.find_available_ip()
             m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
             if m != None:
@@ -77,8 +79,6 @@ class BridgeVZAdapter(object):
 
         (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
         
-        #Call the bridge network settings function
-        self.set_bridge_settings(ip_address, vm_id)
         logger.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % 
                         (ip_address, vm_id, vm_create_args, vm_set_args))
         
@@ -92,24 +92,25 @@ class BridgeVZAdapter(object):
 
             if ret_code == 0:
 
-                command = (r'ssh -o "%s" %s "%s start %s"' %
+                command = (r'ssh -o "%s" %s "%s set %s %s"' %
                             (settings.NO_STRICT_CHECKING,
                             settings.BASE_IP_ADDRESS,
-                            VZCTL, vm_id))
-                logger.debug("CentOSVZAdapter: create_vm(): start command = %s" %
+                            VZCTL, vm_id, vm_set_args))
+                logger.debug("CentOSVZAdapter: create_vm(): set command = %s" %
                                 command)
                 (ret_code,output) = execute_command(command)
 
                 if ret_code == 0:
 
-                    command = (r'ssh -o "%s" %s "%s set %s %s"' %
+                    command = (r'ssh -o "%s" %s "%s start %s"' %
                                 (settings.NO_STRICT_CHECKING,
                                 settings.BASE_IP_ADDRESS,
-                                VZCTL, vm_id, vm_set_args))
-                    logger.debug("CentOSVZAdapter: create_vm(): set command = %s" %
+                                VZCTL, vm_id))
+                    logger.debug("CentOSVZAdapter: create_vm(): start command = %s" %
                                     command)
                     (ret_code, output) = execute_command(command)
-                    self.network(ip_address)
+                    #Call the bridge network settings function
+                    self.set_bridge_settings(ip_address, vm_id) 
                     if ret_code == 0:
                         return (True, vm_id)
 
@@ -119,17 +120,27 @@ class BridgeVZAdapter(object):
             return (False, -1) 
     
     def set_bridge_settings(self, ip_address, vm_id):
+        os.system("cp bridge-settings interfaces")
         textToSearch = 'x.x.x.x'
         textToReplace = ip_address
-        fileToSearch  = 'bridge-settings.py'
+        fileToSearch  = 'interfaces'
         tempFile = open( fileToSearch, 'r+' )
         for line in fileinput.input( fileToSearch ):
             tempFile.write( line.replace( textToSearch, textToReplace ) )
         tempFile.close()
+	command = (r'ssh -o "%s" %s "%s"' % 
+                   (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS, 
+                     "/bin/cp " + "/vz/private/1009/root/ovpl/src/interfaces" + " /vz/root/" + vm_id + "/etc/network/"))
+        logger.debug("CentOSVZAdapter: create_vm(): create command = %s" %
+                         command)
+        (ret_code, output) = execute_command(command)
 
+
+        '''
         with open('/vz/root/' +vm_id + '/etc/network/interfaces', 'a') as outfile:
             with open(fileToSearch) as infile:
                 outfile.write(infile.read())
+        '''
 
     def init_vm(self, vm_id, lab_repo_name):
         logger.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
@@ -139,7 +150,7 @@ class BridgeVZAdapter(object):
         success = success and copy_lab_source(vm_id, lab_repo_name)
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
-        response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id),
+        response = {"vm_id": vm_id, "vm_ip": ip_address,
                     "vmm_port": settings.VM_MANAGER_PORT}
         logger.debug("CentOSVZAdapter: init_vm(): success = %s, response = %s" %
                         (success, response))
@@ -191,7 +202,7 @@ class BridgeVZAdapter(object):
     
     def start_vm_manager(self, vm_id):
 
-        ip_address = get_vm_ip(vm_id)
+        #ip_address = get_vm_ip(vm_id)
         start_vm_manager_command = ("python %s%s %s" %
                                     (settings.VMMANAGERSERVER_PATH,
                                     settings.VM_MANAGER_SCRIPT,
