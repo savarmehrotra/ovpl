@@ -59,7 +59,7 @@ class InvalidVMIDException(Exception):
         Exception.__init__(msg)
 
 
-class CentOSVZAdapter(object):
+class BridgeVZAdapter(object):
 
     def create_vm(self, lab_spec, vm_id=""):
         logger.debug("CentOSVZAdapter: create_vm()")
@@ -78,7 +78,7 @@ class CentOSVZAdapter(object):
         (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
         
         #Call the bridge network settings function
-        set_bridge_settings(ip_address, vm_id)
+        self.set_bridge_settings(ip_address, vm_id)
         logger.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % 
                         (ip_address, vm_id, vm_create_args, vm_set_args))
         
@@ -120,14 +120,14 @@ class CentOSVZAdapter(object):
     
     def set_bridge_settings(self, ip_address, vm_id):
         textToSearch = 'x.x.x.x'
-        textToReplace = '10.2.4.5'
+        textToReplace = ip_address
         fileToSearch  = 'bridge-settings.py'
         tempFile = open( fileToSearch, 'r+' )
         for line in fileinput.input( fileToSearch ):
             tempFile.write( line.replace( textToSearch, textToReplace ) )
         tempFile.close()
 
-        with open('/vz/root/'+vm_id +'/etc/network/interfaces', 'a') as outfile:
+        with open('/vz/root/' +vm_id + '/etc/network/interfaces', 'a') as outfile:
             with open(fileToSearch) as infile:
                 outfile.write(infile.read())
 
@@ -366,7 +366,7 @@ def construct_vzctl_args(lab_specz={}):
                      " --diskspace " + disk_soft + ":" + disk_hard + \
                      " --hostname " + host_name
     # Note to self: check ram format "0:256M" vs "256M"
-    vm_set_args = " --netif_add eth0,,,,base1br " + \ 
+    vm_set_args = " --netif_add eth0,,,,base1br " + \
                   " --ram " + ram + \
                   " --swap " + swap + \
                   " --onboot yes" + \
