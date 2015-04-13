@@ -15,6 +15,8 @@ key_file_name = "the key file name"
 subnet_id = "subnet-id"
 # describe sec groups ids to be used
 security_group_ids = ['security group id1', 'security group id 2']
+# the default gateway the VMs would use
+default_gateway = "<ip-address-of-gateway>"
 
 # Configure here the list of supported AMIs
 # Its a list of dictionaries.

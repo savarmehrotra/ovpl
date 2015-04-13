@@ -69,6 +69,7 @@ class AWSAdapter(object):
     security_group_ids = config.security_group_ids
     key_name = config.key_file_name
     vm_name_tag = config.vm_tag
+    default_gw = config.default_gateway
 
     # the username of the destination VMs; this username will be used to SSH and
     # perform operations on the VM
@@ -144,6 +145,13 @@ class AWSAdapter(object):
             return (success, info)
 
         success = self._copy_lab_source(vm_ip_addr, lab_repo_name)
+        if not success:
+            return (success, info)
+
+        # NOTE: this step is necessary as the systems team is using a single
+        # subnet for both public and private nodes, and that means for private
+        # nodes default gateway has to be configured separately!
+        success = self._add_default_gw(vm_ip_addr)
         if not success:
             return (success, info)
 
@@ -310,6 +318,35 @@ class AWSAdapter(object):
             print 'ERROR= %s' % (str(e))
             return False
 
+    # NOTE: this step is necessary as the systems team is using a single
+    # subnet for both public and private nodes, and that means for private
+    # nodes default gateway has to be configured separately!
+
+    # This function deletes the default gateway and adds a new default gateway
+    # from the config file
+    def _add_default_gw(self, vm_ip):
+        logger.debug("AWSAdapter: Attempting to add default gateway to VM: %s"
+                     % (vm_ip))
+
+        ssh_command = "ssh -i {0} -o StrictHostKeyChecking=no {1}@{2} ".\
+            format(self.key_file_path, self.VM_USER, vm_ip)
+
+        add_def_gw_cmd = "'route del default; route add default gw {0}'".\
+            format(self.default_gw)
+
+        command = ssh_command + add_def_gw_cmd
+
+        logger.debug("AWSAdapter: _add_default_gw(): command = %s" % command)
+
+        try:
+            execute_command(command)
+        except Exception, e:
+            logger.error("AWSAdapter: _add_default_gw(): " +
+                         "command = %s, ERROR = %s" % (command, str(e)))
+            return False
+
+        return True
+
     def _construct_ec2_params(self, lab_spec):
         """
         Returns a tuple of AWS VM parameters - the AMI id and the instance type
@@ -402,7 +439,6 @@ class AWSAdapter(object):
                      (chosen_ami, os, os_version))
 
         return chosen_ami['ami_id']
-
 
 
 if __name__ == "__main__":
