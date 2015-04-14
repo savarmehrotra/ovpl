@@ -12,6 +12,9 @@ VM_MANAGER_PORT = "9089"
 VM_MANAGER_SCRIPT = "VMManagerServer.py VMManager"
 MAX_VM_ID = 2147483644 # 32-bit; exact value based on trial-and-error
 
+#Settings for Bridged Adapter
+SUBNET_BRIDGE="base1br"
+
 def get_subnet():
     # Subnet: IP addresses will be picked from and assigend to lab VMs
     SUBNET = ["10.100.2.3/22"] 

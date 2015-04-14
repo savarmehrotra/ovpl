@@ -53,7 +53,7 @@ VZLIST = "/usr/sbin/vzlist -a"
 IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
 #IP_ADDRESS_REGEX = 
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
-ip_address=None
+IP_ADDRESS = None
 
 class InvalidVMIDException(Exception):
     def __init__(msg):
@@ -62,95 +62,95 @@ class InvalidVMIDException(Exception):
 
 class BridgeVZAdapter(object):
 
+    def prepare_vm_for_bridged_network(self, vm_id):
+        os.system("cp bridge-settings interfaces")
+        textToSearch = 'x.x.x.x'
+        textToReplace = IP_ADDRESS
+        fileToSearch  = 'interfaces'
+        fd = open( fileToSearch, 'r+' )
+        for line in fileinput.input( fileToSearch ):
+            fd.write( line.replace( textToSearch, textToReplace ) )
+        fd.close()
+
+        src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + "/root/ovpl/src/interfaces"
+        dest_dir = "/vz/private/" + vm_id + "/etc/network/interfaces"
+        logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
+        try:
+            return copy_files(str(src_dir), str(dest_dir))
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            return False
+
+
+    def vm_create(self, vm_id, vm_create_args):
+        try:
+            command = (r'ssh -o "%s" %s "%s create %s %s"' % 
+                        (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS, 
+                         VZCTL, vm_id, vm_create_args))
+            logger.debug("CentOSVZAdapter: vm_create(): create command = %s" %
+                         command)
+
+            (ret_code, output) = execute_command(command)
+
+            if ret_code == 0:
+                return True
+            else:
+                return False
+
+        except Exception, e:
+            logger.error("Error creating VM: " + str(e))
+            return False
+
+    def vm_set(self, vm_id, vm_set_args):
+        try:
+            command = (r'ssh -o "%s" %s "%s set %s %s"' %
+                       (settings.NO_STRICT_CHECKING,
+                        settings.BASE_IP_ADDRESS,
+                        VZCTL, vm_id, vm_set_args))
+            logger.debug("CentOSVZAdapter: vm_set(): set command = %s" %
+                         command)
+            (ret_code,output) = execute_command(command)
+            if ret_code == 0:
+                return self.prepare_vm_for_bridged_network(vm_id)
+            else:
+                return False
+        except Exception, e:
+            logger.error("Error setting VM: " + str(e))
+            return False
+
+    def vm_start(self, vm_id):
+        try:
+            command = (r'ssh -o "%s" %s "%s start %s"' %
+                       (settings.NO_STRICT_CHECKING,
+                        settings.BASE_IP_ADDRESS,
+                        VZCTL, vm_id))
+            logger.debug("CentOSVZAdapter: vm_start(): start command = %s" %
+                         command)
+            (ret_code, output) = execute_command(command)
+            if ret_code == 0:
+                return True
+            else:
+                return False
+        except Exception, e:
+            logger.error("Error starting VM: " + str(e))
+            return False
+
+
     def create_vm(self, lab_spec, vm_id=""):
         logger.debug("CentOSVZAdapter: create_vm()")
-        """If no vm_id is specified, it is computed using the last two segments"""
-        """of an available IP address; vm_spec is an object """
-        if vm_id == "":
-            global ip_address
-            ip_address = BaseAdapter.find_available_ip()
-            m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
-            if m != None:
-                vm_id = str((int(m.group(1) + m.group(2)) + 10))
-#                vm_id = m.group(1) + m.group(2)
-        else:
-            ip_address = None
-            vm_id = validate_vm_id(vm_id)
+
+        vm_id = create_vm_id(vm_id)
 
         (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
         
         logger.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % 
-                        (ip_address, vm_id, vm_create_args, vm_set_args))
-        
-        try:
-            command = (r'ssh -o "%s" %s "%s create %s %s"' % 
-                        (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS, 
-                            VZCTL, vm_id, vm_create_args))
-            logger.debug("CentOSVZAdapter: create_vm(): create command = %s" %
-                            command)
-            (ret_code, output) = execute_command(command)
+                        (IP_ADDRESS, vm_id, vm_create_args, vm_set_args))
 
-            if ret_code == 0:
-
-                command = (r'ssh -o "%s" %s "%s set %s %s"' %
-                            (settings.NO_STRICT_CHECKING,
-                            settings.BASE_IP_ADDRESS,
-                            VZCTL, vm_id, vm_set_args))
-                logger.debug("CentOSVZAdapter: create_vm(): set command = %s" %
-                                command)
-                (ret_code,output) = execute_command(command)
-
-                if ret_code == 0:
-
-                    command = (r'ssh -o "%s" %s "%s start %s"' %
-                                (settings.NO_STRICT_CHECKING,
-                                settings.BASE_IP_ADDRESS,
-                                VZCTL, vm_id))
-                    logger.debug("CentOSVZAdapter: create_vm(): start command = %s" %
-                                    command)
-                    (ret_code, output) = execute_command(command)
-                    #Call the bridge network settings function
-                    self.set_bridge_settings(ip_address, vm_id) 
-                    if ret_code == 0:
-                        return (True, vm_id)
-
-        except Exception, e:
-            logger.error("Error creating VM: " + str(e))
-            #raise e
-            return (False, -1) 
-    
-    def set_bridge_settings(self, ip_address, vm_id):
-        os.system("cp bridge-settings interfaces")
-        textToSearch = 'x.x.x.x'
-        textToReplace = ip_address
-        fileToSearch  = 'interfaces'
-        tempFile = open( fileToSearch, 'r+' )
-        for line in fileinput.input( fileToSearch ):
-            tempFile.write( line.replace( textToSearch, textToReplace ) )
-        tempFile.close()
-	command = (r'ssh -o "%s" %s "%s"' % 
-                   (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS, 
-                     "/bin/cp " + "/vz/private/1009/root/ovpl/src/interfaces" + " /vz/root/" + vm_id + "/etc/network/"))
-        logger.debug("CentOSVZAdapter: create_vm(): create command = %s" %
-                         command)
-        (ret_code, output) = execute_command(command)
-      
-        dns_ip = "nameserver 10.100.1.5"
-        command = (r'ssh -o "%s" %s "%s"' %
-                   (settings.NO_STRICT_CHECKING, ip_address,
-                     "echo "+ dns_ip +">> /vz/root/" + vm_id + "/etc/resolv.conf "))
-                   (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS,
-                     "echo"+ dns_ip +">> /vz/root/" + vm_id + "/etc/resolv.conf "))
-        logger.debug("CentOSVZAdapter: copy network settings): create command = %s" %
-                         command)
-        (ret_code, output) = execute_command(command)
-       
-        command = (r'ssh -o "%s" %s "%s"' %
-                     "/etc/init.d/networking restart"))
-        logger.debug("CentOSVZAdapter: restart network): create command = %s" %
-                         command)
-        (ret_code, output) = execute_command(command)
-
+        success = True
+        success = success and self.vm_create(vm_id, vm_create_args)
+        success = success and self.vm_set(vm_id, vm_set_args)
+        success = success and self.vm_start(vm_id)
+        return (success, vm_id)
 
     def init_vm(self, vm_id, lab_repo_name):
         logger.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
@@ -160,7 +160,7 @@ class BridgeVZAdapter(object):
         success = success and copy_lab_source(vm_id, lab_repo_name)
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
-        response = {"vm_id": vm_id, "vm_ip": ip_address,
+        response = {"vm_id": vm_id, "vm_ip": IP_ADDRESS,
                     "vmm_port": settings.VM_MANAGER_PORT}
         logger.debug("CentOSVZAdapter: init_vm(): success = %s, response = %s" %
                         (success, response))
@@ -212,14 +212,13 @@ class BridgeVZAdapter(object):
     
     def start_vm_manager(self, vm_id):
 
-        #ip_address = get_vm_ip(vm_id)
         start_vm_manager_command = ("python %s%s %s" %
                                     (settings.VMMANAGERSERVER_PATH,
                                     settings.VM_MANAGER_SCRIPT,
                                     ">>/root/vm.log 2>&1 </dev/null &" ))
         command = (r"ssh -o '%s' %s%s '%s'" %
                     (settings.NO_STRICT_CHECKING,
-                    "root@", ip_address,
+                    "root@", IP_ADDRESS,
                     start_vm_manager_command))
         logger.debug("CentOSVZAdapter: start_vm_manager(): command = %s" %
                         command)
@@ -295,8 +294,9 @@ def copy_files(src_dir, dest_dir):
     try:
         copy_command = "rsync -arz --progress " + src_dir + " " + dest_dir
         logger.debug("copy command = %s" % copy_command)
-        command = (r'ssh %s "%s"' %
-                    (settings.BASE_IP_ADDRESS, copy_command))
+        command = (r'ssh -o "%s" %s "%s"' %
+                   (settings.NO_STRICT_CHECKING,
+                    settings.BASE_IP_ADDRESS, copy_command))
         logger.debug("Command = %s" % command)
         (ret_code, output) = execute_command(command)
         if ret_code == 0:
@@ -344,24 +344,6 @@ def copy_lab_source(vm_id, lab_repo_name):
         logger.error("ERROR = %s" % str(e))
         return False
         
-def get_vm_ip(vm_id):
-    vm_id = validate_vm_id(vm_id)
-    try:
-        command = (r'ssh -o "%s" %s "%s | grep %s"' %
-                    (settings.NO_STRICT_CHECKING,
-                    settings.BASE_IP_ADDRESS,
-                    VZLIST, vm_id))
-        (ret_code,vzlist) = execute_command(command)
-        if vzlist == "":
-            return                                  # raise exception?
-        ip_address = re.search(IP_ADDRESS_REGEX, vzlist)
-        if ip_address != None:
-            ip_address = ip_address.group(0)
-        return ip_address
-    except Exception, e:
-        raise e
-
-
 def construct_vzctl_args(lab_specz={}):
     """ Returns a tuple of vzctl create arguments and set arguments """
 
@@ -379,7 +361,6 @@ def construct_vzctl_args(lab_specz={}):
     vm_spec = get_vm_spec()
     lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
     host_name = lab_ID + "." + settings.get_adapter_hostname()
-    ip_address = BaseAdapter.find_available_ip()
     os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
     (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
     (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
@@ -387,14 +368,11 @@ def construct_vzctl_args(lab_specz={}):
                      " --diskspace " + disk_soft + ":" + disk_hard + \
                      " --hostname " + host_name
     # Note to self: check ram format "0:256M" vs "256M"
-    vm_set_args = " --netif_add eth0,,,,base1br " + \
+    vm_set_args = " --netif_add eth0,,,," + settings.SUBNET_BRIDGE + \
                   " --ram " + ram + \
                   " --swap " + swap + \
                   " --onboot yes" + \
                   " --save"
-    # set the ip
-    # copy to file /etc/network/interfaces
-   
    
     return (vm_create_args, vm_set_args)
 
@@ -425,11 +403,26 @@ def validate_vm_id(vm_id):
     if m == None:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be numeric.")
     vm_id = int(m.group(0))
-    if vm_id <= 0:
+    if vm_id <= 100:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
     if vm_id > settings.MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
+
+def create_vm_id(vm_id):
+    """If no vm_id is specified, it is computed using the last two segments"""
+    """of an available IP address; vm_spec is an object """
+    logger.debug("create_vm_id(): vm_id = %s" % vm_id)
+    if vm_id == "":
+        global IP_ADDRESS
+        IP_ADDRESS = BaseAdapter.find_available_ip()
+        m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', IP_ADDRESS)
+        if m != None:
+            vm_id = str((int(m.group(1) + m.group(2)) + 100))
+        else:
+            vm_id = validate_vm_id(vm_id)
+    logger.debug("create_vm_id(): vm_id = %s" % vm_id)
+    return vm_id
 
 def test():
     #vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
