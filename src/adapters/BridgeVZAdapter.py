@@ -139,12 +139,13 @@ class BridgeVZAdapter(object):
         command = (r'ssh -o "%s" %s "%s"' %
                    (settings.NO_STRICT_CHECKING, ip_address,
                      "echo "+ dns_ip +">> /vz/root/" + vm_id + "/etc/resolv.conf "))
+                   (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS,
+                     "echo"+ dns_ip +">> /vz/root/" + vm_id + "/etc/resolv.conf "))
         logger.debug("CentOSVZAdapter: copy network settings): create command = %s" %
                          command)
         (ret_code, output) = execute_command(command)
        
         command = (r'ssh -o "%s" %s "%s"' %
-                   (settings.NO_STRICT_CHECKING, ip_address,
                      "/etc/init.d/networking restart"))
         logger.debug("CentOSVZAdapter: restart network): create command = %s" %
                          command)
