@@ -16,6 +16,19 @@ The =OpenVZAdapter= is an adapter for the CentOS platform. In the following docu
      created container and start the =VMManager= service.
 
 * Design
+CentOS OpenVZAdapter creates, starts, stop, restart the VM but in the
+current release, it creates and intializes the
+VM.
+
+Commands to create container
+#+BEGIN_EXAMPLE
+vzctl create <ctid> --ostemplate ubuntu-12.04-custom-x86_64 --ipadd <ipadd> --diskspace 10G:15.0G --hostname <labid>.vlabs.ac.in
+vzctl start <ctid>
+vzctl set <ctid> --nameserver inherit --ram 256M --swap 512M --onboot yes --save
+#+END_EXAMPLE
+
+
+
 ** Interfaces
 In the current design of ADS, a fixed set of interfaces to an adapter
 is already defined. An adapter is required to implement these
@@ -77,7 +90,27 @@ OpenVZAdapter are listed below:
      
      *Returns*: List of VMs that got terminated.
 
-** Sequence Diagram of CentOS OpenVZAdapter
+** Configuration 
+
+1) Edit the file ovpl/config/config.json and ovpl/src/VMManager/config.json to set the proxies.
+#+BEGIN_EXAMPLE
+"ENVIRONMENT": { "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080", "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080" },
+#+END_EXAMPLE
+
+if no proxies are used,
+#+BEGIN_EXAMPLE
+"ENVIRONMENT": { "HTTP_PROXY":"", "HTTPS_PROXY":"" },
+#+END_EXAMPLE
+
+2) Do the same with the file ovpl/src/VMManager/config.json
+
+** Scenario of CentOS OpenVZAdapter
+
+The following sequence diagram depicts the work flow for creation and
+intilization of the VM. It takes the lab spec through http
+request and creates the VM. CentOSVZAdapter returns vm_id, vm_ip and
+vm_manager_port as a http response to the VMPoolmanager.
+
 [[./sequence-diagram-of-centos-openvzadapter.png]]
 
 Following is the sequence of events that occur when a lab is deployed
