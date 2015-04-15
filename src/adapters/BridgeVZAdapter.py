@@ -1,14 +1,4 @@
-""" A module for managing VMs on CentOS - OpenVZ platform. """
-
-""" Open issues with the current version:
-    1. Not designed for concurrent use e.g. find_available_ip uses vzlist for 
-        finding available ip, but if a vm is in the process of being created,
-        vzlist will probably not list it, resulting in duplicate ip address.
-        These functionalities should be moved up to VMPool for enabling 
-        concurrency.
-    2. Very little of any kind of error handling is done.
-    3. Logging has not been implemented yet.
-"""
+""" A module for managing VMs on CentOS - OpenVZ platform (BridgeVZAdapter). """
 
 __all__ = [
     'create_vm',
@@ -71,7 +61,6 @@ class BridgeVZAdapter(object):
         for line in fileinput.input( fileToSearch ):
             fd.write( line.replace( textToSearch, textToReplace ) )
         fd.close()
-
         src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + "/root/ovpl/src/interfaces"
         dest_dir = "/vz/private/" + vm_id + "/etc/network/interfaces"
         logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
@@ -87,7 +76,7 @@ class BridgeVZAdapter(object):
             command = (r'ssh -o "%s" %s "%s create %s %s"' % 
                         (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS, 
                          VZCTL, vm_id, vm_create_args))
-            logger.debug("CentOSVZAdapter: vm_create(): create command = %s" %
+            logger.debug("BridgeVZAdapter: vm_create(): create command = %s" %
                          command)
 
             (ret_code, output) = execute_command(command)
@@ -107,7 +96,7 @@ class BridgeVZAdapter(object):
                        (settings.NO_STRICT_CHECKING,
                         settings.BASE_IP_ADDRESS,
                         VZCTL, vm_id, vm_set_args))
-            logger.debug("CentOSVZAdapter: vm_set(): set command = %s" %
+            logger.debug("BridgeVZAdapter: vm_set(): set command = %s" %
                          command)
             (ret_code,output) = execute_command(command)
             if ret_code == 0:
@@ -124,7 +113,7 @@ class BridgeVZAdapter(object):
                        (settings.NO_STRICT_CHECKING,
                         settings.BASE_IP_ADDRESS,
                         VZCTL, vm_id))
-            logger.debug("CentOSVZAdapter: vm_start(): start command = %s" %
+            logger.debug("BridgeVZAdapter: vm_start(): start command = %s" %
                          command)
             (ret_code, output) = execute_command(command)
             if ret_code == 0:
@@ -137,13 +126,13 @@ class BridgeVZAdapter(object):
 
 
     def create_vm(self, lab_spec, vm_id=""):
-        logger.debug("CentOSVZAdapter: create_vm()")
+        logger.debug("BridgeVZAdapter: create_vm()")
 
         vm_id = create_vm_id(vm_id)
 
         (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
         
-        logger.debug("CentOSVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % 
+        logger.debug("BridgeVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % 
                         (IP_ADDRESS, vm_id, vm_create_args, vm_set_args))
 
         success = True
@@ -153,7 +142,7 @@ class BridgeVZAdapter(object):
         return (success, vm_id)
 
     def init_vm(self, vm_id, lab_repo_name):
-        logger.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
+        logger.debug("BridgeVZAdapter: init_vm(): vm_id = %s" % vm_id)
         success = True
         success = success and copy_public_key(vm_id)
         success = success and  copy_ovpl_source(vm_id)
@@ -162,7 +151,7 @@ class BridgeVZAdapter(object):
         # Return the VM's IP and port info
         response = {"vm_id": vm_id, "vm_ip": IP_ADDRESS,
                     "vmm_port": settings.VM_MANAGER_PORT}
-        logger.debug("CentOSVZAdapter: init_vm(): success = %s, response = %s" %
+        logger.debug("BridgeVZAdapter: init_vm(): success = %s, response = %s" %
                         (success, response))
         return (success, response)
 
@@ -174,7 +163,7 @@ class BridgeVZAdapter(object):
                         (settings.NO_STRICT_CHECKING,
                         settings.BASE_IP_ADDRESS,
                         VZCTL, vm_id))
-            logger.debug("CentOSVZAdapter: destroy_vm(): stop command = %s" %
+            logger.debug("BridgeVZAdapter: destroy_vm(): stop command = %s" %
                             command)
             (ret_code,output) = execute_command(command)
 
@@ -183,7 +172,7 @@ class BridgeVZAdapter(object):
                             (settings.NO_STRICT_CHECKING,
                             settings.BASE_IP_ADDRESS,
                             VZCTL, vm_id))
-                logger.debug("CentOSVZAdapter: destroy_vm(): destroy command = %s" %
+                logger.debug("BridgeVZAdapter: destroy_vm(): destroy command = %s" %
                                 command)
                 (ret_code,output) = execute_command(command)
                 if ret_code == 0:
@@ -199,7 +188,7 @@ class BridgeVZAdapter(object):
                         (settings.NO_STRICT_CHECKING,
                         settings.BASE_IP_ADDRESS,
                         VZCTL, vm_id))
-            logger.debug("CentOSVZAdapter: restart_vm(): restart command = %s" %
+            logger.debug("BridgeVZAdapter: restart_vm(): restart command = %s" %
                             command)
             (ret_code,output) = execute_command(command)
         except Exception, e:
@@ -220,13 +209,13 @@ class BridgeVZAdapter(object):
                     (settings.NO_STRICT_CHECKING,
                     "root@", IP_ADDRESS,
                     start_vm_manager_command))
-        logger.debug("CentOSVZAdapter: start_vm_manager(): command = %s" %
+        logger.debug("BridgeVZAdapter: start_vm_manager(): command = %s" %
                         command)
         try:
             (ret_code,output) = execute_command(command)
             return True
         except Exception, e:
-            logger.error("CentOSVZAdapter: start_vm_manager(): command = %s, ERROR = %s" %
+            logger.error("BridgeVZAdapter: start_vm_manager(): command = %s, ERROR = %s" %
                             (command, str(e)))
             return False
 
@@ -240,7 +229,7 @@ class BridgeVZAdapter(object):
                         (settings.NO_STRICT_CHECKING,
                         settings.BASE_IP_ADDRESS,
                         VZCTL, vm_id))
-            logger.debug("CentOSVZAdapter: stop_vm(): command = %s" %
+            logger.debug("BridgeVZAdapter: stop_vm(): command = %s" %
                             command)
             (ret_code,output) = execute_command(command)
             return "Success"
@@ -250,7 +239,7 @@ class BridgeVZAdapter(object):
             return "Failed to stop VM: " + str(e)
 
     def test_logging(self):
-        logger.debug("CentOSVZAdapter: test_logging()")
+        logger.debug("BridgeVZAdapter: test_logging()")
 
     def is_running_vm(self, vm_id):
         vm_id = validate_vm_id(vm_id)
