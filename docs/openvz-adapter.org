@@ -16,11 +16,11 @@ The =OpenVZAdapter= is an adapter for the CentOS platform. In the following docu
      created container and start the =VMManager= service.
 
 * Design
-CentOS OpenVZAdapter creates, starts, stop, restart the VM but in the
-current release, it creates and intializes the
-VM.
+CentOS OpenVZAdapter creates, starts, stop, restart the container but
+in the current release, it creates container and intializes the
+VMManager service.
 
-Commands to create container
+Commands to create container:
 #+BEGIN_EXAMPLE
 vzctl create <ctid> --ostemplate ubuntu-12.04-custom-x86_64 --ipadd <ipadd> --diskspace 10G:15.0G --hostname <labid>.vlabs.ac.in
 vzctl start <ctid>
