@@ -188,7 +188,6 @@ This is achieved through unit testing.
    internet.  
 2. The *state* of this VM is *running*.
    
-
 ** Assumptions
 
 1) ADS is configured and running in the provisioned VM.
@@ -210,3 +209,4 @@ is responsible in ADS for intilization of virtual machine.
 
 
 
+[[https://github.com/vlead/ovpl/blob/openvz-adapter/tests/test_openvz_adapter.py][Click to view the test cases]]
