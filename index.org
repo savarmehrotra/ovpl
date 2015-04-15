@@ -69,7 +69,7 @@
 * Releases
 ** Release v1.0.2 
    ADS will run from a container and 
-   + create a container on the base machine with centos and openvz, and
+   + create a container on the base machine (configured with centos and openvz), and
    + deploy a lab on this newly created container.
 ** Release v1.0.3
    ADS will run from a VM on amazon cloud and 

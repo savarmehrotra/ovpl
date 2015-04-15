@@ -19,9 +19,17 @@ Edit the file ovpl/config/config.json and
     },
 ```
 
+Also set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
+machine on which the ADS services are running.
 
 
 Edit the file ovpl/src/adapters/settings.py to set the 
+
+    If the services are running on the base machine,
+    set ADS_ON_CONTAINER to False.
+
+    If the services are running on a container,
+    set ADS_ON_CONTAINER to True.
 
     Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
     base machine on which containers are created.
