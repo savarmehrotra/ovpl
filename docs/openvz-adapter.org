@@ -1,0 +1,149 @@
+#+TITLE:     CentOS OpenVZAdapter
+#+AUTHOR:    VLEAD   
+#+DATE:      2015-04-07 Tue
+
+* Introduction
+An adapter is an ADS component, which is responsible for creating and
+managing VMs on a particular platform. 
+
+The =OpenVZAdapter= is an adapter for the CentOS platform. In the following document, words =container= and =VM= have been used interchangeably. 
+* Requirements
+ 
+  1. =OpenVZAdapter= will create a container on CentOS OpenVZ as a hypervisor based on the specification
+     given in the lab spec of a particular lab.
+
+  2. =OpenVZAdapter= will copy the =ADS code=  to the newly
+     created container and start the =VMManager= service.
+
+* Design
+** Interfaces
+In the current design of ADS, a fixed set of interfaces to an adapter
+is already defined. An adapter is required to implement these
+interfaces. This enables other components/services of ADS to
+communicate with the adapter. The interfaces implemented by the
+OpenVZAdapter are listed below:
+
+1. *create_vm* (self, lab_spec, vm_id="")   
+     Creates a new VM.
+ 
+     *Parameters*: 
+                 + lab_spec - Lists the lab and VM related reqirements.
+                 + vm_id - If no vm_id is specified, it is computed using the last two segments of an available IP address.
+
+     *Returns*: VM id of the newly created VM.
+
+2. *start_vm* (self, vm_id)
+     
+     Starts the VM identified by =vm_id=.
+
+     *Parameters*:
+                 + vm_id - vm_id of the VM to be started.
+    
+     *Returns*: List of VMs that got started.
+
+3. *stop_vm* (self, vm_id)
+     
+     Stops the VM identified by =vm_id=.
+     
+     *Parameters*:
+                 + vm_id - VM id of the VM to be stopped.
+          
+     *Returns*: List of VMs that got stopped.
+
+4. *restart_vm* (self, vm_id)
+     
+     Stops the VM identified by =vm_id= and then starts it again.
+     
+     *Parameters*:
+                 + vm_id - VM id of the VM to be re-started. 
+     
+     *Returns*: List of VMs that got re-started.
+
+5. *start_vm_manager* (self, vm_id )
+    
+     Starts the VM manager service inside the VM identified by =vm_id=.
+     
+     *Parameters*:
+                 + vm_id - VM id of the VM to be started.
+     
+     *Returns*: True if the VM Manager service has successfully started.     
+
+6. *destroy_vm* (self, vm_id)
+     
+     Terminates the VM identified by =vm_id=.
+     
+     *Parameters*: 
+                 + vm_id - VM id of the VM to be destroyed. 
+     
+     *Returns*: List of VMs that got terminated.
+
+** Sequence Diagram of CentOS OpenVZAdapter
+[[./sequence-diagram-of-centos-openvzadapter.png]]
+
+Following is the sequence of events that occur when a lab is deployed
+on CentOS platform using CentOS OpenVZAdapter:
+
+1) VM Pool Manager sends an HTTP Request to Adapter Server indicating
+   that a VM needs to be created. It also passes the lab spec that
+   includes VM requirements.
+
+2) On receiving this request, the Adapter Server calls the create_vm()
+   function of CentOS OpenVZAdapter and hands over the lab spec to it.
+
+3) Based on lab spec, the CentOS OpenVZAdapter selects OS template.
+
+4) It creates a VM on Base Machine.
+
+5) The VM id of the newly created VM is returned to the
+   Adapter Server.
+
+6) The Adapter Server now calls the init_vm() function of CentOS OpenVZAdapter.
+
+7) This initializes the newly created VM on CentOS OpenVZAdapter by copying
+   relevant ADS component (VM Manager) and lab sources, and starting
+   the VM Manager.
+
+8) Once this service has started, the CentOS OpenVZAdapter sends back
+   VM id of the VM, ip address of the VM and
+   port on which the VM Manager service is running to Adapter Server.
+
+9) Later three parameters (vm_id, vm_ip, vm_manager_port) are
+   forwarded by Adapter Server as HTTP response to the VM Pool
+   Manager.
+* Implementation
+** configuration steps
+1) Edit the file =ovpl/config/config.json= and =ovpl/src/VMManager/config.json=  to set the proxies. 
+
+#+BEGIN_EXAMPLE
+ "ENVIRONMENT": {
+        "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
+        "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
+    },
+#+END_EXAMPLE 
+
+if no proxies are used, 
+
+#+BEGIN_EXAMPLE 
+ "ENVIRONMENT": {
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
+    },
+#+END_EXAMPLE
+
+
+2) Edit the file =ovpl/src/adapters/settings.py= to set the 
+
+    Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
+    base machine on which containers are created.
+
+    Set ADS_SERVER_VM_ID to CTID of container running ADS.
+    ADS_SERVER_VM_ID = "<CTID>" 
+
+    SUBNET field to match with the subnet of your base machine
+    If the ip address of your base machine is 10.2.58.XXX, 
+    SUBNET = ["10.2.58.12/28"]
+
+* Test Cases
+** Testing Creation of VM
+** Testing Initialization of VM
+ 
