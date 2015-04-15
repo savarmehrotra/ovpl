@@ -200,7 +200,7 @@ The objective of this test case is to test the creation of a virtual
 machine on Base Machine. =create_vm()= in *CentOS OpenVZAdapter* is
 responsible in ADS for creation of virtual machine. A VM will be
 created in this test scenario and the creation is tested by pinging
-vm-id on successful creation.
+=vm-id= on successful creation.
 
 *** Case 02: Checking if VMManager service is running successfully
 The objective of this is to test whether the VMManager service is
