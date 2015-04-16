@@ -2,7 +2,6 @@
 #+PROPERTY: session *scratch*
 #+PROPERTY: results output
 #+PROPERTY: exports code
-#+SETUPFILE: org-templates/level-0.org
 #+options: ^:nil
 
 * Introduction
@@ -312,11 +311,11 @@ From the base1 machine (10.4.12.21) execute following:
     #+END_EXAMPLE
 
 *** Generate ssh public-key for ADS server 
-    #+BEGIN_SRC
+    #+BEGIN_SRC example
     ssh-keygen -t rsa
     #+END_SRC
 *** Copy ADS server public-key to Base-1 authorized keys
-    #+BEGIN_SRC
+    #+BEGIN_SRC example
    ssh-copy-id root@10.4.12.21
     #+END_SRC
 

@@ -11,7 +11,7 @@ by step creation of this network.
 Seen below is the diagram of bridged network along with its
 components.
 
-[[./bridged-network-diagram.png][Bridged Network Diagram.png]]
+[[./bridged-network-diagram.png]]
 
 *Edit:* The diagram can be edited [[https://docs.google.com/a/vlabs.ac.in/drawings/d/1OAgPRCly6_JsTckBBHIP0djqaORDGobUEQfvMJVHJ5s/edit][here]]
 
@@ -188,7 +188,7 @@ configuration files. The process is to first add the configuration
 without the hardware address, restart the service and later update it.
 
 Logout from the container by issuing the command:
-#+begin_src 
+#+begin_src example
 logout
 #+end_src
 

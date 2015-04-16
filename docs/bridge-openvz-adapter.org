@@ -37,7 +37,7 @@ Following are the requirements of the BOA adapter:
 ** Sequence Diagram
 The design of the adapter is presented in the sequence diagram:
 
-[[./BOA-sequence-diagram.png][BOA Sequence Diagrm]]
+[[./BOA-sequence-diagram.png]]
 
 Note: The sequence diagram is generated using a online tool at [[https://www.websequencediagrams.com/][Web
 Sequence Diagrams]] and following is the source code for diagram
@@ -150,9 +150,6 @@ on base1-cluster. =vm_create()= in *BridgeVZAdapter* is responsible in
 ADS for creation of virtual machine. A container will be created in
 this test scenario and the creation is tested by pinging vm-id on
 successful creation.
-#+BEGIN_SRC 
-
-#+END_SRC
 
 *** Case 02: Setting up the container to connect to the bridged-network.
 The objective of this test case is to test the whether newly created
@@ -160,27 +157,15 @@ container is connected to the bridged-network or not. =vm_set()= in
 *BridgeVZAdapter* is responsible in ADS for setup container. A
 container will be set in this test scenario and tested by pinging
 container-ip on successful setup.
-#+BEGIN_SRC 
-
-
-#+END_SRC
 
 *** Case 03: Copying ADS and Lab source code to newly created container.
 The objective of this test case is to test the whether ADS and Labs
 source code is copied into the newly created container. =copy_files()=
 in *BridgeVZAdapter* is responsible in ADS for copying these files. In
 this test scenario look for =ovpl= and =labs= folders in newly created
-container at =/root/= .
-
-#+BEGIN_SRC 
-
-
-#+END_SRC
+container at =/root/=.
 
 *** Case 04: Checking if VMManager service is running successfully
 The objective of this is to test whether the VMManager service is
 running successfully on the newly created container on base1-cluster. 
 
-#+BEGIN_SRC 
-
-#+END_SRC
