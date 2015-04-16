@@ -8,12 +8,37 @@ machine. The bridge network consists of router, two bridges and test
 machines as basic components. The document further explains the step
 by step creation of this network.
 
+Seen below is the diagram of bridged network along with its
+components.
+
 [[./bridged-network-diagram.png][Bridged Network Diagram.png]]
 
+*Edit:* The diagram can be edited [[https://docs.google.com/a/vlabs.ac.in/drawings/d/1OAgPRCly6_JsTckBBHIP0djqaORDGobUEQfvMJVHJ5s/edit][here]]
+
+
 * Setting Up a Bridge Network
-** Step 01: Connecting Lan Interface and Bridge 
-Identify the LAN interface name for connection to internet. This can
-be done by issuing the command: 
+Setting up the bridged network involves following steps:
+
+|--------+---------------------------------------|
+| *Step* | *Description*                         |
+|--------+---------------------------------------|
+|     01 | Connecting LAN Interface and Bridge   |
+|--------+---------------------------------------|
+|     02 | Setting up Bridge for Private Network |
+|--------+---------------------------------------|
+|     03 | Creating Router                       |
+|--------+---------------------------------------|
+|     04 | Configuring Router                    |
+|--------+---------------------------------------|
+|     05 | Creating Private Subnet               |
+|--------+---------------------------------------|
+|     06 | Connecting to Internet                |
+|--------+---------------------------------------|
+
+** Step 01: Connecting LAN Interface and Bridge 
+It is essential to know the name of the LAN interface to make a
+connection to the bridge. If not known, it can be identified by
+issuing the command:
 #+begin_src example
 ifconfig -a
 #+end_src
@@ -41,8 +66,8 @@ NM_CONTROLLED=no
 #+end_src
 
 The *eth0* interface needs to be made aware of bridge created.  In the
-current directory, the contents of the file *ifcfg-eth0* needs to be set
-to following:
+current directory, the contents of the file *ifcfg-eth0* needs to be
+set to following:
 #+begin_src example
 DEVICE=eth0
 HWADDR=<<Hardware Address of eth0 interface>>
@@ -61,8 +86,9 @@ service network restart
 #+end_src
 
 ** Step 02: Setting Up Bridge for Private Network 
-Create a file with name *ifcfg-br1* in the current directory including
-the following settings:
+We next set up a bridge in our private network. Let us call it as
+*br1*. To create the bridge, create a file with name *ifcfg-br1* in
+the current directory including the following settings:
 #+begin_src example
 DEVICE=br1
 TYPE=Bridge
@@ -71,7 +97,7 @@ NM_CONTROLLED=no
 BOOTPROTO=none
 #+end_src
 
-Restart network service:
+Restart network service to effect the changes.
 #+begin_src example
 service network restrat
 #+end_src
@@ -84,33 +110,39 @@ brctl show
 The output has to contain the two created bridges and any other
 bridges previously created with connected interfaces.
 
-A sample output can be seen below:
+With current configuration used, a sample output can be seen below:
 #+begin_src example
 bridge name	bridge id		STP enabled	interfaces
 br0		8000.5cf9dd75d1f8	no		eth0
 br1		8000.000000000000	no		
 #+end_src
 
-** Step 03: Creation of Router
-Create a router (aka container) with following settings:
+** Step 03: Creating Router
+We next move ahead in creation of a router. Create a router (aka
+container) with following settings:
 #+begin_src example
 vzctl create <Router-CT-ID> --ostemplate centos-6-x86_64 --hostname <host-name>
 #+end_src
 Note that *ip address* is not set for the router while creating the
 container.
 
-set netfilter to full
+set the *netfilter* to full for the container.
+#+begin_src example
 vzctl set <Router-CT-ID> --netfilter full --save
+#+end_src
 
-The router's two interfaces needs to be connected to the two bridges
-*br0* and *br1*. This is done by the following commands:
+The router needs to be connected to the two bridges *br0* and *br1*
+and this is achieved by connecting with the respective
+interfaces. This is done by the following commands:
 #+begin_src example
 vzctl set <Router-CT-ID> --netif_add eth0,,,,br0 --save
 vzctl set <Router-CT-ID> --netif_add eth1,,,,br1 --save
 #+end_src
 
-run the container
-vzctl start ct-id
+Start the container and set its status to running.
+#+begin_src example
+vzctl start <Router-CT-ID>
+#+end_src
 
 ** Step 04: Configuring Router
 Enter the router contianer
@@ -118,11 +150,9 @@ Enter the router contianer
 vzctl enter <Router-CT-ID>
 #+end_src
 
-Next we need to configure the *eth0* and *eth1* interfaces to connect
-to bridges. Pre-hand we need to know the hardware address of both of
-them. It can be noted by the command *ifconfig -a*
-
-Move to the directory:
+*eth0* and *eth1* interfaces of the router needs to be configured to
+connect to the bridges. The configuration can set in the directory
+*network-scripts* for the files *ifcfg-eth0* and *ifcfg-eth1*.
 #+begin_src example
 cd /etc/sysconfig/network-scripts
 #+end_src
@@ -151,20 +181,27 @@ NETMASK=255.255.252.0
 Restart the network service and check if the eth1 is assigned to
 ip-address or not (ifconfig command)
 
-*Note:* Hardware address will be available after adding the
-configuration files
+The hardware address can be known by the command *ifconfig -a*.
 
-logout from the container
+*Note:* Hardware address will be *only* available after adding the
+configuration files. The process is to first add the configuration
+without the hardware address, restart the service and later update it.
 
-** Step 05: Creation of private subnet
-We next create our own private subnet with two test containers.
+Logout from the container by issuing the command:
+#+begin_src 
+logout
+#+end_src
+
+** Step 05: Creating private subnet
+To test the settings we can create our own private subnet with two
+test containers.
 
 #+begin_src example
 vzctl create <Test1-CT-ID> --ostemplate centos-6-x86_64 --hostname <host-name>
 vzctl create <Test2-CT-ID> --ostemplate centos-6-x86_64 --hostname <host-name>
 #+end_src
 
-set the netfilter to full for both the containers by the following
+set the *netfilter* to *full* for both the containers by the following
 command:
 #+begin_src example
 vzctl set <Test1-CT-ID> --netfilter full --save
@@ -177,20 +214,27 @@ vzctl start <Test1-CT-ID>
 vzctl start <test2-CT-ID>
 #+end_src
 
-vzctl set <Test-CT-ID> --netif_add eth1,,,,br1 --save
+The interface of both continers need to be configured by connecting
+them to the private bridge *br1*. 
+#+begin_src example
+vzctl set <Test1-CT-ID> --netif_add eth1,,,,br1 --save
+vzctl set <Test1-CT-ID> --netif_add eth1,,,,br1 --save
+#+end_src
 
-
-ifcfg-eth1
+The *ifcfg-eth1* file present in */etc/sysconfig/network-script*
+directory for the both the containers need to be configured with
+following settings:
+#+begin_src example
 DEVICE=eth1
-HWADDR=00:18:51:DC:E6:41
+HWADDR=<<Hardware address of eth1>>
 BOOTPROTO=static
 ONBOOT=yes
 NM_CONTROLLED=no
-IPADDR=10.100.1.2
-NETMASK=255.255.252.0
-GATEWAY=10.100.1.1
-
-** Step 06: Connection to Internet
+IPADDR=<<IP address of container>>
+NETMASK=<<IP address of netmask>>
+GATEWAY=<<IP address of gateway>>
+#+end_src
+** Step 06: Connecting to Internet
 Login inside the router and set the ipv4 forwarding to true.
 #+begin_src example
 vzctl enter <Router-CT-ID>
@@ -211,4 +255,5 @@ following is the settings to be added in */etc/sysconfig/iptables*
 -A POSTROUTING -o eth0 -j MASQUERADE 
 COMMIT
 #+end_src
+The bridged network is now ready.
 
