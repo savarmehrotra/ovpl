@@ -1,0 +1,409 @@
+#+TITLE:  ADS Server Provisioning and Configuration
+#+PROPERTY: session *scratch*
+#+PROPERTY: results output
+#+PROPERTY: exports code
+#+SETUPFILE: org-templates/level-0.org
+#+options: ^:nil
+
+* Introduction
+  This document describes the provisioning of ads server and
+  configuration of the ads services. The server is set up on base
+  machine - =base1= - of VLEAD. The further sections explain the
+  provisioning details of the server and the requirements, design and
+  implementation in configuring the service.
+  
+* Assumptions
+  Several assumptions are made in provisioning the ads server on the
+  base machine. There is a base machine:
+    + A1 :: Installed with a hypervisor, openVZ which gives the
+            capability to create the containers
+    + A2 :: Installed with Centos-6.6 operating system with a minimum
+            disk space of 20GB.
+    + A3 :: Identified with a domain name and an ip address
+    + A4 :: Accessible only through the root user
+    + A5 :: Having its public-private key pair generated
+
+* Requirements
+  The functional and security requirements for configuring ADS service
+  are:
+** Functional Requirements
+   1. Install the ADS software and its depenedencies
+   2. Incoming connections on TCP ports 8080, 8000, 8239 and 22 are allowed 
+   3. Outgoing connections on TCP port 22, 9089 are allowed.
+   4. ADS server will execute commands as root for creation of containers.
+** Security Requirements
+   1. Enable incoming http/https ports 8000, 8080, 8239 from
+      10.4.12.0/22
+   2. Enable outgoing http/https ports 9089 and 8239 to 10.4.12.0/22
+   3. Enable outgoing connections to port 22 to lab machines.
+   4. All other remaining ports are disabled
+      
+* Design
+** Snapshot
+ADS server
+[[https://docs.google.com/a/vlabs.ac.in/drawings/d/1H-muoQauh-DcqsMzoxqDdsJoHcncBJew8tTdmFYY7x8/edit][Edit Image]]
+
+#+CAPTION:  ADS Server Design Diagram
+#+LABEL:  fig-ads-diagram
+#+NAME: fig-ads-diagram
+
+[[./ads-server.png]]
+
+** Design Specifications
+|-----------------+------------------------------------------------|
+| Requirement No. | Design                                         |
+|-----------------+------------------------------------------------|
+| [[freq1]]           | Outgoing connections on TCP port 22            |
+|                 | and 9089 are allowed.                          |
+|-----------------+------------------------------------------------|
+| [[freq2]]           | ADS server will execute commands as root on    |
+|                 | the machine for creation of containers         |
+|-----------------+------------------------------------------------|
+| [[freq3]]           | public key of ADS server is copied into        |
+|                 | the base-1 authorized keys                     |
+|-----------------+------------------------------------------------|
+| [[sreq4]]           | Enable incoming http/https ports 8000, 8080,   |
+|                 | 8239, 22 from 10.4.12.0/22.                    |
+|-----------------+------------------------------------------------|
+| [[sreq5]]           | Enable outgoing http/https ports 9089, 8239 to |
+|                 | 10.4.12.0/22 and 22 to lab machines.           |
+|-----------------+------------------------------------------------|
+   
+* Implementation
+** Structure of the scripts
+The implementation of this system is in terms of a collection of ansible scripts that
+configures the machine. Scripts are organized as follows:
+#+BEGIN_EXAMPLE
+|-- site.yml
+|-- hosts
+|-- roles
+|   |-- ads-server
+|   |   |-- files
+|   |   |   `-- run_setup.sh
+|   |   |--handlers
+|   |   |  `--main.yml
+|   |   |-- templates
+|   |   |   |-- iptables
+|   |   |   `-- mongodb.repo
+|   |   |-- tasks
+|   |   |   |-- main.yml
+|   |   `-- vars
+|   |       `-- main.yml
+|   |-- common
+|   |   ...
+#+END_EXAMPLE
+
+** Install dependencies
+   ADS needs several python packages and setup tools to be installed
+   and running prior hand. The pre-requisites can be collectively
+   installed using development tools.
+ #+BEGIN_SRC yaml :tangle roles/ads-server/tasks/main.yml :eval no
+---
+ - name: install development tools
+   yum: name=python-setuptools state=present
+   environment: proxy_env
+ #+END_SRC
+   Proxy variables needs to be set in order to successfully install the
+   packages. =http= and =https= variables are set to =iiith= network proxy.
+   Initialize the variables below according to the required network settings and
+   configurations.
+ #+BEGIN_SRC yaml :tangle roles/ads-server/vars/main.yml :eval no
+---
+  proxy_env:
+    http_proxy: http://proxy.iiit.ac.in:8080/
+    https_proxy: http://proxy.iiit.ac.in:8080/
+  vlead_ip_range: 10.0.0.0/8
+#+END_SRC
+   Version control =git= (distributed version control system) is
+   required to clone ADS source code from
+   =https://github.com/vlead/ovpl.git=.
+#+BEGIN_SRC yaml :tangle roles/ads-server/tasks/main.yml :eval no
+ - name: install git  
+   yum: name=git state=present
+   environment: proxy_env
+#+END_SRC
+
+   To track the status of the labs =mongodb= database needs to be
+   installed. 
+#+BEGIN_SRC yaml :tangle roles/ads-server/tasks/main.yml :eval no
+ - name: setting up of mongodb
+   template: src=mongodb.repo dest=/etc/yum.repos.d/mongodb.repo 
+   environment: proxy_env
+ #+END_SRC
+
+  Mongodb needs to be downloaded from the repository. The config file
+  with url is copied from the the templates.
+ #+BEGIN_SRC yaml :tangle roles/ads-server/templates/mongodb.repo :eval no
+[mongodb]
+name=MongoDB Repository
+baseurl=http://downloads-distro.mongodb.org/repo/redhat/os/x86_64/
+gpgcheck=0
+enabled=1
+ #+END_SRC
+ 
+  Mongodb needs to be installed and restarted
+  #+BEGIN_SRC yaml :tangle roles/ads-server/tasks/main.yml :eval no
+ - name: install mongodb  
+   yum: name=mongodb-org state=present
+   environment: proxy_env
+   notify: restart mongodb
+  #+END_SRC
+
+   Restart handler is called in handler file.
+   #+BEGIN_SRC yaml :tangle roles/ads-server/handlers/main.yml :eval no
+--- 
+  - name: restart mongodb  
+    service: name=mongod state=started
+
+   #+END_SRC
+
+** Cloning ADS repository
+   Cloning of ADS source code is required to run ADS services like
+   AdapterServer, ControllerServer and HttpLog Server.
+   #+BEGIN_SRC yaml :tangle roles/ads-server/tasks/main.yml :eval no
+ - name: clone ovpl repo and checkout develop branch
+   git: repo=https://github.com/vlead/ovpl.git dest=/home/ovpl version=openvz-adapter
+   environment: proxy_env
+  #+END_SRC
+** Setting up the ADS
+   Once the ADS service is cloned, setup script installs the required
+   packages and brings up the service.  
+#+BEGIN_SRC yaml :tangle roles/ads-server/files/run_setup.sh :eval no 
+#!/bin/bash
+cd /home/ovpl
+python setup.py install 
+#+END_SRC
+
+The setup script is invoked using a yaml file.
+ #+BEGIN_SRC yaml :tangle roles/ads-server/tasks/main.yml :eval no
+ - name: running setup.py file
+   script: run_setup.sh
+   environment: proxy_env 
+ #+END_SRC
+
+** Hardening
+   Common role takes care of functional requirement [[freq1]]. More
+   information is [[./common.org][here]].
+
+** Building the firewall rules
+*** The default rules for filter table
+    Default policy for input, forward and output is set as ACCEPT. If
+    packet does not match any rule then this default action is applied
+    to the packet.  Packet counters are set to [0:0].  First counter
+    represents the number of packets that matched the rule for the
+    chain, and second counter represents the total size of the packets
+    that matched the rule.
+#+BEGIN_SRC yaml :tangle roles/ads-server/templates/iptables :eval no
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+#+END_SRC
+
+*** Rule for allowing packets within the machine
+    Allow internal communication between services running within the
+    config-server, over loopback interface. Input interface is also
+    specified to avoid any security breach. The configuration server
+    needs to accept all connections from loop back.
+
+#+BEGIN_SRC yaml :tangle roles/ads-server/templates/iptables
+-A INPUT -i lo -j ACCEPT
+#+END_SRC
+
+*** Rule for related and established connections from other machines
+    Allow ads-server to continue already related and established
+    connections. If a previous connection was passed and established
+    through the firewall, it is allowed to continue
+#+BEGIN_SRC yaml :tangle roles/ads-server/templates/iptables
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+#+END_SRC
+
+*** Rule for allowing incoming TCP connections from specific ports
+    Allows ads-server to accept incoming TCP connections from the port
+    numbers 8000, 8080, 8239
+#+BEGIN_SRC yaml :tangle roles/ads-server/templates/iptables
+-A INPUT -p tcp -s {{vlead_ip_range}} -m multiport --dport 8000,8080,8239 -j ACCEPT
+-A INPUT -p tcp -m multiport --dport 8000,8080,8239 -j REJECT
+-A INPUT -p tcp -m tcp -s {{vlead_ip_range}} --dport 22 -j ACCEPT
+#+END_SRC
+ 
+*** Rule for outgoing TCP connections from specific ports
+    Allows ads-server for outgoing TCP connections from the port
+    number 9089, 8239 and 22
+#+BEGIN_SRC yaml :tangle roles/ads-server/templates/iptables :eval no 
+-A OUTPUT -p tcp -s {{vlead_ip_range}} -m multiport --dport 9089,22,8239 -j ACCEPT
+#+END_SRC
+
+*** All other packets should be rejected
+    The incoming and outgoing packets on all other ports are rejected.
+
+#+BEGIN_SRC yaml :tangle roles/ads-server/templates/iptables :eval no
+-A INPUT -j REJECT
+-A FORWARD -j REJECT
+COMMIT
+#+END_SRC
+
+** Apply firewall rules to ads server
+   Firewall rules are applied by following steps:
+    1) Copy the iptables template to the ads server.
+    2) Restart iptables service to apply the configuration.
+#+BEGIN_SRC yaml :tangle roles/ads-server/tasks/main.yml :eval no
+ - name: Copying iptables config files
+   template: src=iptables dest=/etc/sysconfig/iptables owner=root group=root mode=600
+   notify:
+     - restart iptables
+#+END_SRC
+
+As well, the iptables needs to be restarted once the new rules are
+successfully applied.
+#+BEGIN_SRC yaml :tangle roles/ads-server/handlers/main.yml :eval no
+  - name: restart iptables
+    service: name=iptables state=restarted
+#+END_SRC
+
+** Dependencies
+   All the variables go here. For ads-server, currently no specific
+   variables are required. Hence we import all the variables defined
+   in the commons.
+#+BEGIN_SRC yaml :tangle roles/config-server/meta/main.yml
+---
+  dependencies:
+  - role: common_vars
+#+END_SRC
+
+** Putting it all together
+   The ads server is managed with all the above rules. The
+   implementation is done in terms of defining suitable scripts for
+   each role.  The top level script is =build/code/ads-server.yml=
+
+#+BEGIN_SRC yaml :tangle site.yml
+---
+  - name: Setup ADS server
+    hosts: ads-server
+    remote_user: root
+    roles:
+      - common
+      - ads-server
+#+END_SRC
+   
+* Provisioning
+Provisioning is done by creating a bare new machine on base1.
+From the base1 machine (10.4.12.21) execute following:
+** Creation of ADS server
+   + How ADS server is created, its IP-address, and Domain name.
+*** Machine configuration
+   + Operating System: Centos-6.6
+   + Memory: 256MB
+   + Disk space: 20GB 
+*** ADS server is created using:
+   #+BEGIN_EXAMPLE
+    vzctl create <ctid> --ostemplate centos-6-x86_64 --hostname <hostname> --ipadd <ip address>
+    vzctl start <ctid>
+    vzctl set <ctid> --nameserver inherit --ram 256M --diskspace 20G --swap 512M --onboot yes --save
+   #+END_EXAMPLE
+*** Domain name and IP address
+    #+BEGIN_EXAMPLE
+    To be updated.
+    #+END_EXAMPLE
+*** Stop and uninstall httpd if it is present in os template used to create ADS server
+    #+BEGIN_EXAMPLE
+    service httpd stop
+    yum remove httpd
+    #+END_EXAMPLE
+
+*** Generate ssh public-key for ADS server 
+    #+BEGIN_SRC
+    ssh-keygen -t rsa
+    #+END_SRC
+*** Copy ADS server public-key to Base-1 authorized keys
+    #+BEGIN_SRC
+   ssh-copy-id root@10.4.12.21
+    #+END_SRC
+
+*** Set proxy for ADS server in /etc/yum.conf
+   The following line is added to etc/yum.conf
+  #+BEGIN_EXAMPLE
+    proxy=http://proxy.iiit.ac.in:8080
+    proxy=https://proxy.iiit.ac.in:8080
+  #+END_EXAMPLE
+
+** Access to ADS Server
+   - User can acces the ADS Server only through configuration server,
+     So only VLEAD engineers who have their keys placed in
+     =authorized_keys= of server can *only* access.
+
+* Test Cases
+The test cases designed for the ADS provisioning and configuration
+are:
+|-----------------+-----------------+----------------------------------------|
+| *Test-Case-ID*  | *Name*          | *Description*                          |
+|-----------------+-----------------+----------------------------------------|
+| ads-test-case-1 | Firewall Rules  | This test case is to check             |
+|                 |                 | if the configured firewall rules       |
+|                 |                 | are successfully applied or not.       |
+|-----------------+-----------------+----------------------------------------|
+| ads-test-case-2 | Mongodb Status  | Mongodb needs to be successfully       |
+|                 |                 | installed and running to track         |
+|                 |                 | lab status. This test case is to test  |
+|                 |                 | if the service is running.             |
+|-----------------+-----------------+----------------------------------------|
+
+
+** Test Case ID - ads-test-case-1
+|---------------+------------------------------------------------------------------|
+| *Attribute*   | *Description*                                                    |
+|---------------+------------------------------------------------------------------|
+| *Name*        | Firewall Rules                                                   |
+|---------------+------------------------------------------------------------------|
+| *Pre-*        | Firewall rules are applied and iptables is restarted             |
+| *Conditions*  |                                                                  |
+|---------------+------------------------------------------------------------------|
+| *Procedure*   | The task is to test if the configured firewalls rules have kept  |
+|               | the ports open / closed as required.The firewall rules applied   |
+|               | can be monitored using tools like =nmap= and =netstat=.          |
+|---------------+------------------------------------------------------------------|
+| *Test*        | Run the commands on ads-server through terminal:                 |
+|               | + nmap -v 10.2.58.132                                            |
+|               | + netstat -lnptu                                                 |
+|---------------+------------------------------------------------------------------|
+| *Expected*    | Following TCP ports are open for incoming witihin iiith-network: |
+| *Result*      | + 22                                                             |
+|               | + 8080                                                           |
+|               | + 8000                                                           |
+|               | + 8339                                                           |
+|               | Following TCP ports are open for outgoing within iiith-network:  |
+|               | + 22                                                             |
+|               | + 9089                                                           |
+|---------------+------------------------------------------------------------------|
+| *Obtained*    | [[./test-1.png]]                                                     |
+| *Result*      |                                                                  |
+|---------------+------------------------------------------------------------------|
+| *Test Status* | Passed                                                           |
+|---------------+------------------------------------------------------------------|
+
+
+** Test Case ID - ads-test-case-2
+|---------------+-----------------------------------------------------------------|
+| *Attribute*   | *Description*                                                   |
+|---------------+-----------------------------------------------------------------|
+| *Name*        | Mongodb Status                                                  |
+|---------------+-----------------------------------------------------------------|
+| *Pre-*        | ADS server is provisioned                                       |
+| *Conditions*  |                                                                 |
+|---------------+-----------------------------------------------------------------|
+| *Procedure*   | Mongodb needs to be successfully installed and running to track |
+|               | the status of deployed labs.                                    |
+|---------------+-----------------------------------------------------------------|
+| *Test*        | Run the command on ads-server through terminal:                 |
+|               | + service mongod status                                         |
+|---------------+-----------------------------------------------------------------|
+| *Expected*    | mongod (<pid>) is running...                                    |
+| *Result*      |                                                                 |
+|---------------+-----------------------------------------------------------------|
+| *Obtained*    | mongod (pid 2579) is running...                                 |
+| *Result*      |                                                                 |
+|---------------+-----------------------------------------------------------------|
+| *Test Status* | Passed                                                          |
+|               |                                                                 |
+|---------------+-----------------------------------------------------------------|
+

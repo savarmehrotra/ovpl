@@ -12,11 +12,10 @@ requirements, design and implementation of the *bridge-openvz-adapter*
 Following are the pre-requisites for understanding the *BOA*:
     + Understanding the bridge-network is essential to understand the
       working of the adapter. A detailed documentation on setting
-      up a bridged network can be found [[./bridge-setup.org][here]].
+      up a bridged network can be found [[./bridge-setup.org][here]]
     + The provisioning of ADS server has to meet the requirements of a
       bridged network. These requirements and provisioning are defined
-      here.
-
+      [[./ads-provisioning.org][here]].
 Following infrastructure has to be made available to run the *BOA*:    
     + The brdige network is setup and running
     + One of the component in the network is the ADS server
