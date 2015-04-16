@@ -170,6 +170,7 @@ The objective of this is to test whether the VMManager service is
 running successfully on the newly created container on base1-cluster. 
 
 *** Implementation of test cases
+The following code will test all the above test case scenarios.
 #+BEGIN_EXAMPLE
 import unittest
 import json
