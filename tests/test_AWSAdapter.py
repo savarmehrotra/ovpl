@@ -3,12 +3,11 @@ import json
 import requests
 
 from src.adapters.AWSAdapter import AWSAdapter
+from src.LabManager import get_lab_reqs
 
-import tornado.httpserver
-import tornado.ioloop
-import tornado.web
-
-vm_id = ''
+vm_id = None
+vm_ip = None
+vm_mgr_port = None
 
 class TestAWSAdapter(unittest.TestCase):
     def setUp(self):
@@ -16,15 +15,8 @@ class TestAWSAdapter(unittest.TestCase):
         # the top-level of ovpl directory..
         self.lab_spec = json.loads(open("scripts/labspec.json").read())
         self.adapter = AWSAdapter()
-# TODO start the http logging service here.
-      #  server = HTTPServer(self)
-       # print server
-      #  server.listen(8239)
-      #  print "listening  "
-      #  tornado.ioloop.IOLoop.current().start()
-      #  print "http logging service started"
-        self.listen(8239)
-        tornado.ioloop.IOLoop.instance().start()
+	self.repo_name = "ovpl"
+        get_lab_reqs("https://github.com/vlead/ovpl.git")
 
     def test_create_vm(self):
         global vm_id
@@ -40,18 +32,17 @@ class TestAWSAdapter(unittest.TestCase):
         self.assertIn(instance.state_code, (0, 16))
 
     def test_init_vm(self):
-     #  vm_id = self.adapter.create_vm(self.lab_spec)
-     #  print vm_id
-     #  print dir(self)
-        lab_repo_name =  'ovpl'
-        result = self.adapter.init_vm(self.vm_id, lab_repo_name)
+	global vm_ip
+        global vm_mgr_port
+        result = self.adapter.init_vm(vm_id, self.repo_name)
         print result
         vm_ip = result[1]['vm_ip']
-        vmmanager_port = result[1]['vmm_port']
-        print vm_ip    
-        print vmmanager_port
+        vm_mgr_port = result[1]['vmm_port']
+	self.assertTrue(result[0])
 
-        response = requests.get("http://" + vm_ip + ":" + vmmanager_port)
+    def test_vm_mgr_running(self):
+        response = requests.get("http://" + vm_ip + ":" + vm_mgr_port + "/api/1.0/test-lab")
+        print response
         self.assertEqual(response.status_code, 200)
 
 
