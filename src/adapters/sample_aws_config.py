@@ -11,11 +11,12 @@ credentials = {
 }
 # describe key file name
 key_file_name = "the key file name"
-# describe subnet id to be used
+# the subnet id to be used
 subnet_id = "subnet-id"
-# describe sec groups ids to be used
+# the security groups ids to be used - a list
 security_group_ids = ['security group id1', 'security group id 2']
-# the default gateway the VMs would use
+# the default gateway the VMs would use; if no gateway needs to be set, leave it
+# empty..
 default_gateway = "<ip-address-of-gateway>"
 
 # Configure here the list of supported AMIs
