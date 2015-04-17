@@ -225,7 +225,7 @@ responsible for creation of virtual machine. A VM will be
 created in this test scenario and the creation is tested by pinging
 =vm-id= on successful creation.
 
-*** Checking if ADS source code, Lab sources and VM Manager is copied successfully
+*** Case 02: Checking if ADS source code, Lab sources and VM Manager is copied successfully
 The objective of this test is to validate if the lab sources and
 VMManager is copied and VMManager service is running. This is tested
 by asserting the boolean value returned after successful
