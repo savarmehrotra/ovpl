@@ -167,7 +167,7 @@ container at =/root/=.
 
 *** Case 04: Checking if VMManager service is running successfully
 The objective of this is to test whether the VMManager service is
-running successfully on the newly created container on base1-cluster. 
+running successfully on the newly created container on base1-cluster. =init_vm()= in *BridgeVZAdapter* is responsible in ADS for intializing service.
 
 *** Implementation of test cases
-The implementation code for all the test case scenarios can be found [[https://github.com/vlead/ovpl/blob/bridge-openvz-adapter/tests/test_bridge_openvz_adapter.py][here]]
+The implementation code for all above test case scenarios can be found [[https://github.com/vlead/ovpl/blob/bridge-openvz-adapter/tests/test_bridge_openvz_adapter.py][here]]
