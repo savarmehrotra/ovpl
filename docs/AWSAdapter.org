@@ -239,7 +239,6 @@ Hence, the current supported instance types by AWSAdapter are:
 + To validate the creation of a VM on AWS platform.
 + To ensure that the VMManager service is running on this VM.
 
-This is achieved through unit testing.
 ** Testing Environment
 
 1. A VM is provisioned on AWS, such that it is able to access the
@@ -249,27 +248,26 @@ This is achieved through unit testing.
 TODO - Where to mention setting up of this (1) testing environment?
 ** Assumptions
 1. =ADS= is configured and running in the provisioned VM.
-2. The test cases are written and tested for AWSAdapter.
+2. The source code of ADS is copied in =/labs= folder. However, the
+   test module also takes care of this prerequisite.
+3. The test cases are written and tested for AWSAdapter.
 
 ** Test Cases
-*** Case 01: Creation of a Virtual Machine on AWS platform.
-The objective of this test case is to test the creation of a virtual
-machine on AWS. =create_vm()= in *AWSAdapter* is responsible in ADS
-for creation of virtual machine. A VM will be created in this test
-scenario and the creation is tested by pinging vm-id on successful
-creation.
+*** Case 01: To test the creation of a Virtual Machine on AWS platform.
+This is achieved by checking the state of the newly created
+instance. The state should return integer values *0* or *16*, indicating
+that the instance is either *pending* or already *running*.
 
-#+BEGIN_SRC
+*** Case 02: To test the initialization of VM
+The objective of this test is to validate if the lab sources and
+VMManager is copied and VMManager service is running. This is tested
+by asserting the boolean value returned after successful
+initialization of the VM.
 
+*** Case 03: To test if the VMManager service is running
+After the instance is initialized, it is necessary to validate if the
+VMManager sevice is actually running or not. This is tested by
+asserting the response to an HTTP request sent on the VM's IP and
+vmmanager's port no.
 
-#+END_SRC
-
-
-*** Case 02: Checking if VMManager service is running successfully
-The objective of this is to test whether the VMManager service is
-running successfully on the newly created instance on AWS.
-
-#+BEGIN_SRC
-
-#+END_SRC
-
+[[https://github.com/vlead/ovpl/blob/aws-adapter/tests/test_AWSAdapter.py][Click here to view the implementation of test cases
