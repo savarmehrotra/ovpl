@@ -107,7 +107,7 @@ AWSAdapter are listed below:
 
      *Returns*: True if the VM is up, else False.
 
-** Configuration Parameters
+** Configuration parameters of the adapter
 Following are the parameters which are needed to be configured in this
 adapter, for the adapter to be able to communicate with AWS APIs.
 
@@ -147,7 +147,7 @@ in to the repository. Instead, a sample configuration file is checked
 in. A deployer is responsible for modifying this file and filling the
 appropriate values.
 
-*** Sequence Diagram of AWSAdapter
+** Sequence of steps in AWSAdapter
 [[./Sequence diagram of AWSAdapter.png]]
 
 Following is the sequence of events that occur when a lab is deployed
@@ -183,18 +183,56 @@ on AWS using AWSAdapter:
 9. The latter three are forwarded by Adapter Server as HTTP response
    to the VM Pool Manager.
 
- 
-** TODO Strategic decisions:
-*** What OS/AMIs to support?
-*** How to select an AMI based on the lab spec input?
-*** What machine configuration/instance types to support?
-*** How to select an instance type based on the lab spec input?
+** Internal Design
+*** TODO How to select an AMI based on the lab spec input?
+*** TODO How to select an instance type based on the lab spec input?
 
-** TODO Other related documentation
-*** How to create an AMI for lab deployment?
+** Strategic decisions:
+*** What OS/AMIs to support?
+- Till now Ubuntu, CentOS and Debian were supported. The decision is to go
+  ahead with these OSes, even though almost all the current labs(level 5 and
+  hosted labs on IIIT infrastructure) use Ubuntu 10.04/12.04.
+- Regarding versions of the OS, we decided:
+  + Ubuntu::
+    + Only LTS versions is supported.
+    + Ubuntu 10.04:: Has reached end of life support we cannot support it any
+      more, even though some lab developers have communicated that they have a
+      hard dependency on this version of Ubuntu.
+    + Ubuntu 12.04:: Supported, as its end of life is 2017.
+    + Ubuntu 14.04:: Supported, as its end of life 2019.
+  + CentOS::
+    + CentOS 6.6:: Supported. This is the current stable version.
+    + CentOS 6.5:: Requests to use CentOS 6.5 will automatically be upgraded
+      to use CentOS 6.6.
+  + Debian::
+    +  Debian 7.x:: Supported, as end of life is 2016.
+
+*** What machine configuration/instance types to support?
+As AWS has the concept of instance types (which is essentially a set of
+machine configuration), we need to select a set of instance types that we
+support.
+All the instance types available on AWS are listed here:
+[[https://aws.amazon.com/ec2/instance-types/]]
+
+Looking at most of the lab requirements, we concluded that having instance
+types with 2GB and 4GB RAM would suffice them.
+For storage, AWS has a concept of
+EBS([[https://aws.amazon.com/ebs/getting-started/]]). The default EBS is of
+8GB with our current instance types.
+Our conclusion was for the current labs, the default EBS should be fine. In a
+later version, the adapter can add the storage dynamically.
+
+Hence, the current supported instance types by AWSAdapter are:
++ t2.micro (1GB RAM)
++ t2.small (2GB RAM)
+
+
+** Other related documentation
+*** TODO How to create an AMI for lab deployment?
 
 
 * Implementation
+[[../src/adapters/AWSAdapter.py]]
 
 * Testing
 ** Objective
@@ -205,9 +243,9 @@ This is achieved through unit testing.
 ** Testing Environment
 
 1. A VM is provisioned on AWS, such that it is able to access the
-   internet.  
+   internet.
 2. The *state* of this instance/VM is *running*.
-   
+
 TODO - Where to mention setting up of this (1) testing environment?
 ** Assumptions
 1. =ADS= is configured and running in the provisioned VM.
@@ -221,7 +259,7 @@ for creation of virtual machine. A VM will be created in this test
 scenario and the creation is tested by pinging vm-id on successful
 creation.
 
-#+BEGIN_SRC 
+#+BEGIN_SRC
 
 
 #+END_SRC
@@ -229,15 +267,9 @@ creation.
 
 *** Case 02: Checking if VMManager service is running successfully
 The objective of this is to test whether the VMManager service is
-running successfully on the newly created instance on AWS. 
+running successfully on the newly created instance on AWS.
 
-#+BEGIN_SRC 
+#+BEGIN_SRC
 
 #+END_SRC
-
-
-
-
-
-
 
