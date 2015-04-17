@@ -6,7 +6,7 @@
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. 
 
-The =OpenVZAdapter= is an adapter for the CentOS platform. 
+The =OpenVZAdapter= is an adapter for the CentOS OpenVZ platform. 
 * Requirements
  
   1. =OpenVZAdapter= will create a container on CentOS OpenVZ as a hypervisor based on the specification
@@ -144,7 +144,7 @@ on CentOS platform using CentOS OpenVZAdapter:
    forwarded by Adapter Server as HTTP response to the VM Pool
    Manager.
 * Implementation
-** configuration steps
+** Configuration <<Configuration>>
 1) Edit the file =ovpl/config/config.json= and =ovpl/src/VMManager/config.json=  to set the proxies. 
 
 #+BEGIN_EXAMPLE
@@ -163,53 +163,7 @@ if no proxies are used,
     },
 #+END_EXAMPLE
 
-
-2) Edit the file =ovpl/src/adapters/settings.py= to set the 
-
-    Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
-    base machine on which containers are created.
-
-    Set ADS_SERVER_VM_ID to CTID of container running ADS.
-    ADS_SERVER_VM_ID = "<CTID>" 
-
-    SUBNET field to match with the subnet of your base machine
-    If the ip address of your base machine is 10.2.58.XXX, 
-    SUBNET = ["10.2.58.12/28"]
-
-* Testing
-** Objective
-+ To validate the creation of a VM.
-+ To ensure that the VMManager service is running on this VM.
-
-This is achieved through unit testing.
-** Testing Environment
-
-1. A VM is provisioned on Base Machine, such that it is able to access the
-   internet.  
-2. The *state* of this VM is *running*.
-   
-** Assumptions
-
-1) ADS is configured and running in the provisioned VM.
-2) Edit the file ovpl/config/config.json and ovpl/src/VMManager/config.json to set the proxies.
-#+BEGIN_EXAMPLE
-    "ENVIRONMENT": {
-        "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
-        "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
-    },
-
-#+END_EXAMPLE
-
-if no proxies are used,
-#+BEGIN_EXAMPLE
-    "ENVIRONMENT": {
-        "HTTP_PROXY":"",
-        "HTTPS_PROXY":""
-    },
-
-#+END_EXAMPLE
-
-3) Also set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of
+2) Also set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of
 the machine on which the ADS services are running.
 
 Edit the file ovpl/src/adapters/settings.py 
@@ -231,7 +185,24 @@ If the ip address of your base machine is 10.2.58.XXX,
 SUBNET = ["10.2.58.12/28"]
 #+END_EXAMPLE
 
-4) Key based authentication
+
+* Testing
+** Objective
++ To validate the creation of a VM.
++ To ensure that the VMManager service is running on this VM.
+
+This is achieved through unit testing.
+** Testing Environment
+
+1. A VM is provisioned on Base Machine, such that it is able to access the
+   internet.  
+2. The *state* of this VM is *running*.
+   
+** Assumptions
+1) Edit the =config.json= and =setting.py= as
+   mention above in [[configuration]].
+2) ADS is configured and running in the provisioned VM.
+3) Key based authentication: 
 
 SSH access using key based authentication is allowed on base
 machine. so to run the test case, public ssh key should be placed
