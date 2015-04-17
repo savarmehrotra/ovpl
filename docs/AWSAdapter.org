@@ -157,7 +157,7 @@ on AWS using AWSAdapter:
    that a VM needs to be created. It also passes the lab spec that
    includes VM requirements.
 
-2. On receiving this request, the Adapter Server calls the create_vm()
+2. On receiving this request, the Adapter Server calls the =create_vm()=
    function of AWSAdapter and hands over the lab spec to it.
 
 3. Based on lab spec(as mentioned in strategic decisions), the
@@ -168,7 +168,7 @@ on AWS using AWSAdapter:
 5. The VM/instance id of the newly created VM is returned to the
    Adapter Server.
 
-6. The Adapter Server now calls the init_vm() function of AWSAdapter.
+6. The Adapter Server now calls the =init_vm()= function of AWSAdapter.
 
 7. This initializes the newly created VM on AWS Cluster by copying
    relevant ADS component (VM Manager) and lab sources, and starting
@@ -247,7 +247,7 @@ Hence, the current supported instance types by AWSAdapter are:
 
 
 ** Assumptions
-1. =ADS= is configured and running in the provisioned VM.
+1. ADS is configured and running in the provisioned VM.
 2. The source code of ADS is copied in =/labs= folder. However, the
    test module also takes care of this prerequisite.
 3. The test cases are written and tested for AWSAdapter.
