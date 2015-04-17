@@ -39,7 +39,7 @@ In the current design of ADS, a fixed set of interfaces to an adapter
 is already defined. An adapter is required to implement these
 interfaces. This enables other components/services of ADS to
 communicate with the adapter. The interfaces implemented by the
-AWSAdapter are listed below:
+=AWSAdapter= are listed below:
 
 1. *create_vm* (self, lab_spec, dry_run=False)
 
@@ -106,7 +106,7 @@ AWSAdapter are listed below:
      VM is running the SSH service.
 
      *Parameters*:
-                 + vm_ip - The ip address of VM.
+                 + vm_ip - The IP address of VM.
 
      *Returns*: True if the VM is up, else False.
 
@@ -237,7 +237,7 @@ later version, the adapter can add the storage dynamically.
 Hence, the current supported AWS instance types by AWSAdapter are:
 + t2.micro (1GB RAM)
 + t2.small (2GB RAM)
-
+  
 
 * Implementation
 The implementation of the AWSAdapter can be found here:
