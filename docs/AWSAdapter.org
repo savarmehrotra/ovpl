@@ -5,6 +5,7 @@
 #+SETUPFILE: org-templates/level-0.org
 #+OPTIONS: ^:nil
 
+
 * Introduction
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform.
@@ -13,6 +14,7 @@ The =AWSAdapter= is an adapter for the AWS platform.
 
 In the following document, the words *instance* and *VM* have been used
 interchangeably.
+
 
 * Requirements
   1. =AWSAdapter= will create a VM on AWS based on the specification
@@ -29,6 +31,7 @@ interchangeably.
        =aws_config.py= file (explained below).
      + The AWS key pair is placed in the appropriate location, which is same
        as what is configured in the =aws_config.py= file.
+
 
 * Design
 ** Interfaces
@@ -151,53 +154,62 @@ appropriate values.
 [[./Sequence diagram of AWSAdapter.png]]
 
 Following is the sequence of events that occur when a lab is deployed
-on AWS using AWSAdapter:
+on AWS using =AWSAdapter=:
 
-1. VM Pool Manager sends an HTTP Request to Adapter Server indicating
+1. =VMPoolManager= sends an HTTP Request to =AdapterServer= indicating
    that a VM needs to be created. It also passes the lab spec that
    includes VM requirements.
 
-2. On receiving this request, the Adapter Server calls the create_vm()
-   function of AWSAdapter and hands over the lab spec to it.
+2. On receiving this request, the =AdapterServer= calls the =create_vm()=
+   function of =AWSAdapter= and hands over the lab spec to it.
 
-3. Based on lab spec(as mentioned in strategic decisions), the
-   AWSAdapter selects an AMI and instance type for the VM.
+3. Based on lab spec(as mentioned below), the =AWSAdapter= selects an AMI and
+   instance type for the VM.
 
 4. It creates a VM on AWS Cluster.
 
 5. The VM/instance id of the newly created VM is returned to the
-   Adapter Server.
+   =AdapterServer=.
 
-6. The Adapter Server now calls the init_vm() function of AWSAdapter.
+6. The =AdapterServer= now calls the =init_vm()= function of =AWSAdapter=.
 
 7. This initializes the newly created VM on AWS Cluster by copying
-   relevant ADS component (VM Manager) and lab sources, and starting
-   the VM Manager.
+   relevant ADS component (=VMManager=) and lab sources, and starts
+   the =VMManager= service.
 
-8. Once this service has started, the AWSAdapter sends back a tuple to
-   the Adapter Server consisting of a boolean value(that indicates
-   success/failure), instance/VM id of the VM on AWS Cluster, ip
-   address of the VM, and port on which the VM Manager service is
+8. Once this service has started, the =AWSAdapter= sends back a tuple to
+   the =AdapterServer= consisting of a boolean value(that indicates
+   success/failure), instance/VM id of the VM on AWS Cluster, IP
+   address of the VM, and port on which the =VMManager= service is
    running.
 
-9. The latter three are forwarded by Adapter Server as HTTP response
-   to the VM Pool Manager.
+9. The latter three are forwarded by =AdapterServer= as the HTTP response
+   to the =VMPoolManager=.
 
 ** Internal Design
 *** TODO How to select an AMI based on the lab spec input?
+TODO
 *** TODO How to select an instance type based on the lab spec input?
+TODO
 
 ** Strategic decisions:
 *** What OS/AMIs to support?
-- Till now Ubuntu, CentOS and Debian were supported. The decision is to go
-  ahead with these OSes, even though almost all the current labs(level 5 and
-  hosted labs on IIIT infrastructure) use Ubuntu 10.04/12.04.
+AWS uses OS images to associate with an instance when one brings up an
+instance. AWS calls these OS images as AMIs.
+([[http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html]])
+To provision instances we need to choose AMIs, hence we needed to
+decide on what OS and AMIs we would support.
+
+- In the existing implementation of ADS on CentOS-OpenVZ platform - Ubuntu,
+  CentOS and Debian were supported. The decision is to go ahead with these
+  OSes, considering almost all the current labs(level 5 and hosted labs on
+  IIIT infrastructure) use Ubuntu 10.04/12.04.
 - Regarding versions of the OS, we decided:
   + Ubuntu::
     + Only LTS versions is supported.
-    + Ubuntu 10.04:: Has reached end of life support we cannot support it any
-      more, even though some lab developers have communicated that they have a
-      hard dependency on this version of Ubuntu.
+    + Ubuntu 10.04:: Has reached end of life of support and hence we also
+      cannot support it, even though some lab developers have communicated
+      that they have a hard dependency on this version of Ubuntu.
     + Ubuntu 12.04:: Supported, as its end of life is 2017.
     + Ubuntu 14.04:: Supported, as its end of life 2019.
   + CentOS::
@@ -222,17 +234,20 @@ EBS([[https://aws.amazon.com/ebs/getting-started/]]). The default EBS is of
 Our conclusion was for the current labs, the default EBS should be fine. In a
 later version, the adapter can add the storage dynamically.
 
-Hence, the current supported instance types by AWSAdapter are:
+Hence, the current supported AWS instance types by AWSAdapter are:
 + t2.micro (1GB RAM)
 + t2.small (2GB RAM)
 
 
-** Other related documentation
-*** TODO How to create an AMI for lab deployment?
-
-
 * Implementation
+The implementation of the AWSAdapter can be found here:
 [[../src/adapters/AWSAdapter.py]]
+
+
+* Other related documentation
+*** TODO How to create an AMI for lab deployment?
+TODO
+
 
 * Testing
 ** Objective
@@ -247,7 +262,7 @@ Hence, the current supported instance types by AWSAdapter are:
 
 TODO - Where to mention setting up of this (1) testing environment?
 ** Assumptions
-1. =ADS= is configured and running in the provisioned VM.
+1. ADS is configured and running in the provisioned VM.
 2. The source code of ADS is copied in =/labs= folder. However, the
    test module also takes care of this prerequisite.
 3. The test cases are written and tested for AWSAdapter.
