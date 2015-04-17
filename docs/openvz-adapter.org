@@ -176,7 +176,33 @@ if no proxies are used,
     If the ip address of your base machine is 10.2.58.XXX, 
     SUBNET = ["10.2.58.12/28"]
 
-* Test Cases
-** Testing Creation of VM
-** Testing Initialization of VM
- 
+* Testing
+** Objective
++ To validate the creation of a VM.
++ To ensure that the VMManager service is running on this VM.
+
+This is achieved through unit testing.
+** Testing Environment
+
+1. A VM is provisioned on Base Machine, such that it is able to access the
+   internet.  
+2. The *state* of this VM is *running*.
+   
+** Assumptions
+
+1) ADS is configured and running in the provisioned VM.
+
+** Test Cases
+*** Case 01: Creation of a Virtual Machine
+The objective of this test case is to test the creation of a virtual
+machine on Base Machine. =create_vm()= in *CentOS OpenVZAdapter* is
+responsible for creation of virtual machine. A VM will be
+created in this test scenario and the creation is tested by pinging
+=vm-id= on successful creation.
+
+*** Case 02: Checking if VMManager service is running successfully
+The objective of this is to test whether the VMManager service is
+running successfully on the VM. =init_vm()= in *CentOS OpenVZAdapter*
+is responsible for intilization of virtual machine.
+
+[[https://github.com/vlead/ovpl/blob/openvz-adapter/tests/test_openvz_adapter.py][Click to view the test cases]]
