@@ -28,12 +28,24 @@ interchangeably.
        AWS.
      + The =AdapterServer= is configured to use the =AWSAdapter=.
      + Appropriate parameters for the adapter are configured in the
-       =aws_config.py= file (explained below).
+       configuration file (explained below).
      + The AWS key pair is placed in the appropriate location, which is same
-       as what is configured in the =aws_config.py= file.
+       as what is configured in the configuration file.
 
 
 * Design
+=AWSAdpater= is required to manage VMs - create, stop, start, restart and
+destroy, on the AWS platform and also initialize the VM, which requires
+installing one component of ADS into the VM and start that service, for
+further communication.
+
+=AWSAdapter= internally uses the =boto= Python library which interfaces with
+AWS APIs to create, restart, stop and destroy VMs.
+
+=AWSAdapter= uses the SSH service to initially install the ADS component and
+start the service. After, the service is up, other components of ADS can
+communicate with the VM through this service.
+
 ** Interfaces
 In the current design of ADS, a fixed set of interfaces to an adapter
 is already defined. An adapter is required to implement these
@@ -100,13 +112,15 @@ communicate with the adapter. The interfaces implemented by the
 
      *Returns*: List of instances that got terminated.
 
-7. *is_running_vm* (self, vm_ip)
+7. *is_running_vm* (self, vm_ip, port)
 
-     Checks if the VM is up and port 22 is reachable. It assumes that
-     VM is running the SSH service.
+     Checks if the given TCP port at the given IP is reachable. It essentially
+     checks if a particular service is running on the VM. The assumption is
+     that the port is running a TCP service.
 
      *Parameters*:
                  + vm_ip - The IP address of VM.
+                 + port - The TCP port to check.
 
      *Returns*: True if the VM is up, else False.
 
@@ -149,6 +163,16 @@ These parameters come from a configuration file which is not checked
 in to the repository. Instead, a sample configuration file is checked
 in. A deployer is responsible for modifying this file and filling the
 appropriate values.
+
+To configure one has to copy the sample config file into the actual config
+file(which is not version controlled) and edit the values accordingly.
+
+#+BEGIN_SRC
+cp sample_aws_config.py aws_config.py
+#+END_SRC
+
+Edit the values in =aws_config.py= to have the appropriate configuration
+parameters.
 
 ** Sequence of steps in AWSAdapter
 [[./Sequence diagram of AWSAdapter.png]]
@@ -237,7 +261,7 @@ later version, the adapter can add the storage dynamically.
 Hence, the current supported AWS instance types by AWSAdapter are:
 + t2.micro (1GB RAM)
 + t2.small (2GB RAM)
-  
+
 
 * Implementation
 The implementation of the AWSAdapter can be found here:
@@ -258,7 +282,7 @@ TODO
 
 1. A VM is provisioned on AWS, with internet access.
 2. ADS is installed and configured in that VM and its services are
-   up. 
+   up.
 3. The source code of the lab to be tested for deployment is copied in
    =/root/labs= folder. However, the test module also takes care of
    this prerequisite.
