@@ -252,37 +252,34 @@ TODO
 * Testing
 ** Objective
 + To validate the creation of a VM on AWS platform.
-+ To ensure that the VMManager service is running on this VM.
-
-** Testing Environment
-
-1. A VM is provisioned on AWS, such that it is able to access the
-   internet.
-2. The *state* of this instance/VM is *running*.
-
++ To ensure that the =VMManager= service is running on this VM.
 
 ** Assumptions
-1. ADS is configured and running in the provisioned VM.
-2. The source code of ADS is copied in =/labs= folder. However, the
-   test module also takes care of this prerequisite.
-3. The test cases are written and tested for AWSAdapter.
+
+1. A VM is provisioned on AWS, with internet access.
+2. ADS is installed and configured in that VM and its services are
+   up. 
+3. The source code of the lab to be tested for deployment is copied in
+   =/root/labs= folder. However, the test module also takes care of
+   this prerequisite.
 
 ** Test Cases
 *** Case 01: To test the creation of a Virtual Machine on AWS platform.
 This is achieved by checking the state of the newly created
-instance. The state should return integer values *0* or *16*, indicating
-that the instance is either *pending* or already *running*.
+instance. The test case checks with Amazon API, passing the =vm_id=
+returned from =AWSAdapter= and asserts if the state is either pending
+or running (corresponding to integers 0 or 16).
 
 *** Case 02: To test the initialization of VM
 The objective of this test is to validate if the lab sources and
-VMManager is copied and VMManager service is running. This is tested
-by asserting the boolean value returned after successful
+=VMManager= is copied and =VMManager= service is started. This is
+tested by asserting the boolean value returned after successful
 initialization of the VM.
 
-*** Case 03: To test if the VMManager service is running
+*** Case 03: To test if the =VMManager= service is running
 After the instance is initialized, it is necessary to validate if the
-VMManager sevice is actually running or not. This is tested by
-asserting the response to an HTTP request sent on the VM's IP and
-vmmanager's port no.
+=VMManager= service is actually running or not. This is tested by
+asserting the response of an HTTP request sent to the =VMManager=
+service.
 
 [[https://github.com/vlead/ovpl/blob/aws-adapter/tests/test_AWSAdapter.py][Click here to view the implementation of test cases]]
