@@ -191,6 +191,56 @@ This is achieved through unit testing.
 ** Assumptions
 
 1) ADS is configured and running in the provisioned VM.
+2) Edit the file ovpl/config/config.json and ovpl/src/VMManager/config.json to set the proxies.
+#+BEGIN_EXAMPLE
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
+        "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
+    },
+
+#+END_EXAMPLE
+
+if no proxies are used,
+#+BEGIN_EXAMPLE
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
+    },
+
+#+END_EXAMPLE
+
+3) Also set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of
+the machine on which the ADS services are running.
+
+Edit the file ovpl/src/adapters/settings.py 
+#+BEGIN_EXAMPLE
+If the services are running on the base machine,
+set ADS_ON_CONTAINER to False.
+
+If the services are running on a container,
+set ADS_ON_CONTAINER to True.
+
+Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
+base machine on which containers are created.
+
+Set ADS_SERVER_VM_ID to CTID of container running ADS.
+ADS_SERVER_VM_ID = "<CTID>" 
+
+SUBNET field to match with the subnet of your base machine
+If the ip address of your base machine is 10.2.58.XXX, 
+SUBNET = ["10.2.58.12/28"]
+#+END_EXAMPLE
+
+4) Key based authentication
+
+SSH access using key based authentication is allowed on base
+machine. so to run the test case, public ssh key should be placed
+inside the authentication keys.
+
+Run the following command to create key
+#+BEGIN_EXAMPLE
+ssh-keygen
+#+END_EXAMPLE
 
 ** Test Cases
 *** Case 01: Creation of a Virtual Machine
@@ -200,9 +250,16 @@ responsible for creation of virtual machine. A VM will be
 created in this test scenario and the creation is tested by pinging
 =vm-id= on successful creation.
 
-*** Case 02: Checking if VMManager service is running successfully
-The objective of this is to test whether the VMManager service is
-running successfully on the VM. =init_vm()= in *CentOS OpenVZAdapter*
-is responsible for intilization of virtual machine.
+*** Checking if ADS source code, Lab sources and VM Manager is copied successfully
+The objective of this test is to validate if the lab sources and
+VMManager is copied and VMManager service is running. This is tested
+by asserting the boolean value returned after successful
+initialization of the VM.
+*** Case 03: Checking if VMManager service is running successfully
+After the VM is initialized, it is necessary to validate if the
+VMManager sevice is actually running or not. This is tested by
+asserting the response to an HTTP request sent on the VM’s IP and
+vmmanager’s port number.  
 
 [[https://github.com/vlead/ovpl/blob/openvz-adapter/tests/test_openvz_adapter.py][Click to view the test cases]]
+
