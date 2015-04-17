@@ -235,12 +235,16 @@ SUBNET = ["10.2.58.12/28"]
 
 SSH access using key based authentication is allowed on base
 machine. so to run the test case, public ssh key should be placed
-inside the authentication keys.
+inside the authorized_keys.
 
-Run the following command to create key
+Create public key on container using:
 #+BEGIN_EXAMPLE
 ssh-keygen
 #+END_EXAMPLE
+
+Copy public key from =~/.ssh/id_rsa.pub= of local machine and paste
+the copied public key in authorized_keys =~./ssh/authorized_keys= of
+Base Machine.
 
 ** Test Cases
 *** Case 01: Creation of a Virtual Machine
