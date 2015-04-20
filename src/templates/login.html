@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}
+  OVPL | VLEAD Platform Services
+{% end %}
+
+{% block header %}
+{% end %}
+
+{% block body %}
+
+<div class="alert alert-danger" role="alert" id="notif"></div>
+
+<div class="login-well well">
+  <div class="help-text">
+    You have to login to deploy a lab. Please use your email address to
+    login.
+  </div>
+  <p></p>
+  <div>
+    <button class="btn btn-lg btn-primary" id="login">Login</button>
+  </div>
+  <div class="help-text">
+    We use Mozilla Persona for logging in.
+  </div>
+</div>
+
+<hr/>
+
+<div class="check-well">
+  <div class="help-text">
+    Not sure if you are authorized to deploy a lab?<br>
+    To check, please enter your email address below.
+  </div>
+  <form>
+    <div class="form-group col-md-offset-1 col-md-10">
+      <label for="email-id">Email address</label>
+      <input type="email" class="form-control" id="email-id" placeholder="enter email">
+    </div>
+    <div class="clearfix"></div>
+    <input class="btn btn-default" type="submit" value="Check">
+  </form>
+</div>
+
+{% end %}
