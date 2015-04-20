@@ -190,7 +190,7 @@ TODO
 *** TODO How to select an instance type based on the lab spec input?
 TODO
 
-** Strategic decisions: <<Strategic Decisions>>
+** Strategic decisions <<Strategic Decisions>>:
 *** What OS/AMIs to support?
 AWS uses OS images to associate an OS with an instance when one brings up an
 instance. AWS calls these OS images as AMIs.
