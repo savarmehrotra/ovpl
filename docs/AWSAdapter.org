@@ -10,29 +10,19 @@
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform.
 
-The =AWSAdapter= is an adapter for the AWS platform.
+The =AWSAdapter= is an adapter for the Amazon Web Services(AWS) platform.
 
 In the following document, the words *instance* and *VM* have been used
 interchangeably.
 
 
-* Requirements
+* Functional Requirements
   1. =AWSAdapter= will create a VM on AWS based on the specification
      given in the lab spec for a particular lab.
 
   2. =AWSAdapter= will copy the =VMManager= component to the newly
      created VM and start the =VMManager= service.
-
-  3. Pre-requisites for the =AWSAdapter=:
-     + The =AdapterServer= which communicates with this adapter is running on
-       AWS.
-     + The =AdapterServer= is configured to use the =AWSAdapter=.
-     + Appropriate parameters for the adapter are configured in the
-       configuration file (explained below).
-     + The AWS key pair is placed in the appropriate location, which is same
-       as what is configured in the configuration file.
-
-
+     
 * Design
 =AWSAdpater= is required to manage VMs - create, stop, start, restart and
 destroy, on the AWS platform and also initialize the VM, which requires
@@ -40,11 +30,23 @@ installing one component of ADS into the VM and start that service, for
 further communication.
 
 =AWSAdapter= internally uses the =boto= Python library which interfaces with
-AWS APIs to create, restart, stop and destroy VMs.
+AWS APIs to create, restart, stop and destroy VMs. For more
+information on creation of a VM, see [[Strategic Decisions]]. 
 
 =AWSAdapter= uses the SSH service to initially install the ADS component and
-start the service. After, the service is up, other components of ADS can
+start the service. After the service is up, other components of ADS can
 communicate with the VM through this service.
+ 
+** Pre-requisites for the =AWSAdapter= :
+Before detailing out the design, it is important to
+list the pre-requisites for the =AWSAdapter= :
+ + The =AdapterServer= which communicates with this adapter is running
+   on AWS.
+ + The =AdapterServer= is configured to use the =AWSAdapter=.
+ + Appropriate parameters for the adapter are configured in the
+   configuration file (explained below).
+ + The AWS key pair is placed in the appropriate location, which is
+   same as what is configured in the configuration file.
 
 ** Interfaces
 In the current design of ADS, a fixed set of interfaces to an adapter
@@ -73,27 +75,7 @@ communicate with the adapter. The interfaces implemented by the
 
      *Returns*: List of instances that got started.
 
-3. *stop_vm* (self, vm_id, dry_run=False)
-
-     Stops the VM identified by =vm_id=.
-
-     *Parameters*:
-                 + vm_id - VM/instance id of the VM to be stopped.
-                 + dry_run(bool) - Set to True if the operation should not actually run.
-
-     *Returns*: List of instances that got stopped.
-
-4. *restart_vm* (self, vm_id, dry_run=False)
-
-     Stops the VM identified by =vm_id= and then starts it again.
-
-     *Parameters*:
-                 + vm_id - VM/instance id of the VM to be started again.
-                 + dry_run(bool) - Set to True if the operation should not actually run.
-
-     *Returns*: List of instances that got restarted.
-
-5. *start_vm_manager* (self, vm_id )
+3. *start_vm_manager* (self, vm_id )
 
      Starts the VM manager service inside the VM identified by =vm_id=.
 
@@ -102,17 +84,7 @@ communicate with the adapter. The interfaces implemented by the
 
      *Returns*: True if the VM Manager service has successfully started.
 
-6. *destroy_vm* (self, vm_id, dry_run=False)
-
-     Terminates the VM identified by =vm_id=.
-
-     *Parameters*:
-                 + vm_id - VM/instance id of the VM to be terminated.
-                 + dry_run(bool) - Set to True if the operation should not actually run.
-
-     *Returns*: List of instances that got terminated.
-
-7. *is_running_vm* (self, vm_ip, port)
+4. *is_running_vm* (self, vm_ip, port)
 
      Checks if the given TCP port at the given IP is reachable. It essentially
      checks if a particular service is running on the VM. The assumption is
@@ -174,10 +146,12 @@ cp sample_aws_config.py aws_config.py
 Edit the values in =aws_config.py= to have the appropriate configuration
 parameters.
 
-** Sequence of steps in AWSAdapter
+** Scenarios of AWSAdapter
+*** Scenario 1
+This deals only with the creation and initialization of a VM.
 [[./Sequence diagram of AWSAdapter.png]]
 
-Following is the sequence of events that occur when a lab is deployed
+Following is the sequence of events that occur during lab deployment
 on AWS using =AWSAdapter=:
 
 1. =VMPoolManager= sends an HTTP Request to =AdapterServer= indicating
@@ -216,13 +190,13 @@ TODO
 *** TODO How to select an instance type based on the lab spec input?
 TODO
 
-** Strategic decisions:
+** Strategic decisions: <<Strategic Decisions>>
 *** What OS/AMIs to support?
-AWS uses OS images to associate with an instance when one brings up an
+AWS uses OS images to associate an OS with an instance when one brings up an
 instance. AWS calls these OS images as AMIs.
 ([[http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html]])
 To provision instances we need to choose AMIs, hence we needed to
-decide on what OS and AMIs we would support.
+decide on what OS and AMIs to support.
 
 - In the existing implementation of ADS on CentOS-OpenVZ platform - Ubuntu,
   CentOS and Debian were supported. The decision is to go ahead with these
@@ -230,7 +204,7 @@ decide on what OS and AMIs we would support.
   IIIT infrastructure) use Ubuntu 10.04/12.04.
 - Regarding versions of the OS, we decided:
   + Ubuntu::
-    + Only LTS versions is supported.
+    + Only LTS versions are supported.
     + Ubuntu 10.04:: Has reached end of life of support and hence we also
       cannot support it, even though some lab developers have communicated
       that they have a hard dependency on this version of Ubuntu.
@@ -242,7 +216,7 @@ decide on what OS and AMIs we would support.
       to use CentOS 6.6.
   + Debian::
     +  Debian 7.x:: Supported, as end of life is 2016.
-
+       
 *** What machine configuration/instance types to support?
 As AWS has the concept of instance types (which is essentially a set of
 machine configuration), we need to select a set of instance types that we
@@ -261,8 +235,8 @@ later version, the adapter can add the storage dynamically.
 Hence, the current supported AWS instance types by AWSAdapter are:
 + t2.micro (1GB RAM)
 + t2.small (2GB RAM)
-
-
+  
+  
 * Implementation
 The implementation of the AWSAdapter can be found here:
 [[../src/adapters/AWSAdapter.py]]
@@ -306,4 +280,4 @@ After the instance is initialized, it is necessary to validate if the
 asserting the response of an HTTP request sent to the =VMManager=
 service.
 
-[[https://github.com/vlead/ovpl/blob/aws-adapter/tests/test_AWSAdapter.py][Click here to view the implementation of test cases]]
+[[https://github.com/vlead/ovpl/blob/aws-adapter/tests/test_AWSAdapter.py][The implementation of test cases can be found here]]
