@@ -154,6 +154,7 @@ on CentOS platform using =CentOSVZAdapter=:
    forwarded by =AdapterServer= as HTTP response to the =VMPoolManager=.
 
 * Implementation
+The implementation of the =CentOSVZAdapter= can be found [[../src/adapters/CentOSVZAdapter.py][here]].
 
 * Testing
 ** Objective
