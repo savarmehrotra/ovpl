@@ -12,7 +12,8 @@ __all__ = [
     'start_vm_manager',
     'destroy_vm',
     'is_running_vm',
-    'get_vm_ip'
+    'get_vm_ip',
+    'get_instance'
 ]
 
 # Standard Library imports
@@ -68,6 +69,7 @@ class AWSAdapter(object):
     security_group_ids = config.security_group_ids
     key_name = config.key_file_name
     vm_name_tag = config.vm_tag
+    default_gw = config.default_gateway
 
     # the username of the destination VMs; this username will be used to SSH and
     # perform operations on the VM
@@ -129,7 +131,7 @@ class AWSAdapter(object):
 
         # wait until the VM is up with the SSH service..
         # until then we won't be able to go ahead with later steps..
-        while not self.is_running_vm(vm_ip_addr):
+        while not self.is_running_vm(vm_ip_addr, 22):
             logger.debug("AWSAdapter: VM %s: waiting for SSH to be up..." %
                          vm_ip_addr)
             sleep(4)
@@ -146,9 +148,25 @@ class AWSAdapter(object):
         if not success:
             return (success, info)
 
+        # NOTE: this step is necessary as the systems team is using a single
+        # subnet for both public and private nodes, and that means for private
+        # nodes default gateway has to be configured separately!
+        success = self._add_default_gw(vm_ip_addr)
+        if not success:
+            return (success, info)
+
         success = self.start_vm_manager(vm_ip_addr)
         if not success:
             return (success, info)
+
+        # check if the VMManager service came up and running..
+        logger.debug("Ensuring VMManager service is running on VM %s" %
+                     vm_ip_addr)
+        vmmgr_port = int(settings.VM_MANAGER_PORT)
+        while not self.is_running_vm(vm_ip_addr, vmmgr_port):
+            logger.debug("AWSAdapter: VM %s: waiting for VMManager to be up.." %
+                         vm_ip_addr)
+            sleep(4)
 
         logger.debug("AWSAdapter: init_vm(): success = %s, response = %s" %
                      (success, info))
@@ -213,6 +231,15 @@ class AWSAdapter(object):
 
         return instance.private_ip_address
 
+    # take an aws instance_id and return the instance object
+    def get_instance(self, vm_id):
+        logger.debug("AWSAdapter: get_instance(): vm_id: %s" % (vm_id))
+
+        reservations = self.connection.get_all_instances(instance_ids=[vm_id])
+        instance = reservations[0].instances[0]
+
+        return instance
+
     def get_resource_utilization(self):
         pass
 
@@ -220,21 +247,21 @@ class AWSAdapter(object):
         logger.debug("AWSAdapter: test_logging()")
         pass
 
-    # check if the VM is up and port 22 is reachable
-    # assumption is VM is running the SSH service
-    def is_running_vm(self, vm_ip):
+    # check if the VM is up and the given TCP port is reachable
+    # assumption - the port is running a TCP service
+    def is_running_vm(self, vm_ip, port):
         logger.debug("AWSAdapter: is_running_vm(): VM IP: %s" % vm_ip)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
-            logger.debug("AWSAdapter: trying to connect to port 22 of: %s" %
-                         vm_ip)
-            s.connect((vm_ip, 22))
-            logger.debug("AWSAdapter: VM %s: SSH is up.." % vm_ip)
+            logger.debug("AWSAdapter: trying to connect to port: %s of: %s" %
+                         (port, vm_ip))
+            s.connect((vm_ip, port))
+            logger.debug("AWSAdapter: VM %s: port: %s is up.." % (vm_ip, port))
             return True
         except socket.error as e:
-            logger.debug("AWSAdapter: VM %s: Error connecting to SSH: %s" %
-                         (vm_ip, e))
-            logger.debug("AWSAdapter: retrying to reach port 22..")
+            logger.debug("AWSAdapter: VM %s: Error connecting to port: %s: %s" %
+                         (vm_ip, port, e))
+            logger.debug("AWSAdapter: retrying to reach port %s.." % port)
             s.close()
             return False
 
@@ -299,6 +326,38 @@ class AWSAdapter(object):
             logger.error("ERROR = %s" % str(e))
             print 'ERROR= %s' % (str(e))
             return False
+
+    # NOTE: this step is necessary as the systems team is using a single
+    # subnet for both public and private nodes, and that means for private
+    # nodes default gateway has to be configured separately!
+
+    # This function deletes the default gateway and adds a new default gateway
+    # from the config file
+    def _add_default_gw(self, vm_ip):
+        if not self.default_gw:
+            return True
+
+        logger.debug("AWSAdapter: Attempting to add default gateway to VM: %s"
+                     % (vm_ip))
+
+        ssh_command = "ssh -i {0} -o StrictHostKeyChecking=no {1}@{2} ".\
+            format(self.key_file_path, self.VM_USER, vm_ip)
+
+        add_def_gw_cmd = "'route del default; route add default gw {0}'".\
+            format(self.default_gw)
+
+        command = ssh_command + add_def_gw_cmd
+
+        logger.debug("AWSAdapter: _add_default_gw(): command = %s" % command)
+
+        try:
+            execute_command(command)
+        except Exception, e:
+            logger.error("AWSAdapter: _add_default_gw(): " +
+                         "command = %s, ERROR = %s" % (command, str(e)))
+            return False
+
+        return True
 
     def _construct_ec2_params(self, lab_spec):
         """
@@ -392,7 +451,6 @@ class AWSAdapter(object):
                      (chosen_ami, os, os_version))
 
         return chosen_ami['ami_id']
-
 
 
 if __name__ == "__main__":
