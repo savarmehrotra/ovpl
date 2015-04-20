@@ -35,20 +35,30 @@ class CreateVMHandler(tornado.web.RequestHandler):
         logger.debug("post(); post_data = %s" % post_data)
 
         lab_spec = json.loads(post_data['lab_spec'])
-        vm_id = adapter_instance.create_vm(lab_spec)
-        logger.debug("created VM id = %s" % str(vm_id))
 
-        lab_repo_name = lab_spec['lab_repo_name']
-        logger.debug("lab_repo_name = %s" % lab_repo_name)
-        (success, result) = adapter_instance.init_vm(vm_id, lab_repo_name)
+        (success, vm_id) = adapter_instance.create_vm(lab_spec)
+        debug_string = ""
+
+        if success:
+            logger.debug("created VM id = %s" % str(vm_id))
+            lab_repo_name = lab_spec['lab_repo_name']
+            logger.debug("lab_repo_name = %s" % lab_repo_name)
+            (success, result) = adapter_instance.init_vm(vm_id, lab_repo_name)
+            if success:
+                debug_string = "success status returned True from init_vm"
+            else:
+                debug_string = "success status returned False from init_vm"
+        else:
+            result = "Failed while creating VM"
+            debug_string = "success status returned False from create_vm"
 
         if not success:
             self.set_status(500)
-            logger.debug("sucess status returned False from init_vm")
+            logger.debug(debug_string)
         else:
-            logger.debug("success status returned True from init_vm")
+            logger.debug(debug_string)
 
-        logger.debug("init vm result = " + str(result))
+        logger.debug("result = " + str(result))
         self.write(result)
 
 

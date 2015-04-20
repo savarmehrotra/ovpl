@@ -1,4 +1,8 @@
-OVPL_SRC_DIR = "/../../../ovpl" #above ovpl directory
+#BASE_IP_ADDRESS will hold the IP of the base machine on which containers will be created"
+BASE_IP_ADDRESS = "root@<ip>" 
+NO_STRICT_CHECKING = "StrictHostKeyChecking no"
+# ADS_SERVER_ID will be CTID of the container running ADS services
+ADS_SERVER_VM_ID = "<CTID>" 
 VM_ROOT_DIR = "/vz/root/"
 VM_DEST_DIR = "/root/"
 VMMANAGERSERVER_PATH="/root/ovpl/src/VMManager/"
@@ -9,7 +13,8 @@ VM_MANAGER_SCRIPT = "VMManagerServer.py VMManager"
 MAX_VM_ID = 2147483644 # 32-bit; exact value based on trial-and-error
 
 def get_subnet():
-    SUBNET = ["10.2.58.128/28"]
+    # Subnet: IP addresses will be picked from and assigend to lab VMs
+    SUBNET = ["x.x.x.x/x"] 
     assert isinstance(SUBNET, list)
     return SUBNET
 
