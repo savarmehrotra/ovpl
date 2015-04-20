@@ -178,42 +178,16 @@ Base Machine. =test_create_vm()= is responsible for testing the
 creation of VM and returns =vm_id=. A VM will be created in this test
 scenario and the creation is tested by pinging =vm_id=. 
 
-#+BEGIN_SRC 
-def test_create_vm(self):
-    global vm_id
-    (status, vm_id) = self.adapter.create_vm(self.lab_spec)
-    vm_ip = get_vm_ip(vm_id)
-    response = os.system("ping -c 1 " + vm_ip)
-    self.assertEqual(response, 0)
-#+END_SRC
-
 *** Case 02: Intialization of VM 
 The objective of this test is to validate the intialization of a VM on
 Base Machine. =test_init_vm()= is responsible for testing the
 intilization of VM. It returns =vm_ip=, =vm_id=, =vmm_port= and return
 the status as boolean value.
 
-#+BEGIN_SRC 
-def test_init_vm(self):
-    global vm_id
-    global lab_repo_name
-    global vm_ip
-    (status, result) = self.adapter.init_vm(vm_id, lab_repo_name)
-    vm_ip = result['vm_ip']
-    vmm_port = result['vmm_port']
-    self.assertTrue(status)
-#+END_SRC
-
 *** Case 03: Checking if VMManager service is running successfully
 After the VM is initialized, it is necessary to validate if the
 VMManager sevice is running or not. It returns the status as boolean value.
-#+BEGIN_SRC 
 
-def test_vm_mgr_running(self):
-    response = self.adapter.start_vm_manager(vm_id)
-    self.assertTrue(response)
-
-#+END_SRC
-
-[[https://github.com/vlead/ovpl/blob/openvz-adapter/tests/test_openvz_adapter.py][Click to view the test cases]]
+*** Implementation of test cases
+The implementation code for all above test case scenarios can be found [[https://github.com/vlead/ovpl/blob/openvz-adapter/tests/test_openvz_adapter.py][here]].
 
