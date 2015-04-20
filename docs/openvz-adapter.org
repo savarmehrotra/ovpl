@@ -62,7 +62,7 @@ communicate with the adapter. The interfaces implemented by the
 
 
 
-* Configuration 
+* Configuration <<configuration>> 
 
 ** Set the proxies:
 To set the proxies, edit the file =ovpl/config/config.json= and
@@ -159,9 +159,9 @@ This is achieved through unit testing.
 1. A VM is provisioned on Base Machine, such that it is able to access the
    internet.  
 2) Edit the =config.json= and =setting.py= as
-   mention above in [[configuration]].
+   mention above in [[configuration][configuration]]
 3) =ADS= is configured and running in the provisioned VM.
-4) Share the =public key= as metioned above in [[configuration]].
+4) Share the =public key= as metioned above in [[configuration][configuration]]
 
 ** Test Cases
 *** Case 01: Creation of a VM
