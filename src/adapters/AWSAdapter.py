@@ -4,7 +4,7 @@
     1.
 """
 
-__all__ = [
+__public_interfaces__ = [
     'create_vm',
     'start_vm',
     'stop_vm',
@@ -33,7 +33,7 @@ import settings
 from http_logging.http_logger import logger
 from utils.envsetup import EnvSetUp
 from utils.git_commands import *
-from utils.execute_commands import *
+from utils.execute_commands import execute_command
 
 # import the AWS configuration
 import aws_config as config
@@ -67,7 +67,7 @@ class AWSAdapter(object):
     credentials = config.credentials
     subnet_id = config.subnet_id
     security_group_ids = config.security_group_ids
-    key_name = config.key_file_name
+    key_file_path = config.key_file_path
     vm_name_tag = config.vm_tag
     default_gw = config.default_gateway
 
@@ -76,17 +76,17 @@ class AWSAdapter(object):
     VM_USER = 'root'
 
     def __init__(self):
-        # check if the key_file exists, else throw an error! again the key file
-        # should not be checked in, but the deployer has to manually copy it in
-        # this location
-        cur_dir = os.path.dirname(os.path.abspath(__file__))
-        self.key_file_path = os.path.join(cur_dir, self.key_name+'.pem')
-
-        # logger.debug("Key file path: %s", key_file_path)
+        # check if the key_file exists, else throw an error!
+        # The key file should not be checked in, but the deployer has to
+        # manually copy and configure the correct location
         if not os.path.isfile(self.key_file_path):
-            msg = 'Make sure you have the key file: "%s.pem" ' % self.key_name
-            msg += ' placed in the same directory as the adapter file'
-            raise AWSKeyFileNotFound(msg)
+            raise AWSKeyFileNotFound("Given key file not found!: %s" %
+                                     self.key_file_path)
+
+        # deduce the key file name from the key file path..
+        # assuming the key file ends with a .pem extension - otherwise this
+        # won't work!
+        self.key_name = self.key_file_path.split('/')[-1].split('.pem')[0]
 
         self.connection = self.create_connection()
 

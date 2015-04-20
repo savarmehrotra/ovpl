@@ -9,8 +9,9 @@ credentials = {
     "aws_access_key_id": "your-access-key",
     "aws_secret_access_key": "your-access-secret"
 }
-# describe key file name
-key_file_name = "the key file name"
+# give then key file path - relative to the src directory
+# NOTE: advisable to use absolute paths..
+key_file_path = "../config/key_file_name.pem"
 # the subnet id to be used
 subnet_id = "subnet-id"
 # the security groups ids to be used - a list
