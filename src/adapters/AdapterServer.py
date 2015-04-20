@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
 
     #load the adapter class and instantiate the adapter
-    adapter_name = config_spec['CENTOSVZADAPTER']['ADAPTER_NAME']
+    adapter_name = config_spec['ADAPTER']['ADAPTER_NAME']
     module = __import__(adapter_name)
     AdapterClass = getattr(module, adapter_name)
     adapter_instance = AdapterClass()
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     #make the Adapter log a test message
     adapter_instance.test_logging()
 
-    options.port = config_spec['CENTOSVZADAPTER']["ADAPTER_PORT"]
+    options.port = config_spec['ADAPTER']["ADAPTER_PORT"]
 
     #endpoints of our API to create, destroy and restart the server
     create_uri = "/api/1.0/vm/create"
