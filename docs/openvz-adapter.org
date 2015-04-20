@@ -1,4 +1,4 @@
-#+TITLE:     CentOS OpenVZAdapter
+#+TITLE:     CentOSVZAdapter for ADS
 #+AUTHOR:    VLEAD   
 #+DATE:      2015-04-07 Tue
 
@@ -6,35 +6,32 @@
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. 
 
-The =OpenVZAdapter= is an adapter for the CentOS OpenVZ platform. 
-* Requirements
+The =CentOSVZAdapter= is an adapter for the CentOS OpenVZ platform. In
+this documentation, the term =VM= and =container= are used interchangeably.
+
+* Functional Requirements
  
-  1. =OpenVZAdapter= will create a container on CentOS OpenVZ as a hypervisor based on the specification
+  1. =CentOSVZAdapter= will create a container on CentOS OpenVZ platform based on the specification
      given in the lab spec of a particular lab.
 
-  2. =OpenVZAdapter= will copy the =ADS code=  to the newly
+  2. =CentOSVZAdapter= will copy the =ADS code=  to the newly
      created container and start the =VMManager= service.
-
+     
 * Design
-CentOS OpenVZAdapter creates, starts, stop, restart the container but
-in the current release, it creates container and intializes the
-VMManager service.
+=CentOSVZAdapter= is required to create, start, stop and restart the
+container but in the current release, it creates container and
+intializes the =VMManager= service.
 
-Commands to create container:
-#+BEGIN_EXAMPLE
-vzctl create <ctid> --ostemplate ubuntu-12.04-custom-x86_64 --ipadd <ipadd> --diskspace 10G:15.0G --hostname <labid>.vlabs.ac.in
-vzctl start <ctid>
-vzctl set <ctid> --nameserver inherit --ram 256M --swap 512M --onboot yes --save
-#+END_EXAMPLE
-
-
+=CentOSVZAdapter= works by issuing the bunch of commands to =create=,
+=set= and =start= the VM. It utilizes the =vzctl= commands to =create=
+containers and base machine executes the commands through =ssh=.
 
 ** Interfaces
-In the current design of ADS, a fixed set of interfaces to an adapter
+In the current design of =ADS=, a fixed set of interfaces to an adapter
 is already defined. An adapter is required to implement these
-interfaces. This enables other components/services of ADS to
+interfaces. This enables other components/services of =ADS= to
 communicate with the adapter. The interfaces implemented by the
-OpenVZAdapter are listed below:
+=CentOSVZAdapter= are listed below:
 
 1. *create_vm* (self, lab_spec, vm_id="")   
      Creates a new VM.
@@ -54,25 +51,8 @@ OpenVZAdapter are listed below:
     
      *Returns*: List of VMs that got started.
 
-3. *stop_vm* (self, vm_id)
-     
-     Stops the VM identified by =vm_id=.
-     
-     *Parameters*:
-                 + vm_id - VM id of the VM to be stopped.
-          
-     *Returns*: List of VMs that got stopped.
 
-4. *restart_vm* (self, vm_id)
-     
-     Stops the VM identified by =vm_id= and then starts it again.
-     
-     *Parameters*:
-                 + vm_id - VM id of the VM to be re-started. 
-     
-     *Returns*: List of VMs that got re-started.
-
-5. *start_vm_manager* (self, vm_id )
+3. *start_vm_manager* (self, vm_id )
     
      Starts the VM manager service inside the VM identified by =vm_id=.
      
@@ -81,18 +61,13 @@ OpenVZAdapter are listed below:
      
      *Returns*: True if the VM Manager service has successfully started.     
 
-6. *destroy_vm* (self, vm_id)
-     
-     Terminates the VM identified by =vm_id=.
-     
-     *Parameters*: 
-                 + vm_id - VM id of the VM to be destroyed. 
-     
-     *Returns*: List of VMs that got terminated.
 
-** Configuration 
 
-1) Edit the file ovpl/config/config.json and ovpl/src/VMManager/config.json to set the proxies.
+* Configuration 
+
+** Set the proxies:
+1) To set the proxies, edit the file =ovpl/config/config.json= and
+   =ovpl/src/VMManager/config.json=.
 #+BEGIN_EXAMPLE
 "ENVIRONMENT": { "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080", "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080" },
 #+END_EXAMPLE
@@ -102,68 +77,8 @@ if no proxies are used,
 "ENVIRONMENT": { "HTTP_PROXY":"", "HTTPS_PROXY":"" },
 #+END_EXAMPLE
 
-2) Do the same with the file ovpl/src/VMManager/config.json
-
-** Scenario of CentOS OpenVZAdapter
-
-The following sequence diagram depicts the work flow for creation and
-intilization of the VM. It takes the lab spec through http
-request and creates the VM. CentOSVZAdapter returns vm_id, vm_ip and
-vm_manager_port as a http response to the VMPoolmanager.
-
-[[./sequence-diagram-of-centos-openvzadapter.png]]
-
-Following is the sequence of events that occur when a lab is deployed
-on CentOS platform using CentOS OpenVZAdapter:
-
-1) VM Pool Manager sends an HTTP Request to Adapter Server indicating
-   that a VM needs to be created. It also passes the lab spec that
-   includes VM requirements.
-
-2) On receiving this request, the Adapter Server calls the create_vm()
-   function of CentOS OpenVZAdapter and hands over the lab spec to it.
-
-3) Based on lab spec, the CentOS OpenVZAdapter selects OS template.
-
-4) It creates a VM on Base Machine.
-
-5) The VM id of the newly created VM is returned to the
-   Adapter Server.
-
-6) The Adapter Server now calls the init_vm() function of CentOS OpenVZAdapter.
-
-7) This initializes the newly created VM on CentOS OpenVZAdapter by copying
-   relevant ADS component (VM Manager) and lab sources, and starting
-   the VM Manager.
-
-8) Once this service has started, the CentOS OpenVZAdapter sends back
-   VM id of the VM, ip address of the VM and
-   port on which the VM Manager service is running to Adapter Server.
-
-9) Later three parameters (vm_id, vm_ip, vm_manager_port) are
-   forwarded by Adapter Server as HTTP response to the VM Pool
-   Manager.
-* Implementation
-** Configuration <<Configuration>>
-1) Edit the file =ovpl/config/config.json= and =ovpl/src/VMManager/config.json=  to set the proxies. 
-
-#+BEGIN_EXAMPLE
- "ENVIRONMENT": {
-        "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
-        "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
-    },
-#+END_EXAMPLE 
-
-if no proxies are used, 
-
-#+BEGIN_EXAMPLE 
- "ENVIRONMENT": {
-        "HTTP_PROXY":"",
-        "HTTPS_PROXY":""
-    },
-#+END_EXAMPLE
-
-2) Also set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of
+** Set the Base Machine details:
+Also set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of
 the machine on which the ADS services are running.
 
 Edit the file ovpl/src/adapters/settings.py 
@@ -185,25 +100,7 @@ If the ip address of your base machine is 10.2.58.XXX,
 SUBNET = ["10.2.58.12/28"]
 #+END_EXAMPLE
 
-
-* Testing
-** Objective
-+ To validate the creation of a VM.
-+ To ensure that the VMManager service is running on this VM.
-
-This is achieved through unit testing.
-** Testing Environment
-
-1. A VM is provisioned on Base Machine, such that it is able to access the
-   internet.  
-2. The *state* of this VM is *running*.
-   
-** Assumptions
-1) Edit the =config.json= and =setting.py= as
-   mention above in [[configuration]].
-2) ADS is configured and running in the provisioned VM.
-3) Key based authentication: 
-
+** Share the public key:
 SSH access using key based authentication is allowed on base
 machine. so to run the test case, public ssh key should be placed
 inside the authorized_keys.
@@ -217,24 +114,106 @@ Copy public key from =~/.ssh/id_rsa.pub= of local machine and paste
 the copied public key in authorized_keys =~./ssh/authorized_keys= of
 Base Machine.
 
-** Test Cases
-*** Case 01: Creation of a Virtual Machine
-The objective of this test case is to test the creation of a virtual
-machine on Base Machine. =create_vm()= in *CentOS OpenVZAdapter* is
-responsible for creation of virtual machine. A VM will be
-created in this test scenario and the creation is tested by pinging
-=vm-id= on successful creation.
+** Scenario of CentOSVZAdapter
 
-*** Case 02: Checking if ADS source code, Lab sources and VM Manager is copied successfully
-The objective of this test is to validate if the lab sources and
-VMManager is copied and VMManager service is running. This is tested
-by asserting the boolean value returned after successful
-initialization of the VM.
+The following sequence diagram depicts the work flow for creation and
+intilization of the VM. It takes the lab spec through http
+request and creates the VM. =CentOSVZAdapter= returns =vm_id=, =vm_ip= and
+=vm_manager_port= as a http response to the =VMPoolmanager=.
+
+[[./sequence-diagram-of-centos-openvzadapter.png]]
+
+Following is the sequence of events that occur when a lab is deployed
+on CentOS platform using =CentOSVZAdapter=:
+
+1) =VMPoolManager= sends an HTTP Request to =AdapterServer= indicating
+   that a VM needs to be created. It also passes the lab spec that
+   includes VM requirements.
+
+2) On receiving this request, the =AdapterServer= calls the =create_vm()=
+   function of =CentOSVZAdapter= and hands over the lab spec to it.
+
+3) Based on lab spec, the =CentOSVZAdapter= selects OS template.
+
+4) It creates a VM on Base Machine.
+
+5) The =vm_id= of the newly created VM is returned to the
+   =AdapterServer=.
+
+6) The =AdapterServer= now calls the =init_vm()= function of =CentOSVZAdapter=.
+
+7) This initializes the newly created VM on =CentOSVZAdapter= by copying
+   relevant =ADS= component (VM Manager) and lab sources, and starting
+   the VM Manager.
+
+8) Once this service has started, the =CentOSVZAdapter= sends back
+   =vm_id= of the VM, =vm_ip= of the VM and
+   port on which the VM Manager service is running to =AdapterServer=.
+
+9) Later three parameters (vm_id, vm_ip, vm_manager_port) are
+   forwarded by =AdapterServer= as HTTP response to the =VMPoolManager=.
+
+* Implementation
+
+* Testing
+** Objective
++ To validate the creation of a VM.
++ To validate the intilization of a VM.
++ To ensure that the =VMManagerService= is running on this VM.
+
+This is achieved through unit testing.
+** Testing Environment
+
+1. A VM is provisioned on Base Machine, such that it is able to access the
+   internet.  
+2) Edit the =config.json= and =setting.py= as
+   mention above in [[configuration]].
+3) =ADS= is configured and running in the provisioned VM.
+4) Share the =public key= as metioned above in [[configuration]].
+
+** Test Cases
+*** Case 01: Creation of a VM
+The objective of this test case is to test the creation of a VM on
+Base Machine. =test_create_vm()= is responsible for testing the
+creation of VM and returns =vm_id=. A VM will be created in this test
+scenario and the creation is tested by pinging =vm_id=. 
+
+#+BEGIN_SRC 
+def test_create_vm(self):
+    global vm_id
+    (status, vm_id) = self.adapter.create_vm(self.lab_spec)
+    vm_ip = get_vm_ip(vm_id)
+    response = os.system("ping -c 1 " + vm_ip)
+    self.assertEqual(response, 0)
+#+END_SRC
+
+*** Case 02: Intialization of VM 
+The objective of this test is to validate the intialization of a VM on
+Base Machine. =test_init_vm()= is responsible for testing the
+intilization of VM. It returns =vm_ip=, =vm_id=, =vmm_port= and return
+the status as boolean value.
+
+#+BEGIN_SRC 
+def test_init_vm(self):
+    global vm_id
+    global lab_repo_name
+    global vm_ip
+    (status, result) = self.adapter.init_vm(vm_id, lab_repo_name)
+    vm_ip = result['vm_ip']
+    vmm_port = result['vmm_port']
+    self.assertTrue(status)
+#+END_SRC
+
 *** Case 03: Checking if VMManager service is running successfully
 After the VM is initialized, it is necessary to validate if the
-VMManager sevice is actually running or not. This is tested by
-asserting the response to an HTTP request sent on the VM’s IP and
-vmmanager’s port number.  
+VMManager sevice is running or not. It returns the status as boolean value.
+#+BEGIN_SRC 
+
+def test_vm_mgr_running(self):
+    response = self.adapter.start_vm_manager(vm_id)
+    self.assertTrue(response)
+
+#+END_SRC
 
 [[https://github.com/vlead/ovpl/blob/openvz-adapter/tests/test_openvz_adapter.py][Click to view the test cases]]
 
