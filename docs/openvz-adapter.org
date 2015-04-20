@@ -51,7 +51,6 @@ communicate with the adapter. The interfaces implemented by the
     
      *Returns*: List of VMs that got started.
 
-
 3. *start_vm_manager* (self, vm_id )
     
      Starts the VM manager service inside the VM identified by =vm_id=.
