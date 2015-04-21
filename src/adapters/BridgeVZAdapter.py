@@ -51,7 +51,11 @@ class InvalidVMIDException(Exception):
 
 
 class BridgeVZAdapter(object):
-
+    """
+    Every newly created container needs to be set with IP_ADDRESS in the interfaces file.
+    This acheived by modifying the x.x.x.x variable in the template file with the container IP_ADDRESS
+    and then copying it to /etc/network/interfaces.
+    """
     def prepare_vm_for_bridged_network(self, vm_id):
         os.system("cp bridge-settings interfaces")
         textToSearch = 'x.x.x.x'
@@ -71,7 +75,7 @@ class BridgeVZAdapter(object):
             return False
 
 
-    def vm_create(self, vm_id, vm_create_args):
+    def create_container(self, vm_id, vm_create_args):
         try:
             command = (r'ssh -o "%s" %s "%s create %s %s"' % 
                         (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS, 
@@ -90,13 +94,13 @@ class BridgeVZAdapter(object):
             logger.error("Error creating VM: " + str(e))
             return False
 
-    def vm_set(self, vm_id, vm_set_args):
+    def set_container_params(self, vm_id, vm_set_args):
         try:
             command = (r'ssh -o "%s" %s "%s set %s %s"' %
                        (settings.NO_STRICT_CHECKING,
                         settings.BASE_IP_ADDRESS,
                         VZCTL, vm_id, vm_set_args))
-            logger.debug("BridgeVZAdapter: vm_set(): set command = %s" %
+            logger.debug("BridgeVZAdapter: set_container_params(): set command = %s" %
                          command)
             (ret_code,output) = execute_command(command)
             if ret_code == 0:
@@ -107,13 +111,13 @@ class BridgeVZAdapter(object):
             logger.error("Error setting VM: " + str(e))
             return False
 
-    def vm_start(self, vm_id):
+    def start_container(self, vm_id):
         try:
             command = (r'ssh -o "%s" %s "%s start %s"' %
                        (settings.NO_STRICT_CHECKING,
                         settings.BASE_IP_ADDRESS,
                         VZCTL, vm_id))
-            logger.debug("BridgeVZAdapter: vm_start(): start command = %s" %
+            logger.debug("BridgeVZAdapter: start_container(): start command = %s" %
                          command)
             (ret_code, output) = execute_command(command)
             if ret_code == 0:
@@ -136,9 +140,9 @@ class BridgeVZAdapter(object):
                         (IP_ADDRESS, vm_id, vm_create_args, vm_set_args))
 
         success = True
-        success = success and self.vm_create(vm_id, vm_create_args)
-        success = success and self.vm_set(vm_id, vm_set_args)
-        success = success and self.vm_start(vm_id)
+        success = success and self.create_container(vm_id, vm_create_args)
+        success = success and self.set_container_params(vm_id, vm_set_args)
+        success = success and self.start_container(vm_id)
         return (success, vm_id)
 
     def init_vm(self, vm_id, lab_repo_name):
