@@ -57,15 +57,15 @@ class BridgeVZAdapter(object):
     and then copying it to /etc/network/interfaces.
     """
     def prepare_vm_for_bridged_network(self, vm_id):
-        os.system("cp bridge-settings interfaces")
+        os.system("cp adapters/bridge-settings adapters/interfaces")
         textToSearch = 'x.x.x.x'
         textToReplace = IP_ADDRESS
-        fileToSearch  = 'interfaces'
+        fileToSearch  = 'adapters/interfaces'
         fd = open( fileToSearch, 'r+' )
         for line in fileinput.input( fileToSearch ):
             fd.write( line.replace( textToSearch, textToReplace ) )
         fd.close()
-        src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + "/root/ovpl/src/interfaces"
+        src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + "/root/ovpl/src/adapters/interfaces"
         dest_dir = "/vz/private/" + vm_id + "/etc/network/interfaces"
         logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
         try:
