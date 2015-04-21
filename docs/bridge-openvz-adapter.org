@@ -1,4 +1,4 @@
-#+Title: Bridge OpenVZ Adapter
+#+Title: CentOSBridgeVZAdapter
 #+Author: vlead
 #+Date: 15 April 2015
 
@@ -6,22 +6,7 @@
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. This document presents the
 requirements, design and implementation of the *bridge-openvz-adapter*
-(BOA). BOA adapter is designed for centos platform.
-
-* Assumptions
-Following are the pre-requisites for understanding the *BOA*:
-    + Understanding the bridge-network is essential to understand the
-      working of the adapter. A detailed documentation on setting
-      up a bridged network can be found [[./bridge-setup.org][here]]
-    + The provisioning of ADS server has to meet the requirements of a
-      bridged network. These requirements and provisioning are defined
-      [[./ads-provisioning.org][here]].
-Following infrastructure has to be made available to run the *BOA*:    
-    + The brdige network is setup and running
-    + One of the component in the network is the ADS server
-    + ADS server is provisioned, up and running
-    + The git is updated with newer version on the ADS server
-    + *BOA* source code is cloned on the ADS server
+(BOA). BOA adapter is designed for CentOS OpenVZ platform.
 
 * Requirement
 Following are the requirements of the BOA adapter:
@@ -34,33 +19,27 @@ Following are the requirements of the BOA adapter:
       created container from the ADS server
 
 * Design
-** Sequence Diagram
-The design of the adapter is presented in the sequence diagram:
+CentOSBridgeVZAdapter is required to manage the containers by
+supporting create, start, stop and restart operations.
 
-[[./BOA-sequence-diagram.png]]
+CentOSBridgeAdapter uses the SSH service to initially install the ADS
+component and start the service. Once the service is up, other
+components of ADS communicate with the VM through this service.
 
-Note: The sequence diagram is generated using a online tool at [[https://www.websequencediagrams.com/][Web
-Sequence Diagrams]] and following is the source code for diagram
-generation:
-#+begin_src example
-title Centos BrdigeOpenVZAdapter(BOA) Design
-
-VM Pool Manager->+Adapter Server: HTTP Request with lab spec
-Adapter Server-> +BOA: create vm using lab spec
-
-BOA->Bridge Network: create vm
-BOA->Bridge Network: copy network settings
-
-BOA-> -Adapter Server: returns vm id
-Adapter Server->+BOA: initialize vm
-
-BOA->Bridge Network: copy VMManager
-BOA->Bridge Network : copy lab sources
-BOA->-Adapter Server: return vm details
-
-Adapter Server-> -VM Pool Manager: return vm details
-#+end_src
-
+** Pre-requisites for the Adapter
+Following are the pre-requisites for understanding the Adapter:
+    + Understanding the bridge-network is essential to understand the
+      working of the adapter. A detailed documentation on setting up a
+      bridged network can be found [[./bridge-setup.org][here]]
+    + The provisioning of ADS server has to meet the requirements of a
+      bridged network. These requirements and provisioning are defined
+      [[./ads-provisioning.org][here]].
+Following infrastructure has to be made available to run the Adapter:    
+    + The brdige network is setup and running
+    + One of the component in the network is the ADS server
+    + ADS server is provisioned, up and running
+    + The git is updated with newer version on the ADS server
+    + Adapter source code is cloned on the ADS server
 ** Interfaces
 In the current design of ADS, a fixed set of interfaces to an adapter
 is already defined. An adapter is required to implement these
@@ -101,6 +80,7 @@ OpenVZAdapter are listed below:
    *Returns*: True if the settings is successfully applied
 
 ** Configuration
+
 1) Bridged network do not need proxies to be set. In the files
    ovpl/config/config.json and ovpl/src/VMManager/config.json proxies
    have to remain unset. Example:
@@ -121,7 +101,60 @@ OpenVZAdapter are listed below:
         bridge of the network
       + In the function *get_subnet()* provide the *SUBNET* range for
         the network
+	
+* Scenario for the BridgeCentOSVZAdapter
+The following sequence diagram depicts the work flow for creation and
+intilization of the VM. It takes the lab spec through http request and
+creates the VM. CentOSBridgeVZAdapter returns vm_id, vm_ip and
+vm_manager_port as a http response to the VMPoolmanager.
 
+[[./bridge-adapter-sequence-diagram.png]]
+
+Following is the sequence of events that occur when a lab is deployed
+on CentOS platform using the adapter:
+
+    + VMPoolManager sends an HTTP Request to AdapterServer indicating
+      that a VM needs to be created. It also passes the lab spec that
+      includes VM requirements.
+    + On receiving this request, the AdapterServer calls the
+      create_vm() function of CentOSBridgeVZAdapter and hands over the
+      lab spec to it.
+    + Based on lab spec, the adapter selects OS template.
+    + It creates a VM on Base Machine on a bridged network.
+    + The vm_id of the newly created VM is returned to the
+      AdapterServer.
+    + The AdapterServer call the initialize function of
+      CentOSBridgeVZAdapter.
+    + This initializes the newly created VM on CentOSBridgeVZAdapter by
+      copying relevant ADS component (VM Manager) and lab sources, and
+      starting the VM Manager.
+    + Once this service has started, the CentOSBrdigeVZAdapter sends
+      back vm details like vm_id, vm_ip and port on which the VM
+      Manager service is running to AdapterServer.
+    + These vm details (vm_id, vm_ip, vm_manager_port) are forwarded
+      by AdapterServer as HTTP response to the VMPoolManager.
+
+Note: The sequence diagram is generated using a online tool at [[https://www.websequencediagrams.com/][Web
+Sequence Diagrams]] and following is the source code for diagram
+generation:
+#+begin_src example
+title CentOSBridgeVZAdapter Design
+
+VM Pool Manager->+Adapter Server: HTTP Request with lab spec
+Adapter Server-> +CentOSBrdigeVZAdapter: create vm using lab spec
+
+CentOSBrdigeVZAdapter->Bridge Network: create vm
+CentOSBrdigeVZAdapter->Bridge Network: copy network settings
+
+CentOSBrdigeVZAdapter-> -Adapter Server: returns vm id
+Adapter Server->+CentOSBrdigeVZAdapter: initialize vm
+
+CentOSBrdigeVZAdapter->Bridge Network: copy VMManager
+CentOSBrdigeVZAdapter->Bridge Network : copy lab sources
+CentOSBrdigeVZAdapter->-Adapter Server: return vm details
+
+Adapter Server-> -VM Pool Manager: return vm details
+#+end_src
 * Implementation 
 The source code of the implementation of the adapter is located at the
 following Github URL:
