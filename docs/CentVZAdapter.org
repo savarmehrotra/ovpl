@@ -7,7 +7,7 @@ Adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. 
 
 The =CentOSVZAdapter= is an adapter for the CentOS OpenVZ platform. In
-this documentation, the term =VM= and =container= are used interchangeably.
+this document, the term =VM= and =container= are used interchangeably.
 
 * Functional Requirements
  
@@ -22,9 +22,10 @@ this documentation, the term =VM= and =container= are used interchangeably.
 container but in the current release, it creates container and
 intializes the =VMManager= service.
 
-=CentOSVZAdapter= works by issuing the bunch of commands to =create=,
-=set= and =start= the VM. It utilizes the =vzctl= commands to =create=
-containers and base machine executes the commands through =ssh=.
+=CentOSVZAdapter= works by issuing multiple commands to =create=,
+=set= and =start= a VM. It utilizes the =vzctl= API to execute
+commands. =CentOSVZAdapter= contacts base machine through
+=SSH= to executes commands.
 
 ** Interfaces
 In the current design of =ADS=, a fixed set of interfaces to an adapter
@@ -105,7 +106,7 @@ machine. So to run the test cases, copy public key from
 =~/.ssh/id_rsa.pub= of local machine and paste the public key in
 authorized_keys =~./ssh/authorized_keys= of Base Machine.
 
-** Scenario of CentOSVZAdapter
+** Scenarios of CentOSVZAdapter
 
 The following sequence diagram depicts the work flow for creation and
 intilization of the VM. It takes the lab spec through http
