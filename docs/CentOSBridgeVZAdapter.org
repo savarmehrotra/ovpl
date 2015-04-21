@@ -5,17 +5,17 @@
 * Introduction
 An adapter is an ADS component, which is responsible for creating and
 managing VMs on a particular platform. This document presents the
-requirements, design and implementation of the *bridge-openvz-adapter*
-(BOA). BOA adapter is designed for CentOS OpenVZ platform.
+requirements, design and implementation of the adapter for the bridged
+network on CentOS OpenVZ platform.
 
 * Requirement
-Following are the requirements of the BOA adapter:
-    + BOA will create a ubuntu container using OpenVZ as a
+Following are the requirements of the adapter:
+    + The adapter will create a ubuntu container using OpenVZ as a
       hypervisor based on the specification given in the lab spec of a
       particular lab.
-    + BOA will copy the ADS and lab source code to the newly created
+    + Adapter will copy the ADS and lab source code to the newly created
       container and start the VMManager service.
-    + BOA will copy the bridge network interface settings to the newly
+    + Adapter will copy the bridge network interface settings to the newly
       created container from the ADS server
 
 * Design
@@ -45,7 +45,7 @@ In the current design of ADS, a fixed set of interfaces to an adapter
 is already defined. An adapter is required to implement these
 interfaces. This enables other components/services of ADS to
 communicate with the adapter. The interfaces implemented by the
-OpenVZAdapter are listed below:
+adapter are listed below:
 
 1. *create_vm* (self, lab_spec, vm_id="")   
    Creates a new VM.
@@ -61,23 +61,11 @@ OpenVZAdapter are listed below:
        + vm_id - vm_id of the VM to be started
    *Returns*: List of VMs that got started
 
-3. *stop_vm* (self, vm_id)
-   Stops the VM identified by =vm_id=.
-   *Parameters*:
-       + vm_id - VM id of the VM to be stopped
-   *Returns*: List of VMs that got stopped
-
-5. *start_vm_manager* (self, vm_id)
+3. *start_vm_manager* (self, vm_id)
    Starts the VM manager service inside the VM identified by =vm_id=
    *Parameters*:
        + vm_id - VM id of the VM to be started
    *Returns*: True if the VM Manager service has successfully started
-
-6. *prepare_vm_for_bridged_network* (self, vm_id)
-   Prepares the vm with settings for the bridged network.
-   *Parameters*:
-       + vm_id: VM id of the VM to be set with network settings
-   *Returns*: True if the settings is successfully applied
 
 ** Configuration
 
