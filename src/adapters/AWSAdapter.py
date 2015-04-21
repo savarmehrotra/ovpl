@@ -400,7 +400,7 @@ class AWSAdapter(object):
         # convert stupid RAM string in 'M' to an integer
         # no idea why would one deal with RAM values in strings!!
         ram = int(ram[:-1])
-        if ram < 2048:
+        if ram <= 1024:
             instance_type = available_instance_types[0]['instance_type']
         else:
             instance_type = available_instance_types[1]['instance_type']

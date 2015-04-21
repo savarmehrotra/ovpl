@@ -26,7 +26,7 @@ default_gateway = "<ip-address-of-gateway>"
 # AMI. More details can also be given like tag names etc.
 # NOTE: The following can be used w/o modifications. Leave it as it is.
 supported_amis = [
-    {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-9c3b0cf4'},
+    {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-9c3b0cf4'}
     # {'os': 'UBUNTU', 'version': '14.04', 'ami_id': 'ami-9a562df2'},
     # {'os': 'CENTOS', 'version': '6.6', 'ami_id': 'ami-61655b08'},
     # {'os': 'DEBIAN', 'version': '7.0', 'ami_id': 'ami-e0efab88'}
