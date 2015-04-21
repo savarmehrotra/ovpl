@@ -402,6 +402,7 @@ def validate_vm_id(vm_id):
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
 
+
 def test():
     #vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
     import json
