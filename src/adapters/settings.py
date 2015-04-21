@@ -1,8 +1,8 @@
 #BASE_IP_ADDRESS will hold the IP of the base machine on which containers will be created"
-BASE_IP_ADDRESS = "root@10.4.12.21" 
+BASE_IP_ADDRESS = "root@<base-ip>" 
 NO_STRICT_CHECKING = "StrictHostKeyChecking no"
 # ADS_SERVER_ID will be CTID of the container running ADS services
-ADS_SERVER_VM_ID = "1009" 
+ADS_SERVER_VM_ID = "<CTID>" 
 VM_ROOT_DIR = "/vz/root/"
 VM_DEST_DIR = "/root/"
 VMMANAGERSERVER_PATH="/root/ovpl/src/VMManager/"
@@ -17,7 +17,7 @@ SUBNET_BRIDGE="base1br"
 
 def get_subnet():
     # Subnet: IP addresses will be picked from and assigend to lab VMs
-    SUBNET = ["10.100.2.3/22"] 
+    SUBNET = ["X.X.X.X/X"] 
     assert isinstance(SUBNET, list)
     return SUBNET
 
