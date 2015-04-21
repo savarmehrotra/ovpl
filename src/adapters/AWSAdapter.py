@@ -101,20 +101,26 @@ class AWSAdapter(object):
         logger.debug("AWSAdapter: creating VM with following params: " +
                      "instance_type: %s, AMI id: %s" % (instance_type, ami_id))
 
-        reservation = self.connection.\
-            run_instances(ami_id,
-                          key_name=self.key_name,
-                          instance_type=instance_type,
-                          subnet_id=self.subnet_id,
-                          security_group_ids=self.security_group_ids,
-                          dry_run=dry_run)
+        try:
+            reservation = self.connection.\
+                run_instances(ami_id,
+                              key_name=self.key_name,
+                              instance_type=instance_type,
+                              subnet_id=self.subnet_id,
+                              security_group_ids=self.security_group_ids,
+                              dry_run=dry_run)
+
+        except Exception, e:
+            logger.debug("AWSAdapter: error creating VM")
+            logger.debug("AWSAdapter: %s" % e)
+            return (False, -1)
 
         instance = reservation.instances[0]
 
         instance.add_tag('Name', self.vm_name_tag)
-
         logger.debug("AWSAdapter: created VM: %s" % instance)
-        return instance.id
+        # return instance.id
+        return (True, instance.id)
 
     # initialize the VM by copying relevant ADS component (VM Manager) and the
     # lab sources, and start the VM Manager..

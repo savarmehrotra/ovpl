@@ -96,7 +96,6 @@ if __name__ == "__main__":
         raise e
 
 
-
     #load the adapter class and instantiate the adapter
     adapter_name = config_spec['ADAPTER']['ADAPTER_NAME']
     module = __import__(adapter_name)
