@@ -12,6 +12,7 @@ __public_interfaces__ = [
     'start_vm_manager',
     'destroy_vm',
     'is_running_vm',
+    'is_service_up',
     'get_vm_ip',
     'get_instance'
 ]
@@ -137,10 +138,9 @@ class AWSAdapter(object):
 
         # wait until the VM is up with the SSH service..
         # until then we won't be able to go ahead with later steps..
-        while not self.is_running_vm(vm_ip_addr, 22):
-            logger.debug("AWSAdapter: VM %s: waiting for SSH to be up..." %
-                         vm_ip_addr)
-            sleep(4)
+        logger.debug("AWSAdapter: VM %s: waiting for SSH to be up..." %
+                     vm_ip_addr)
+        self.wait_for_service(vm_ip_addr, 22, 4, 300)
 
         # Return the VM's id, IP and port of VM Mgr
         info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
@@ -169,10 +169,7 @@ class AWSAdapter(object):
         logger.debug("Ensuring VMManager service is running on VM %s" %
                      vm_ip_addr)
         vmmgr_port = int(settings.VM_MANAGER_PORT)
-        while not self.is_running_vm(vm_ip_addr, vmmgr_port):
-            logger.debug("AWSAdapter: VM %s: waiting for VMManager to be up.." %
-                         vm_ip_addr)
-            sleep(4)
+        self.wait_for_service(vm_ip_addr, vmmgr_port, 4, 300)
 
         logger.debug("AWSAdapter: init_vm(): success = %s, response = %s" %
                      (success, info))
@@ -225,19 +222,7 @@ class AWSAdapter(object):
 
         return True
 
-    # take an aws instance_id and return its ip address
-    def get_vm_ip(self, vm_id):
-        logger.debug("AWSAdapter: get_vm_ip(): vm_id: %s" % (vm_id))
-
-        reservations = self.connection.get_all_instances(instance_ids=[vm_id])
-        instance = reservations[0].instances[0]
-
-        logger.debug("AWSAdapter: IP address of the instance is: %s" %
-                     instance.private_ip_address)
-
-        return instance.private_ip_address
-
-    # take an aws instance_id and return the instance object
+    # take an AWS instance_id/vm_id and return the instance object
     def get_instance(self, vm_id):
         logger.debug("AWSAdapter: get_instance(): vm_id: %s" % (vm_id))
 
@@ -246,17 +231,34 @@ class AWSAdapter(object):
 
         return instance
 
-    def get_resource_utilization(self):
-        pass
+    # take an aws instance_id and return its ip address
+    def get_vm_ip(self, vm_id):
+        logger.debug("AWSAdapter: get_vm_ip(): vm_id: %s" % (vm_id))
 
-    def test_logging(self):
-        logger.debug("AWSAdapter: test_logging()")
-        pass
+        instance = self.get_instance(vm_id)
+
+        logger.debug("AWSAdapter: IP address of the instance is: %s" %
+                     instance.private_ip_address)
+
+        return instance.private_ip_address
+
+    # wait for a particular service to come up..
+    def wait_for_service(self, vm_ip, port, sleep_time, timeout):
+        logger.debug("AWSAdapter: wait_for_service(): VM IP: %s" % vm_ip)
+        logger.debug("AWSAdapter: port: %s; sleep: %s; timeout: %s" %
+                     (port, sleep_time, timeout))
+
+        while not self.is_service_up(vm_ip, port):
+            logger.debug("VM %s: waiting for service at port: %s to be up.." %
+                         (vm_ip, port))
+            sleep(sleep_time)
+
+        return True
 
     # check if the VM is up and the given TCP port is reachable
     # assumption - the port is running a TCP service
-    def is_running_vm(self, vm_ip, port):
-        logger.debug("AWSAdapter: is_running_vm(): VM IP: %s" % vm_ip)
+    def is_service_up(self, vm_ip, port):
+        logger.debug("AWSAdapter: is_service_up(): VM IP: %s" % vm_ip)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             logger.debug("AWSAdapter: trying to connect to port: %s of: %s" %
@@ -271,10 +273,26 @@ class AWSAdapter(object):
             s.close()
             return False
 
+    def is_running_vm(self, vm_id):
+        instance = self.get_instance(vm_id)
+        # boto API - state_code 16 means running
+        # http://boto.readthedocs.org/en/latest/ref/ec2.html#boto.ec2.instance.InstanceState
+        if instance.state_code == 16:
+            return True
+        else:
+            return False
+
     def migrate_vm(self, vm_id, destination):
         pass
 
     def take_snapshot(self, vm_id):
+        pass
+
+    def get_resource_utilization(self):
+        pass
+
+    def test_logging(self):
+        logger.debug("AWSAdapter: test_logging()")
         pass
 
     # copy files using rsync given src and dest dirs
