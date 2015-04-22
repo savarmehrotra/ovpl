@@ -165,6 +165,12 @@ This is achieved through unit testing.
 4) Share the =public key= as metioned above in [[configuration][configuration]]
 
 ** Test Cases
+*** Unit Test Structure
+All unit tests should follow the same basic structure as follows:
+  - Set up all conditions for testing.
+  - Call the method (or Trigger) being tested.
+  - Verify that the results are correct.
+  - Clean up modified records.
 *** Case 01: Creation of a VM
 The objective of this test case is to test the creation of a VM on
 Base Machine. =test_create_vm()= is responsible for testing the
