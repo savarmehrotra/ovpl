@@ -118,7 +118,7 @@ class CentOSVZAdapter(object):
         logger.debug("CentOSVZAdapter: init_vm(): vm_id = %s" % vm_id)
         success = True
         success = success and copy_public_key(vm_id)
-        success = success and  copy_ovpl_source(vm_id)
+        success = success and copy_ovpl_source(vm_id)
         success = success and copy_lab_source(vm_id, lab_repo_name)
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
@@ -230,9 +230,13 @@ class CentOSVZAdapter(object):
 def copy_public_key(vm_id):
 
     try:
-        public_key_file = ("%s%s%s%s" %
-                            (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
-                            settings.VM_DEST_DIR, ".ssh/id_rsa.pub"))
+        if settings.ADS_ON_CONTAINER:
+            public_key_file = ("%s%s%s%s" %
+                                (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
+                                settings.VM_DEST_DIR, ".ssh/id_rsa.pub"))
+        else:
+            public_key_file = ("%s" %
+                                ("/root/.ssh/id_rsa.pub"))
 
         authorized_key_file = ("%s%s%s%s" %
                                 (settings.VM_ROOT_DIR, vm_id,
@@ -274,8 +278,12 @@ def copy_files(src_dir, dest_dir):
         
 def copy_ovpl_source(vm_id):
 
-    src_dir =  "%s%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
-                           settings.VM_DEST_DIR, "ovpl")
+    if settings.ADS_ON_CONTAINER:
+        src_dir =  "%s%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
+                                    settings.VM_DEST_DIR, "ovpl")
+    else:
+        src_dir =  "%s%s" % (settings.VM_DEST_DIR, "ovpl")
+    
     dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR)
     logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
 
@@ -289,10 +297,14 @@ def copy_lab_source(vm_id, lab_repo_name):
 
     directories = GIT_CLONE_LOC.split("/")
     labs_dir = directories[-2]
-    src_dir =  "%s%s%s%s%s%s" % (settings.VM_ROOT_DIR,                         
-                                 settings.ADS_SERVER_VM_ID,                    
-                                 settings.VM_DEST_DIR, labs_dir,               
-                                 "/", lab_repo_name)  
+    if settings.ADS_ON_CONTAINER:
+        src_dir =  "%s%s%s%s%s%s" % (settings.VM_ROOT_DIR,                         
+                                    settings.ADS_SERVER_VM_ID,                    
+                                    settings.VM_DEST_DIR, labs_dir,               
+                                    "/", lab_repo_name)
+    else:
+        src_dir = "%s%s%s%s" % (settings.VM_DEST_DIR, labs_dir,               
+                                "/", lab_repo_name)
 
     dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id,                        
                            settings.VM_DEST_DIR + "labs")
@@ -389,6 +401,7 @@ def validate_vm_id(vm_id):
     if vm_id > settings.MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
+
 
 def test():
     #vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})

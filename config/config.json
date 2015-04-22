@@ -79,10 +79,5 @@
             "URI_ENDPOINT": "/log/",
             "FILE_PATH": "/root/logs/"
         }
-    },
-
-    "CONTAINER_CONFIG": {
-      "__comment__": "This is used when we want only 1 container with a static IP. Otherwise leave it blank.",
-      "STATIC_IP_ADD": ""
     }
 }

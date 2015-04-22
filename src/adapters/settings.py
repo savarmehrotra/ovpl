@@ -1,3 +1,4 @@
+ADS_ON_CONTAINER = <True or False>
 #BASE_IP_ADDRESS will hold the IP of the base machine on which containers will be created"
 BASE_IP_ADDRESS = "root@<ip>" 
 NO_STRICT_CHECKING = "StrictHostKeyChecking no"
