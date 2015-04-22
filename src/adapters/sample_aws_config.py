@@ -42,3 +42,6 @@ available_instance_types = [
 # Name of the VMs that you want to tag.
 # This name is visible on the AWS console
 vm_tag = "test.aws.adapter.ads"
+
+# timeout in secs after which waiting for service should be abandoned
+TIMEOUT = 300

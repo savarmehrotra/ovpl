@@ -33,7 +33,7 @@ from dict2default import dict2default
 import settings
 from http_logging.http_logger import logger
 from utils.envsetup import EnvSetUp
-from utils.git_commands import *
+from utils.git_commands import GIT_CLONE_LOC
 from utils.execute_commands import execute_command
 
 # import the AWS configuration
@@ -75,6 +75,9 @@ class AWSAdapter(object):
     # the username of the destination VMs; this username will be used to SSH and
     # perform operations on the VM
     VM_USER = 'root'
+    # the time to wait(in secs) until the next retry - for checking if a service
+    # is up
+    TIME_BEFORE_NEXT_RETRY = 5
 
     def __init__(self):
         # check if the key_file exists, else throw an error!
@@ -127,8 +130,9 @@ class AWSAdapter(object):
     # lab sources, and start the VM Manager..
     def init_vm(self, vm_id, lab_repo_name):
         """
-        initialize the VM by copying relevant ADS component (VM Manager) and
-        the lab sources, and start the VM Manager..
+        initialize the VM by copying relevant ADS component (VMManager) and
+        the lab sources, add default gateway, start the VMManager and ensure the
+        VMManager service is up...
         """
         logger.debug("AWSAdapter: init_vm(): vm_id = %s" % vm_id)
 
@@ -136,22 +140,31 @@ class AWSAdapter(object):
 
         logger.debug("instance id: %s; IP addr: %s" % (vm_id, vm_ip_addr))
 
+        # Return info for AdapterServer: the VM's id, IP and port of VM Mgr
+        info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
+                "vmm_port": settings.VM_MANAGER_PORT}
+
         # wait until the VM is up with the SSH service..
         # until then we won't be able to go ahead with later steps..
         logger.debug("AWSAdapter: VM %s: waiting for SSH to be up..." %
                      vm_ip_addr)
-        self.wait_for_service(vm_ip_addr, 22, 4, 300)
+        success = self.wait_for_service(vm_ip_addr, 22,
+                                        self.TIME_BEFORE_NEXT_RETRY,
+                                        config.TIMEOUT)
 
-        # Return the VM's id, IP and port of VM Mgr
-        info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
-                "vmm_port": settings.VM_MANAGER_PORT}
+        if not success:
+            logger.debug("Could not reach SSH after %s secs!! Aborting." %
+                         config.TIMEOUT)
+            return (success, info)
 
         success = self._copy_ovpl_source(vm_ip_addr)
         if not success:
+            logger.debug("Error in copying OVPL sources. Aborting.")
             return (success, info)
 
         success = self._copy_lab_source(vm_ip_addr, lab_repo_name)
         if not success:
+            logger.debug("Error in copying lab sources. Aborting.")
             return (success, info)
 
         # NOTE: this step is necessary as the systems team is using a single
@@ -159,17 +172,25 @@ class AWSAdapter(object):
         # nodes default gateway has to be configured separately!
         success = self._add_default_gw(vm_ip_addr)
         if not success:
+            logger.debug("Error in adding default gateway. Aborting.")
             return (success, info)
 
         success = self.start_vm_manager(vm_ip_addr)
         if not success:
+            logger.debug("Error in starting VMManager. Aborting.")
             return (success, info)
 
         # check if the VMManager service came up and running..
         logger.debug("Ensuring VMManager service is running on VM %s" %
                      vm_ip_addr)
         vmmgr_port = int(settings.VM_MANAGER_PORT)
-        self.wait_for_service(vm_ip_addr, vmmgr_port, 4, 300)
+        success = self.wait_for_service(vm_ip_addr, vmmgr_port,
+                                        self.TIME_BEFORE_NEXT_RETRY,
+                                        config.TIMEOUT)
+        if not success:
+            logger.debug("Could not reach VMManager after %s secs!! Aborting." %
+                         config.TIMEOUT)
+            return (success, info)
 
         logger.debug("AWSAdapter: init_vm(): success = %s, response = %s" %
                      (success, info))
@@ -243,12 +264,23 @@ class AWSAdapter(object):
         return instance.private_ip_address
 
     # wait for a particular service to come up..
+    # sleeps for the given amount of time between each rety
+    # timesout and returns False after given timeout
     def wait_for_service(self, vm_ip, port, sleep_time, timeout):
         logger.debug("AWSAdapter: wait_for_service(): VM IP: %s" % vm_ip)
         logger.debug("AWSAdapter: port: %s; sleep: %s; timeout: %s" %
                      (port, sleep_time, timeout))
 
+        total_slept = 0
+
         while not self.is_service_up(vm_ip, port):
+            total_slept += sleep_time
+            logger.debug("total slept: %s" % total_slept)
+            # we have tried for the `timeout` time. Abort checking and return
+            # False(failure)
+            if total_slept >= timeout:
+                return False
+
             logger.debug("VM %s: waiting for service at port: %s to be up.." %
                          (vm_ip, port))
             sleep(sleep_time)
@@ -397,6 +429,7 @@ class AWSAdapter(object):
 
         # derive hostname from the slug given in labspec
         if 'slug' in lab_spec['lab']['description']:
+            slug = lab_spec['lab']['description']['slug']
             hostname = "%s.%s" % (slug, settings.get_adapter_hostname())
         else:
             if vm_spec["lab_ID"] == "":
