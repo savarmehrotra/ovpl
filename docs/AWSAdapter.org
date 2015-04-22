@@ -96,6 +96,16 @@ communicate with the adapter. The interfaces implemented by the
 
      *Returns*: True if the VM is up, else False.
 
+5. *destroy_vm* (self, vm_id, dry_run=False)
+
+     Terminates the VM identified by =vm_id=.
+
+     *Parameters*:
+                 + vm_id - VM/instance id of the VM to be terminated.
+                 + dry_run(bool) - Set to True if the operation should not actually run.
+
+     *Returns*: List of instances that got terminated.
+
 ** Configuration parameters of the adapter
 Following are the parameters which are needed to be configured in this
 adapter, for the adapter to be able to communicate with AWS APIs.
