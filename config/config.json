@@ -62,7 +62,7 @@
         ]
     },
 
-    "CENTOSVZADAPTER": {
+    "ADAPTER": {
         "ADAPTER_NAME" :"CentOSVZAdapter",
         "ADAPTER_PORT":8000,
         "CREATE_URI":"/api/1.0/vm/create",
