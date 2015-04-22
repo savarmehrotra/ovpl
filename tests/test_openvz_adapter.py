@@ -47,6 +47,7 @@ class TestCentOSVZAdapter(unittest.TestCase):
         (status, result) = self.adapter.init_vm(self.vm_id, self.lab_repo_name)
         test_logger.debug("test_init_vm(): status = %s" % status)
         self.assertTrue(status)
+        test_logger.debug("test_init_vm(): Test passed")
 
     def test_vm_mgr_running(self):
         (status, self.vm_id) = self.adapter.create_vm(self.lab_spec)
