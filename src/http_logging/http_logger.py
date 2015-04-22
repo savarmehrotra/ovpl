@@ -26,7 +26,9 @@ def __create_logger(name):
 
 
 logger = __create_logger("ovpl")
-                
+test_logger = __create_logger("tests")
+
+
 if __name__ == '__main__':
     import __init__
     from utils.envsetup import EnvSetUp
