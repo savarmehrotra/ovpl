@@ -22,7 +22,7 @@ interchangeably.
 
   2. =AWSAdapter= will copy the =VMManager= component to the newly
      created VM and start the =VMManager= service.
-     
+
 * Design
 =AWSAdpater= is required to manage VMs - create, stop, start, restart and
 destroy, on the AWS platform and also initialize the VM, which requires
@@ -31,12 +31,12 @@ further communication.
 
 =AWSAdapter= internally uses the =boto= Python library which interfaces with
 AWS APIs to create, restart, stop and destroy VMs. For more
-information on creation of a VM, see [[Strategic Decisions]]. 
+information on creation of a VM, see [[Strategic Decisions]].
 
 =AWSAdapter= uses the SSH service to initially install the ADS component and
 start the service. After the service is up, other components of ADS can
 communicate with the VM through this service.
- 
+
 ** Pre-requisites for the =AWSAdapter= :
 Before detailing out the design, it is important to
 list the pre-requisites for the =AWSAdapter= :
@@ -55,7 +55,7 @@ interfaces. This enables other components/services of ADS to
 communicate with the adapter. The interfaces implemented by the
 =AWSAdapter= are listed below:
 
-1. *create_vm* (self, lab_spec, dry_run=False)
+1. *create_vm* (lab_spec, dry_run=False)
 
      Creates a new VM.
 
@@ -65,7 +65,7 @@ communicate with the adapter. The interfaces implemented by the
 
      *Returns*: Instance id of the newly created Amazon VM.
 
-2. *start_vm* (self, vm_id, dry_run=False)
+2. *start_vm* (vm_id, dry_run=False)
 
      Starts the VM identified by =vm_id=.
 
@@ -75,7 +75,7 @@ communicate with the adapter. The interfaces implemented by the
 
      *Returns*: List of instances that got started.
 
-3. *start_vm_manager* (self, vm_id )
+3. *start_vm_manager* (vm_id )
 
      Starts the VM manager service inside the VM identified by =vm_id=.
 
@@ -84,19 +84,18 @@ communicate with the adapter. The interfaces implemented by the
 
      *Returns*: True if the VM Manager service has successfully started.
 
-4. *is_running_vm* (self, vm_ip, port)
+4. *is_running_vm* (vm_ip)
 
-     Checks if the given TCP port at the given IP is reachable. It essentially
-     checks if a particular service is running on the VM. The assumption is
-     that the port is running a TCP service.
+    Checks if the VM, given by the IP addresses, is running or not. To perform
+    the check, internally it uses boto AWS APIs to find out from the
+    instance's state.
 
      *Parameters*:
                  + vm_ip - The IP address of VM.
-                 + port - The TCP port to check.
 
-     *Returns*: True if the VM is up, else False.
+     *Returns*: True if the VM is running, else False.
 
-5. *destroy_vm* (self, vm_id, dry_run=False)
+5. *destroy_vm* (vm_id, dry_run=False)
 
      Terminates the VM identified by =vm_id=.
 
@@ -105,6 +104,7 @@ communicate with the adapter. The interfaces implemented by the
                  + dry_run(bool) - Set to True if the operation should not actually run.
 
      *Returns*: List of instances that got terminated.
+
 
 ** Configuration parameters of the adapter
 Following are the parameters which are needed to be configured in this
@@ -200,7 +200,7 @@ TODO
 *** TODO How to select an instance type based on the lab spec input?
 TODO
 
-** Strategic decisions <<Strategic Decisions>>:
+** Strategic decisions <<Strategic Decisions>>
 *** What OS/AMIs to support?
 AWS uses OS images to associate an OS with an instance when one brings up an
 instance. AWS calls these OS images as AMIs.
@@ -226,7 +226,7 @@ decide on what OS and AMIs to support.
       to use CentOS 6.6.
   + Debian::
     +  Debian 7.x:: Supported, as end of life is 2016.
-       
+
 *** What machine configuration/instance types to support?
 As AWS has the concept of instance types (which is essentially a set of
 machine configuration), we need to select a set of instance types that we
@@ -245,8 +245,8 @@ later version, the adapter can add the storage dynamically.
 Hence, the current supported AWS instance types by AWSAdapter are:
 + t2.micro (1GB RAM)
 + t2.small (2GB RAM)
-  
-  
+
+
 * Implementation
 The implementation of the AWSAdapter can be found here:
 [[../src/adapters/AWSAdapter.py]]

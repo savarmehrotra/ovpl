@@ -8,4 +8,4 @@ python http_logging/http_logging_server.py &
 cd ..
 python -m tests.test_AWSAdapter
 
-
+make stop-server
