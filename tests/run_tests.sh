@@ -4,5 +4,5 @@ cd ../src/
 python http_logging/http_logging_server.py &
 # run the test cases
 cd ..
-python -m tests.test_openvz_adapter
+python -m tests.test_CentOSVZAdapter
 
