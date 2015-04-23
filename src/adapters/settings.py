@@ -1,4 +1,5 @@
-ADS_ON_CONTAINER = <True or False>
+#This can be either 'TRUE' or 'FALSE' based from where the ADS services are running.
+ADS_ON_CONTAINER = True
 #BASE_IP_ADDRESS will hold the IP of the base machine on which containers will be created"
 BASE_IP_ADDRESS = "root@<ip>" 
 NO_STRICT_CHECKING = "StrictHostKeyChecking no"

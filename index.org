@@ -70,21 +70,28 @@
    ADS runs from a container and 
    + creates a container on a host machine and
    + deploys a lab on this newly created container,
-
-   Both the containers, one hosting ADS services and the other on which lab is
-   deployed are created on a host machine configured with CentOS and OpenVZ.
+   
+   + Assumptions :: Both the containers, one hosting ADS services and the other
+     on which lab is deployed are created on a host machine configured with
+     CentOS and OpenVZ.
 
 ** Release v1.0.3
-   1. ADS runs from a VM on Amazon cloud and 
+  + Assumptions :: ADS runs on a VM on AWS cloud
+
+  1. ADS
      + creates a VM within AWS cloud, and 
      + deploys lab on this newly created VM.
   2. Only authorized users deploy the labs.
-   
+
+
 ** Release v1.0.4
-   ADS runs from a container within a bridged network and 
+   + Assumptions :: 
+     - ADS runs from a container within a bridged network
+     - Both the containers, one hosting ADS services and the other on which lab
+       is deployed are created on a host machine configured with CentOS and
+       OpenVZ.
+  ADS ::
    + creates a container within this bridged network and 
    + deploys lab on this newly created container.
 
-   Both the containers, one hosting ADS services and the other on which lab is
-   deployed are created on a host machine configured with CentOS and OpenVZ.
  
