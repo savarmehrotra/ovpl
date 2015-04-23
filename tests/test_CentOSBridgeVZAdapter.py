@@ -48,6 +48,24 @@ class TestCentOSBridgeVZAdapter(unittest.TestCase):
         test_logger.debug("test_init_vm(): status = %s" % status)
         self.assertTrue(status)
         test_logger.debug("test_init_vm(): Test passed")
-
+        
+    def test_vm_mgr_running(self):
+        (status, self.vm_id) = self.adapter.create_vm(self.lab_spec)
+        (status, result) = self.adapter.init_vm(self.vm_id, self.lab_repo_name)
+        vm_ip = result['vm_ip']
+        vmm_port = result['vmm_port']
+        url = "http://%s:%s/api/1.0/test-lab" % (vm_ip, str(vmm_port))
+        test_logger.debug("VMMgr URL: %s" % url)
+        
+        for i in (1,2,4,8,16):
+            time.sleep(i)
+            try:
+                response = requests.get(url)
+                logger.debug("response = %s for ith time = %d" % response, i)
+            except Exception, e:
+                pass
+	self.assertEqual(response.status_code, 200)
+        test_logger.debug("test_vm_mgr_running(): Test passed")
+        
 if __name__ == "__main__":
     unittest.main()
