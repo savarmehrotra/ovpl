@@ -1,7 +1,7 @@
 {
     "ENVIRONMENT": {
-        "HTTP_PROXY":"http://proxy.iiit.ac.in:8080",
-        "HTTPS_PROXY":"https://proxy.iiit.ac.in:8080"
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
     },
 
     "CONTROLLER_CONFIG": {
@@ -65,7 +65,7 @@
         ]
     },
 
-    "CENTOSVZADAPTER": {
+    "ADAPTER": {
         "ADAPTER_NAME" :"CentOSVZAdapter",
         "ADAPTER_PORT":8000,
         "CREATE_URI":"/api/1.0/vm/create",
@@ -82,10 +82,5 @@
             "URI_ENDPOINT": "/log/",
             "FILE_PATH": "/root/logs/"
         }
-    },
-
-    "CONTAINER_CONFIG": {
-      "__comment__": "This is used when we want only 1 container with a static IP. Otherwise leave it blank.",
-      "STATIC_IP_ADD": ""
     }
 }

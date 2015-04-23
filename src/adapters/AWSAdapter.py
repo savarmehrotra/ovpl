@@ -4,7 +4,7 @@
     1.
 """
 
-__all__ = [
+__public_interfaces__ = [
     'create_vm',
     'start_vm',
     'stop_vm',
@@ -12,6 +12,7 @@ __all__ = [
     'start_vm_manager',
     'destroy_vm',
     'is_running_vm',
+    'is_service_up',
     'get_vm_ip',
     'get_instance'
 ]
@@ -32,8 +33,8 @@ from dict2default import dict2default
 import settings
 from http_logging.http_logger import logger
 from utils.envsetup import EnvSetUp
-from utils.git_commands import *
-from utils.execute_commands import *
+from utils.git_commands import GIT_CLONE_LOC
+from utils.execute_commands import execute_command
 
 # import the AWS configuration
 import aws_config as config
@@ -67,26 +68,29 @@ class AWSAdapter(object):
     credentials = config.credentials
     subnet_id = config.subnet_id
     security_group_ids = config.security_group_ids
-    key_name = config.key_file_name
+    key_file_path = config.key_file_path
     vm_name_tag = config.vm_tag
     default_gw = config.default_gateway
 
     # the username of the destination VMs; this username will be used to SSH and
     # perform operations on the VM
     VM_USER = 'root'
+    # the time to wait(in secs) until the next retry - for checking if a service
+    # is up
+    TIME_BEFORE_NEXT_RETRY = 5
 
     def __init__(self):
-        # check if the key_file exists, else throw an error! again the key file
-        # should not be checked in, but the deployer has to manually copy it in
-        # this location
-        cur_dir = os.path.dirname(os.path.abspath(__file__))
-        self.key_file_path = os.path.join(cur_dir, self.key_name+'.pem')
-
-        # logger.debug("Key file path: %s", key_file_path)
+        # check if the key_file exists, else throw an error!
+        # The key file should not be checked in, but the deployer has to
+        # manually copy and configure the correct location
         if not os.path.isfile(self.key_file_path):
-            msg = 'Make sure you have the key file: "%s.pem" ' % self.key_name
-            msg += ' placed in the same directory as the adapter file'
-            raise AWSKeyFileNotFound(msg)
+            raise AWSKeyFileNotFound("Given key file not found!: %s" %
+                                     self.key_file_path)
+
+        # deduce the key file name from the key file path..
+        # assuming the key file ends with a .pem extension - otherwise this
+        # won't work!
+        self.key_name = self.key_file_path.split('/')[-1].split('.pem')[0]
 
         self.connection = self.create_connection()
 
@@ -101,27 +105,34 @@ class AWSAdapter(object):
         logger.debug("AWSAdapter: creating VM with following params: " +
                      "instance_type: %s, AMI id: %s" % (instance_type, ami_id))
 
-        reservation = self.connection.\
-            run_instances(ami_id,
-                          key_name=self.key_name,
-                          instance_type=instance_type,
-                          subnet_id=self.subnet_id,
-                          security_group_ids=self.security_group_ids,
-                          dry_run=dry_run)
+        try:
+            reservation = self.connection.\
+                run_instances(ami_id,
+                              key_name=self.key_name,
+                              instance_type=instance_type,
+                              subnet_id=self.subnet_id,
+                              security_group_ids=self.security_group_ids,
+                              dry_run=dry_run)
+
+        except Exception, e:
+            logger.debug("AWSAdapter: error creating VM")
+            logger.debug("AWSAdapter: %s" % e)
+            return (False, -1)
 
         instance = reservation.instances[0]
 
         instance.add_tag('Name', self.vm_name_tag)
-
         logger.debug("AWSAdapter: created VM: %s" % instance)
-        return instance.id
+        # return instance.id
+        return (True, instance.id)
 
     # initialize the VM by copying relevant ADS component (VM Manager) and the
     # lab sources, and start the VM Manager..
     def init_vm(self, vm_id, lab_repo_name):
         """
-        initialize the VM by copying relevant ADS component (VM Manager) and
-        the lab sources, and start the VM Manager..
+        initialize the VM by copying relevant ADS component (VMManager) and
+        the lab sources, add default gateway, start the VMManager and ensure the
+        VMManager service is up...
         """
         logger.debug("AWSAdapter: init_vm(): vm_id = %s" % vm_id)
 
@@ -129,23 +140,31 @@ class AWSAdapter(object):
 
         logger.debug("instance id: %s; IP addr: %s" % (vm_id, vm_ip_addr))
 
-        # wait until the VM is up with the SSH service..
-        # until then we won't be able to go ahead with later steps..
-        while not self.is_running_vm(vm_ip_addr, 22):
-            logger.debug("AWSAdapter: VM %s: waiting for SSH to be up..." %
-                         vm_ip_addr)
-            sleep(4)
-
-        # Return the VM's id, IP and port of VM Mgr
+        # Return info for AdapterServer: the VM's id, IP and port of VM Mgr
         info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
                 "vmm_port": settings.VM_MANAGER_PORT}
 
+        # wait until the VM is up with the SSH service..
+        # until then we won't be able to go ahead with later steps..
+        logger.debug("AWSAdapter: VM %s: waiting for SSH to be up..." %
+                     vm_ip_addr)
+        success = self.wait_for_service(vm_ip_addr, 22,
+                                        self.TIME_BEFORE_NEXT_RETRY,
+                                        config.TIMEOUT)
+
+        if not success:
+            logger.debug("Could not reach SSH after %s secs!! Aborting." %
+                         config.TIMEOUT)
+            return (success, info)
+
         success = self._copy_ovpl_source(vm_ip_addr)
         if not success:
+            logger.debug("Error in copying OVPL sources. Aborting.")
             return (success, info)
 
         success = self._copy_lab_source(vm_ip_addr, lab_repo_name)
         if not success:
+            logger.debug("Error in copying lab sources. Aborting.")
             return (success, info)
 
         # NOTE: this step is necessary as the systems team is using a single
@@ -153,20 +172,25 @@ class AWSAdapter(object):
         # nodes default gateway has to be configured separately!
         success = self._add_default_gw(vm_ip_addr)
         if not success:
+            logger.debug("Error in adding default gateway. Aborting.")
             return (success, info)
 
         success = self.start_vm_manager(vm_ip_addr)
         if not success:
+            logger.debug("Error in starting VMManager. Aborting.")
             return (success, info)
 
         # check if the VMManager service came up and running..
         logger.debug("Ensuring VMManager service is running on VM %s" %
                      vm_ip_addr)
         vmmgr_port = int(settings.VM_MANAGER_PORT)
-        while not self.is_running_vm(vm_ip_addr, vmmgr_port):
-            logger.debug("AWSAdapter: VM %s: waiting for VMManager to be up.." %
-                         vm_ip_addr)
-            sleep(4)
+        success = self.wait_for_service(vm_ip_addr, vmmgr_port,
+                                        self.TIME_BEFORE_NEXT_RETRY,
+                                        config.TIMEOUT)
+        if not success:
+            logger.debug("Could not reach VMManager after %s secs!! Aborting." %
+                         config.TIMEOUT)
+            return (success, info)
 
         logger.debug("AWSAdapter: init_vm(): success = %s, response = %s" %
                      (success, info))
@@ -219,19 +243,7 @@ class AWSAdapter(object):
 
         return True
 
-    # take an aws instance_id and return its ip address
-    def get_vm_ip(self, vm_id):
-        logger.debug("AWSAdapter: get_vm_ip(): vm_id: %s" % (vm_id))
-
-        reservations = self.connection.get_all_instances(instance_ids=[vm_id])
-        instance = reservations[0].instances[0]
-
-        logger.debug("AWSAdapter: IP address of the instance is: %s" %
-                     instance.private_ip_address)
-
-        return instance.private_ip_address
-
-    # take an aws instance_id and return the instance object
+    # take an AWS instance_id/vm_id and return the instance object
     def get_instance(self, vm_id):
         logger.debug("AWSAdapter: get_instance(): vm_id: %s" % (vm_id))
 
@@ -240,17 +252,45 @@ class AWSAdapter(object):
 
         return instance
 
-    def get_resource_utilization(self):
-        pass
+    # take an aws instance_id and return its ip address
+    def get_vm_ip(self, vm_id):
+        logger.debug("AWSAdapter: get_vm_ip(): vm_id: %s" % (vm_id))
 
-    def test_logging(self):
-        logger.debug("AWSAdapter: test_logging()")
-        pass
+        instance = self.get_instance(vm_id)
+
+        logger.debug("AWSAdapter: IP address of the instance is: %s" %
+                     instance.private_ip_address)
+
+        return instance.private_ip_address
+
+    # wait for a particular service to come up..
+    # sleeps for the given amount of time between each rety
+    # timesout and returns False after given timeout
+    def wait_for_service(self, vm_ip, port, sleep_time, timeout):
+        logger.debug("AWSAdapter: wait_for_service(): VM IP: %s" % vm_ip)
+        logger.debug("AWSAdapter: port: %s; sleep: %s; timeout: %s" %
+                     (port, sleep_time, timeout))
+
+        total_slept = 0
+
+        while not self.is_service_up(vm_ip, port):
+            total_slept += sleep_time
+            logger.debug("total slept: %s" % total_slept)
+            # we have tried for the `timeout` time. Abort checking and return
+            # False(failure)
+            if total_slept >= timeout:
+                return False
+
+            logger.debug("VM %s: waiting for service at port: %s to be up.." %
+                         (vm_ip, port))
+            sleep(sleep_time)
+
+        return True
 
     # check if the VM is up and the given TCP port is reachable
     # assumption - the port is running a TCP service
-    def is_running_vm(self, vm_ip, port):
-        logger.debug("AWSAdapter: is_running_vm(): VM IP: %s" % vm_ip)
+    def is_service_up(self, vm_ip, port):
+        logger.debug("AWSAdapter: is_service_up(): VM IP: %s" % vm_ip)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             logger.debug("AWSAdapter: trying to connect to port: %s of: %s" %
@@ -265,10 +305,26 @@ class AWSAdapter(object):
             s.close()
             return False
 
+    def is_running_vm(self, vm_id):
+        instance = self.get_instance(vm_id)
+        # boto API - state_code 16 means running
+        # http://boto.readthedocs.org/en/latest/ref/ec2.html#boto.ec2.instance.InstanceState
+        if instance.state_code == 16:
+            return True
+        else:
+            return False
+
     def migrate_vm(self, vm_id, destination):
         pass
 
     def take_snapshot(self, vm_id):
+        pass
+
+    def get_resource_utilization(self):
+        pass
+
+    def test_logging(self):
+        logger.debug("AWSAdapter: test_logging()")
         pass
 
     # copy files using rsync given src and dest dirs
@@ -373,6 +429,7 @@ class AWSAdapter(object):
 
         # derive hostname from the slug given in labspec
         if 'slug' in lab_spec['lab']['description']:
+            slug = lab_spec['lab']['description']['slug']
             hostname = "%s.%s" % (slug, settings.get_adapter_hostname())
         else:
             if vm_spec["lab_ID"] == "":
@@ -394,7 +451,7 @@ class AWSAdapter(object):
         # convert stupid RAM string in 'M' to an integer
         # no idea why would one deal with RAM values in strings!!
         ram = int(ram[:-1])
-        if ram < 2048:
+        if ram <= 1024:
             instance_type = available_instance_types[0]['instance_type']
         else:
             instance_type = available_instance_types[1]['instance_type']

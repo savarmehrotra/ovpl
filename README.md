@@ -19,12 +19,28 @@ Edit the file ovpl/config/config.json and
     },
 ```
 
+Also set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
+machine on which the ADS services are running.
+
 
 Edit the file ovpl/src/adapters/settings.py to set the 
-   SUBNET field to match with the subnet of your base machine
 
+    If the services are running on the base machine,
+    set ADS_ON_CONTAINER to False.
+
+    If the services are running on a container,
+    set ADS_ON_CONTAINER to True.
+
+    Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
+    base machine on which containers are created.
+
+    Set ADS_SERVER_VM_ID to CTID of container running ADS.
+    ADS_SERVER_VM_ID = "<CTID>" 
+
+    SUBNET field to match with the subnet of your base machine
     If the ip address of your base machine is 10.2.58.XXX, 
     SUBNET = ["10.2.58.12/28"]
+
 
 Run as a root. Ensure no make is run.
 

@@ -5,11 +5,16 @@
 * Introduction
 
 * Requirements
+** For release v1.0.2
+  1. ADS, when deployed on a machine (VM/container) creates containers on a
+     specified machine running centos 6.6 and openVZ kernel 2.6.32-042stab103.6
+
+  2. ADS, when deployed on a machine (VM/container) starts the =VMManager=
+     service on port =9089= on the newly created containers.
 
 * Design
 
 * Implementation
-
 * Test Cases
 
 * Design dicsussions
@@ -60,14 +65,26 @@
    
 ** Platform for Continuous Delivery
 
-
 * Releases
-** Release 1.0.2 
-   ADS will run from a container and be able to create a container on the base
-   machine with centos and openvz and deploy a lab on this newly created container.
-** Release 1.0.3
-   ADS will run from a VM on amazon cloud and be able to create a VM and deploy
-   a lab on this newly created VM.
+** Release v1.0.2 
+   ADS runs from a container and 
+   + creates a container on a host machine and
+   + deploys a lab on this newly created container,
 
+   Both the containers, one hosting ADS services and the other on which lab is
+   deployed are created on a host machine configured with CentOS and OpenVZ.
 
+** Release v1.0.3
+   1. ADS runs from a VM on Amazon cloud and 
+     + creates a VM within AWS cloud, and 
+     + deploys lab on this newly created VM.
+  2. Only authorized users deploy the labs.
    
+** Release v1.0.4
+   ADS runs from a container within a bridged network and 
+   + creates a container within this bridged network and 
+   + deploys lab on this newly created container.
+
+   Both the containers, one hosting ADS services and the other on which lab is
+   deployed are created on a host machine configured with CentOS and OpenVZ.
+ 

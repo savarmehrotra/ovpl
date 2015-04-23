@@ -9,8 +9,9 @@ credentials = {
     "aws_access_key_id": "your-access-key",
     "aws_secret_access_key": "your-access-secret"
 }
-# describe key file name
-key_file_name = "the key file name"
+# give then key file path - relative to the src directory
+# NOTE: advisable to use absolute paths..
+key_file_path = "../config/key_file_name.pem"
 # the subnet id to be used
 subnet_id = "subnet-id"
 # the security groups ids to be used - a list
@@ -25,7 +26,7 @@ default_gateway = "<ip-address-of-gateway>"
 # AMI. More details can also be given like tag names etc.
 # NOTE: The following can be used w/o modifications. Leave it as it is.
 supported_amis = [
-    {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-9c3b0cf4'},
+    {'os': 'UBUNTU', 'version': '12.04', 'ami_id': 'ami-9c3b0cf4'}
     # {'os': 'UBUNTU', 'version': '14.04', 'ami_id': 'ami-9a562df2'},
     # {'os': 'CENTOS', 'version': '6.6', 'ami_id': 'ami-61655b08'},
     # {'os': 'DEBIAN', 'version': '7.0', 'ami_id': 'ami-e0efab88'}
@@ -41,3 +42,6 @@ available_instance_types = [
 # Name of the VMs that you want to tag.
 # This name is visible on the AWS console
 vm_tag = "test.aws.adapter.ads"
+
+# timeout in secs after which waiting for service should be abandoned
+TIMEOUT = 300
