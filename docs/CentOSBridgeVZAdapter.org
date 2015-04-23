@@ -10,8 +10,8 @@ network on CentOS OpenVZ platform.
 
 * Requirement
 Following are the requirements of the adapter:
-    + The adapter will create a ubuntu container using OpenVZ as a
-      hypervisor based on the specification given in the lab spec of a
+    + The adapter will create a ubuntu container using OpenVZ 
+      based on the specification given in the lab spec of a
       particular lab.
     + Adapter will copy the ADS and lab source code to the newly created
       container and start the VMManager service.
