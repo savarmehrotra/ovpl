@@ -162,33 +162,32 @@ Following are the pre-requisites for the test environment:
 1. A container is provisioned on base1-cluster with internet acces.
 2. The *state* of this container is *running*
 3. =ADS= is configured and running in the provisioned container.
-4. The test cases are written and tested for BridgeVZAdapter.
+4. The test cases are written and tested for CentOSBridgeVZAdapter.
 
 ** Test Cases
 *** Case 01: Creation of a container on base1-cluster platform.
 The objective of this test case is to test the creation of a container
-on base1-cluster. =vm_create()= in *BridgeVZAdapter* is responsible in
+on base1-cluster. =create_container()= in *CentOSBridgeVZAdapter* is responsible in
 ADS for creation of virtual machine. A container will be created in
-this test scenario and the creation is tested by pinging vm-id on
-successful creation.
+this test scenario and the creation is tested by return status (Evaluated to True).
 
 *** Case 02: Setting up the container to connect to the bridged-network.
 The objective of this test case is to test the whether newly created
-container is connected to the bridged-network or not. =vm_set()= in
-*BridgeVZAdapter* is responsible in ADS for setup container. A
-container will be set in this test scenario and tested by pinging
-container-ip on successful setup.
+container is connected to the bridged-network or not. =container_set()= in
+*CentOSBridgeVZAdapter* is responsible in ADS for setup container. A
+container will be set in this test scenario and tested by return status (Evaluated to True).
 
 *** Case 03: Copying ADS and Lab source code to newly created container.
 The objective of this test case is to test the whether ADS and Labs
 source code is copied into the newly created container. =copy_files()=
-in *BridgeVZAdapter* is responsible in ADS for copying these files. In
+in *CentOSBridgeVZAdapter* is responsible in ADS for copying these files. In
 this test scenario look for =ovpl= and =labs= folders in newly created
 container at =/root/=.
 
 *** Case 04: Checking if VMManager service is running successfully
 The objective of this is to test whether the VMManager service is
-running successfully on the newly created container on base1-cluster. =init_vm()= in *BridgeVZAdapter* is responsible in ADS for intializing service.
+running successfully on the newly created container on base1-cluster. 
+=init_vm()= in *CentOSBridgeVZAdapter* is responsible in ADS for intializing service.
 
 *** Implementation of test cases
-The implementation code for all above test case scenarios can be found [[https://github.com/vlead/ovpl/blob/bridge-openvz-adapter/tests/test_bridge_openvz_adapter.py][here]]
+The implementation code for all above test case scenarios can be found [[https://github.com/vlead/ovpl/blob/bridge-openvz-adapter/tests/test_CentOSBridgeVZAdapter.py][here]]
