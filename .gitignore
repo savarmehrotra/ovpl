@@ -42,3 +42,9 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# config files
+aws_config.py
+authorized_users.py
+# private keys
+*.pem

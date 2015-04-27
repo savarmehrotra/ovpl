@@ -6,6 +6,7 @@ import json
 import __init__
 from utils.envsetup import EnvSetUp
 
+
 def __create_logger(name):
     e = EnvSetUp()
     config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
@@ -26,11 +27,8 @@ def __create_logger(name):
 
 
 logger = __create_logger("ovpl")
-test_logger = __create_logger("tests");
-                
+test_logger = __create_logger("tests")
 if __name__ == '__main__':
-    import __init__
-    from utils.envsetup import EnvSetUp
     e = EnvSetUp()
     logger.debug("Hello World")
     GIT_CLONE_LOC = "/home/travula/"

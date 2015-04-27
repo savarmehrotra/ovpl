@@ -5,8 +5,11 @@ test: stop-server
 
 start-server:
 	python http_logging/http_logging_server.py &
+	sleep 1
 	python2 adapters/AdapterServer.py &
+	sleep 1
 	python2 Controller.py &
+
 stop-server:
 	-killall python2 #HACK!
 	-killall python #HACK!

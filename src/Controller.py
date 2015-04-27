@@ -1,4 +1,4 @@
-""" 
+"""
 Main interface of OVPL with the external world.
 Controller interfaces with LabManager and VMPoolManager.
 
@@ -26,7 +26,7 @@ class Controller:
             lab_spec = LabManager.get_lab_reqs(lab_src_url, revision_tag)
             self.update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
             if lab_spec['lab']['runtime_requirements']['hosting'] == 'dedicated':
-               """ TODO: Undeploy , fnd proper place to invoke undeploy""" 
+               """ TODO: Undeploy , fnd proper place to invoke undeploy"""
             #   self.undeploy_lab(lab_id)
             vmpoolmgr = VMPoolManager.VMPoolManager()
             logger.debug("test_lab(); invoking create_vm() on vmpoolmgr")
@@ -48,7 +48,7 @@ class Controller:
             except Exception, e:
                 logger.error("test_lab(); Test failed with error: " + str(e))
                 return "Test failed: See log file for errors"
-                """ TODO: Garbage collection clean up for the created VM """ 
+                """ TODO: Garbage collection clean up for the created VM """
             finally:
                 self.system.save()
         except Exception, e:
@@ -62,7 +62,7 @@ class Controller:
         lab_spec['revision_tag'] = revision_tag
         lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
         logger.debug("lab_repo_name: %s" %(lab_spec['lab_repo_name']))
-                
+
     def update_state(self, state):
         state['lab_history']['released_by'] = 'dummy'
         #state['lab_history']['released_on'] = strftime("%Y-%m-%d %H:%M:%S")
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     c = Controller()
     #print c.test_lab("ovpl01", "https://github.com/nrchandan/vlab-computer-programming")
     #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
-    print c.test_lab("cse02", "git@bitbucket.org:virtuallabs/cse02-programming.git")
+    print c.test_lab("cse02", "https://github.com/Virtual-Labs/data-structures-iiith.git")
     #print c.test_lab("cse08", "http://10.4.14.2/cse08.git")
     #print c.test_lab("ovpl01", "https://github.com/vlead/ovpl")
     #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
