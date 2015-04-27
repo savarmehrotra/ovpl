@@ -1,6 +1,12 @@
 #+TITLE: Design of ADS and related services
 #+Author: VLEAD
 #+Date: [2015-03-20 Fri]
+#+PROPERTY: session *scratch*
+#+PROPERTY: results output
+#+PROPERTY: exports code
+#+SETUPFILE: org-templates/level-0.org
+#+options: ^:nil
+
 
 * Introduction
 
@@ -9,6 +15,7 @@
 * Design
   
 * Implementation
+#+BEGIN_SRC yaml :tangle roles/config-server/meta/main.yml
 
 * Test Cases
 
