@@ -1,10 +1,11 @@
-ovpl
-====
+ADS
+===
 
+Execute the following steps, to configure and then run ADS as a service:
 
-Edit the file ovpl/config/config.json and 
-                 ovpl/src/VMManager/config.json 
-   to set the proxies. 
+* Edit the file ovpl/config/config.json and,
+
+1. to set the proxies.
 ```
     "ENVIRONMENT": {
         "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
@@ -19,11 +20,22 @@ Edit the file ovpl/config/config.json and
     },
 ```
 
-Also set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
+2. Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
 machine on which the ADS services are running.
 
+3. Set the COOKIE_SECRET value to some long randomly generated string.
 
-Edit the file ovpl/src/adapters/settings.py to set the 
+4. Leave the PERSONA_VERIFIER field as it is, if you are using the Mozilla's
+default Persona provider service.
+
+5. Change APP_URL field and put the URL where the application is hosted.
+
+6. In the ADAPTER section, change the ADAPTER_NAME to appropriate adapter used.
+   Possible values for now are - "CentOSVZAdapter" and "AWSAdapter".
+
+
+6.1 If using CentOSVZAdapter, edit the file ovpl/src/adapters/settings.py to set
+    the following:
 
     If the services are running on the base machine,
     set ADS_ON_CONTAINER to False.
@@ -42,30 +54,43 @@ Edit the file ovpl/src/adapters/settings.py to set the
     SUBNET = ["10.2.58.12/28"]
 
 
-Run as a root. Ensure no make is run.
+6.2 If using AWSAdapter, copy `src/adapters/sample_aws_config.py` to
+    `src/adapters/aws_config.py`, and edit the values accordingly. See
+    [here](index.org) for more details.
+
+
+* Copy `config/sample_authorized_users.py` to `config/authorized_users.py`, and
+  add actual email addresses of authorized users.
+
+
+* As root, go into `src` directory and run make:
 
 ```
-python ovpl/src/http_logging/http_logging_server.py &
-```
-```
-python2 ovpl/src/ControllerServer.py &
-```
-```
-python2 ovpl/src/adapters/AdapterServer.py &
+$ cd src
+$ make
 ```
 
-View the logs at /root/logs/ovpl.log by
+* To stop the services, or restart:
+
+```
+$ cd src
+$ make stop-server
+$ make restart-server
+```
+
+* View the logs at /root/logs/ovpl.log by
 
 ```
 tail -f /root/logs/ovpl.log
 ```
 
-Open the location `http://localhost:8080` from the browser and
-   provide the lab id and lab sources url.
+* Open the location `http://localhost:8080` from the browser and provide the lab
+  id and lab sources url.
 
 
+* Other related documentation:
 Steps to manually create a container
-====
+-----
 1. vzctl create 101 --ostemplate ubuntu-12.04-custom-x86_64 --ipadd 10.2.58.3 --diskspace 10G:15.0G --hostname cse02.vlabs.ac.in
 2. vzctl start 101
 3. vzctl set 101 --nameserver inherit --ram 256M --swap 512M --onboot yes --save
