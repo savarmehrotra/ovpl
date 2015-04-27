@@ -13,7 +13,10 @@
      service on port =9089= on the newly created containers.
 
 * Design
-
+** CentOSVZAdapter
+   Documentation of CentOSVZAdapter is found [[./docs/CentOSVZAdapter.org][here]]
+** AWSAdapter
+   Documentation of AWSAdapter is found here [[./docs/AWSAdapter.org][here]]
 * Implementation
 * Test Cases
 
