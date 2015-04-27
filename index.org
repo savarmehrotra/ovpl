@@ -67,13 +67,14 @@
 
 * Releases
 ** Release v1.0.2 
-   ADS runs from a container and 
+   + Assumptions :: Both the containers, one hosting ADS services and the other
+                    on which lab is deployed are created on a host machine
+                    configured with CentOS and OpenVZ.
+
+   ADS runs from a container and
    + creates a container on a host machine and
    + deploys a lab on this newly created container,
    
-   + Assumptions :: Both the containers, one hosting ADS services and the other
-     on which lab is deployed are created on a host machine configured with
-     CentOS and OpenVZ.
 
 ** Release v1.0.3
   + Assumptions :: ADS runs on a VM on AWS cloud
