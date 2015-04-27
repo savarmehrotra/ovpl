@@ -5,16 +5,11 @@
 * Introduction
 
 * Requirements
-** For release v1.0.2
-  1. ADS, when deployed on a machine (VM/container) creates containers on a
-     specified machine running centos 6.6 and openVZ kernel 2.6.32-042stab103.6
-
-  2. ADS, when deployed on a machine (VM/container) starts the =VMManager=
-     service on port =9089= on the newly created containers.
 
 * Design
-
+  
 * Implementation
+
 * Test Cases
 
 * Design dicsussions
