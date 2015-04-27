@@ -1,8 +1,5 @@
 #+title: AWSAdapter for ADS
-#+PROPERTY: session *scratch*
-#+PROPERTY: results output
-#+PROPERTY: exports code
-#+SETUPFILE: org-templates/level-0.org
+#+author: ADS team
 #+OPTIONS: ^:nil
 
 
@@ -57,10 +54,10 @@ communicate with the adapter. The interfaces implemented by the
 
 1. *create_vm* (lab_spec, dry_run=False)
 
-     Creates a new VM.
+     Creates a new VM on Amazon Cloud platform (AWS).
 
      *Parameters*:
-                 + lab_spec - Lists the lab and VM related reqirements.
+                 + lab_spec(dict) - The specification of the lab
                  + dry_run(bool) - Set to True if the operation should not actually run.
 
      *Returns*: Instance id of the newly created Amazon VM.
@@ -70,19 +67,20 @@ communicate with the adapter. The interfaces implemented by the
      Starts the VM identified by =vm_id=.
 
      *Parameters*:
-                 + vm_id - VM/instance id of the VM to be started.
+                 + vm_id(string) - VM/instance id of the VM to be started.
                  + dry_run(bool) - Set to True if the operation should not actually run.
 
-     *Returns*: List of instances that got started.
+     *Returns*: List of the instance that got started.
 
 3. *start_vm_manager* (vm_id )
 
-     Starts the VM manager service inside the VM identified by =vm_id=.
+     Starts the =VMManager= service inside the VM identified by =vm_id=.
 
      *Parameters*:
-                 + vm_id - VM/instance id of the VM.
+                 + vm_id(string) - VM/instance id of the VM.
 
-     *Returns*: True if the VM Manager service has successfully started.
+     *Returns*: True if the =VMManager= service command was successful, else 
+                False
 
 4. *is_running_vm* (vm_ip)
 
@@ -91,7 +89,7 @@ communicate with the adapter. The interfaces implemented by the
     instance's state.
 
      *Parameters*:
-                 + vm_ip - The IP address of VM.
+                 + vm_ip(string) - The IP address of VM.
 
      *Returns*: True if the VM is running, else False.
 
@@ -100,10 +98,15 @@ communicate with the adapter. The interfaces implemented by the
      Terminates the VM identified by =vm_id=.
 
      *Parameters*:
-                 + vm_id - VM/instance id of the VM to be terminated.
+                 + vm_id(string) - VM/instance id of the VM to be terminated.
                  + dry_run(bool) - Set to True if the operation should not actually run.
 
      *Returns*: List of instances that got terminated.
+
+
+*NOTE*: All these public interfaces will throw an exception if they encounter 
+any error or exception. It is the responsibility of the callee to handle those 
+exceptions.
 
 
 ** Configuration parameters of the adapter
@@ -149,8 +152,9 @@ appropriate values.
 To configure one has to copy the sample config file into the actual config
 file(which is not version controlled) and edit the values accordingly.
 
+From the top level of ADS project directory,
 #+BEGIN_SRC
-cp sample_aws_config.py aws_config.py
+cp src/adapters/sample_aws_config.py src/adapters/aws_config.py
 #+END_SRC
 
 Edit the values in =aws_config.py= to have the appropriate configuration
@@ -159,6 +163,7 @@ parameters.
 ** Scenarios of AWSAdapter
 *** Scenario 1
 This deals only with the creation and initialization of a VM.
+TODO: Handle exception in the diagram?
 [[./Sequence diagram of AWSAdapter.png]]
 
 Following is the sequence of events that occur during lab deployment
@@ -202,6 +207,7 @@ TODO
 
 ** Strategic decisions <<Strategic Decisions>>
 *** What OS/AMIs to support?
+    [As of :<2015-05-01 Fri>]
 AWS uses OS images to associate an OS with an instance when one brings up an
 instance. AWS calls these OS images as AMIs.
 ([[http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html]])
@@ -227,7 +233,23 @@ decide on what OS and AMIs to support.
   + Debian::
     +  Debian 7.x:: Supported, as end of life is 2016.
 
+- Hence the list of supported OS:
+  [As of :<2015-05-01 Fri>]
+
+  |--------+---------+------|
+  | OS     | Version | Till |
+  |--------+---------+------|
+  | Ubuntu | 12.04   | 2017 |
+  |--------+---------+------|
+  | Ubuntu | 14.04   | 2019 |
+  |--------+---------+------|
+  | CentOS | 6.6     |      |
+  |--------+---------+------|
+  | Debian | 7.x     | 2016 |
+  |--------+---------+------|
+
 *** What machine configuration/instance types to support?
+    [As of :<2015-05-01 Fri>]
 As AWS has the concept of instance types (which is essentially a set of
 machine configuration), we need to select a set of instance types that we
 support.
