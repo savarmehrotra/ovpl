@@ -54,6 +54,12 @@ class MainHandler(BaseHandler):
 
         post_data = dict(urlparse.parse_qsl(self.request.body))
         c = Controller.Controller()
+        # log the user who is deploying the lab..
+        logger.debug("Lab Deployment: deployed by: %s, lab id: %s, URL: %s" %
+                     (self.current_user,
+                      post_data['lab_id'],
+                      post_data['lab_src_url']))
+
         self.write(c.test_lab(post_data['lab_id'], post_data['lab_src_url'],
                               post_data.get('version', None)))
 
