@@ -11,14 +11,15 @@ Execute the following steps, to configure and then run ADS as a service:
     },
 #+end_src
 
-   if no proxies are used, 
+  + if no proxies are used, 
 #+begin_src example
     "ENVIRONMENT": {
         "HTTP_PROXY":"",
         "HTTPS_PROXY":""
     },
 #+end_src
-*Note:* CentOSBridgeVZAdapter does not require the proxy settings.
+  
+  *Note:* CentOSBridgeVZAdapter does not require the proxy settings.
 
   + Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
 machine on which the ADS services are running.
@@ -28,10 +29,11 @@ machine on which the ADS services are running.
 	    },
 #+end_src
 
-  + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly generated string.
+  + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly
+    generated string.
+
 #+begin_src example
 "COOKIE_SECRET": "<generate a long random UUID>",
-
 #+end_src
 
   + Leave the PERSONA_VERIFIER field as it is, if you are using the Mozilla's
@@ -40,15 +42,15 @@ machine on which the ADS services are running.
   + Change APP_URL field and put the URL where the application is hosted.
 #+begin_src example
      "APP_URL": "http://ads-server-ip:8080",
-
 #+end_src
 
-  + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=, and
-   add actual email addresses of authorized users.
+  + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=,
+    and add actual email addresses of authorized users.
 
 ** Choosing ADAPTER_NAME
    In the ADAPTER section, change the ADAPTER_NAME to appropriate adapter used.
-   Possible values for now are - "CentOSVZAdapter", "AWSAdapter" and "CentOSBridgeVZAdapter"
+   Possible values for now are - "CentOSVZAdapter", "AWSAdapter" and
+   "CentOSBridgeVZAdapter"
 #+begin_src example
 "ADAPTER": {
         "ADAPTER_NAME" :"CentOSVZAdapter",
@@ -78,7 +80,7 @@ machine on which the ADS services are running.
 *** Settings for AWSAdapter
    If using AWSAdapter, copy =src/adapters/sample_aws_config.py= to
    =src/adapters/aws_config.py=, and edit the values accordingly. See
-   [[here][index.org]] for more details.
+   [[./docs/AWSAdapter.org][here]] for more details.
    
 ** Commands to Manage the Service
 + As root, go into =src= directory and run make:
