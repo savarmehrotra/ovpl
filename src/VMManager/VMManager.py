@@ -92,10 +92,12 @@ def test_lab(lab_src_url, version=None):
     lab_spec = get_lab_spec(repo_name)    
     spec_path = get_spec_path(repo_name)
     yml_file = "labspec.yml"
-
+    fill_aptconf()
     try:
         if os.path.isfile(spec_path+yml_file):
             try:
+                logger.debug("spec_path: %s" % spec_path)
+                logger.debug("===== Installing pre-requisites for lab =====")
                 command = "ansible-playbook "+ spec_path + yml_file
                 logger.info("Command executed: " + command)
                 (ret_code, output) = execute_command(command)
@@ -104,8 +106,7 @@ def test_lab(lab_src_url, version=None):
                 logger.error("Execution failed: " + str(e))
                 return "Error executing the command: " + str(e)
 
-        else:
-            fill_aptconf()
+        else:           
             logger.debug("spec_path: %s" % spec_path)
             os.chdir(spec_path)
             logger.debug("Changed to Diretory: %s" % spec_path)
