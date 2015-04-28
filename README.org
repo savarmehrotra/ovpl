@@ -1,0 +1,111 @@
+* Settings for ADS 
+Execute the following steps, to configure and then run ADS as a service:
+
+** Edit the file ovpl/config/config.json
+
+  + To set the proxies.
+#+begin_src example
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"http://proxy. vlabs.ac.in:8080",
+        "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
+    },
+#+end_src
+
+   if no proxies are used, 
+#+begin_src example
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
+    },
+#+end_src
+*Note:* CentOSBridgeVZAdapter does not require the proxy settings.
+
+  + Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
+machine on which the ADS services are running.
+#+begin_src example
+"LOGSERVER_CONFIGURATION": {
+            "SERVER_IP": "ads-server-ip",
+	    },
+#+end_src
+
+  + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly generated string.
+#+begin_src example
+"COOKIE_SECRET": "<generate a long random UUID>",
+
+#+end_src
+
+  + Leave the PERSONA_VERIFIER field as it is, if you are using the Mozilla's
+    default Persona provider service.
+
+  + Change APP_URL field and put the URL where the application is hosted.
+#+begin_src example
+     "APP_URL": "http://ads-server-ip:8080",
+
+#+end_src
+
+  + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=, and
+   add actual email addresses of authorized users.
+
+** Choosing ADAPTER_NAME
+   In the ADAPTER section, change the ADAPTER_NAME to appropriate adapter used.
+   Possible values for now are - "CentOSVZAdapter", "AWSAdapter" and "CentOSBridgeVZAdapter"
+#+begin_src example
+"ADAPTER": {
+        "ADAPTER_NAME" :"CentOSVZAdapter",
+	}
+#+end_src
+
+*** Settings for CentOSVZAdapter and CentOSBridgeVZAdapter
+   Edit the file ovpl/src/adapters/settings.py to set
+   the following:
+
+   1. If the services are running on the base machine,
+      set ADS_ON_CONTAINER to False.
+
+   2. If the services are running on a container,
+      set ADS_ON_CONTAINER to True.
+
+   3. Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
+      base machine on which containers are created.
+
+   4. Set ADS_SERVER_VM_ID to CTID of container running ADS.
+      ADS_SERVER_VM_ID = "<CTID>" 
+
+   5. SUBNET field to match with the subnet of your base machine
+      If the ip address of your base machine is 10.2.58.XXX, 
+      SUBNET = ["10.2.58.12/28"]
+
+*** Settings for AWSAdapter
+   If using AWSAdapter, copy =src/adapters/sample_aws_config.py= to
+   =src/adapters/aws_config.py=, and edit the values accordingly. See
+   [[here][index.org]] for more details.
+   
+** Commands to Manage the Service
++ As root, go into =src= directory and run make:
+#+begin_src example
+$ cd src
+$ make
+#+end_src
+
++ To stop the services, or restart
+#+begin_src example
+$ cd src
+$ make stop-server
+$ make restart-server
+#+end_src
+
++ View the logs at /root/logs/ovpl.log by
+#+begin_src example
+tail -f /root/logs/ovpl.log
+#+end_src
+
++ Open the location =http://localhost:8080= from the browser and provide the lab
+  id and lab sources url.
+
+
+** Other related documentation:
+Steps to manually create a container
+-----
+1. vzctl create 101 --ostemplate ubuntu-12.04-custom-x86_64 --ipadd 10.2.58.3 --diskspace 10G:15.0G --hostname cse02.vlabs.ac.in
+2. vzctl start 101
+3. vzctl set 101 --nameserver inherit --ram 256M --swap 512M --onboot yes --save

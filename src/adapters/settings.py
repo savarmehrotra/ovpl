@@ -1,7 +1,7 @@
 #This can be either 'TRUE' or 'FALSE' based from where the ADS services are running.
 ADS_ON_CONTAINER = True
 #BASE_IP_ADDRESS will hold the IP of the base machine on which containers will be created"
-BASE_IP_ADDRESS = "root@<ip>" 
+BASE_IP_ADDRESS = "root@<base-ip>" 
 NO_STRICT_CHECKING = "StrictHostKeyChecking no"
 # ADS_SERVER_ID will be CTID of the container running ADS services
 ADS_SERVER_VM_ID = "<CTID>" 
@@ -14,9 +14,12 @@ VM_MANAGER_PORT = "9089"
 VM_MANAGER_SCRIPT = "VMManagerServer.py VMManager"
 MAX_VM_ID = 2147483644 # 32-bit; exact value based on trial-and-error
 
+#Settings for Bridged Adapter
+SUBNET_BRIDGE="base1br"
+
 def get_subnet():
     # Subnet: IP addresses will be picked from and assigend to lab VMs
-    SUBNET = ["x.x.x.x/x"] 
+    SUBNET = ["X.X.X.X/X"] 
     assert isinstance(SUBNET, list)
     return SUBNET
 
