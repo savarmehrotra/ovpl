@@ -27,25 +27,25 @@ machine on which the ADS services are running.
 	    },
 #+end_src
 
-  3. Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly generated string.
+  + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly generated string.
 #+begin_src example
 "COOKIE_SECRET": "<generate a long random UUID>",
 
 #+end_src
 
-  4. Leave the PERSONA_VERIFIER field as it is, if you are using the Mozilla's
-default Persona provider service.
+  + Leave the PERSONA_VERIFIER field as it is, if you are using the Mozilla's
+    default Persona provider service.
 
-  5. Change APP_URL field and put the URL where the application is hosted.
+  + Change APP_URL field and put the URL where the application is hosted.
 #+begin_src example
      "APP_URL": "http://ads-server-ip:8080",
 
 #+end_src
 
-  6. Copy =config/sample_authorized_users.py= to =config/authorized_users.py=, and
+  + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=, and
    add actual email addresses of authorized users.
 
-* Choosing ADAPTER_NAME
+** Choosing ADAPTER_NAME
    In the ADAPTER section, change the ADAPTER_NAME to appropriate adapter used.
    Possible values for now are - "CentOSVZAdapter", "AWSAdapter" and "CentOSBridgeVZAdapter"
 #+begin_src example
