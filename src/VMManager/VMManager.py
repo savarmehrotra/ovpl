@@ -88,32 +88,43 @@ def test_lab(lab_src_url, version=None):
         return lab_spec['lab']['runtime_requirements']['platform']['lab_actions']
 
     logger.info("Starting test_lab")
-
+    repo_name = construct_repo_name(lab_src_url)
+    lab_spec = get_lab_spec(repo_name)    
+    spec_path = get_spec_path(repo_name)
+    yml_file = "labspec.yml"
 
     try:
-        fill_aptconf()
-        repo_name = construct_repo_name(lab_src_url)
-        lab_spec = get_lab_spec(repo_name)    
-        spec_path = get_spec_path(repo_name)
-        logger.debug("spec_path: %s" % spec_path)
-        os.chdir(spec_path)
-        logger.debug("Changed to Diretory: %s" % spec_path)
-        logger.debug("CWD: %s" % str(os.getcwd()))
+        if os.path.isfile(spec_path+yml_file):
+            try:
+                command = "ansible-playbook "+ spec_path + yml_file
+                logger.info("Command executed: " + command)
+                (ret_code, output) = execute_command(command)
+                return "Success"
+            except Exception, e:
+                logger.error("Execution failed: " + str(e))
+                return "Error executing the command: " + str(e)
 
-        lar = LabActionRunner(get_build_installer_steps_spec(lab_spec))
-        lar.run_install_source()
-
-        lar = LabActionRunner(get_build_steps_spec(lab_spec))
-        lar.run_build_steps()
-
-        lar = LabActionRunner(get_runtime_installer_steps(lab_spec))
-        lar.run_install_source()
-
-        lar = LabActionRunner(get_runtime_actions_steps(lab_spec))
-        lar.run_init_lab()
-        lar.run_start_lab()
-        logger.info("Finishing test_lab: Success")
-        return "Success"
+        else:
+            fill_aptconf()
+            logger.debug("spec_path: %s" % spec_path)
+            os.chdir(spec_path)
+            logger.debug("Changed to Diretory: %s" % spec_path)
+            logger.debug("CWD: %s" % str(os.getcwd()))
+            
+            lar = LabActionRunner(get_build_installer_steps_spec(lab_spec))
+            lar.run_install_source()
+            
+            lar = LabActionRunner(get_build_steps_spec(lab_spec))
+            lar.run_build_steps()
+            
+            lar = LabActionRunner(get_runtime_installer_steps(lab_spec))
+            lar.run_install_source()
+            
+            lar = LabActionRunner(get_runtime_actions_steps(lab_spec))
+            lar.run_init_lab()
+            lar.run_start_lab()
+            logger.info("Finishing test_lab: Success")
+            return "Success"
     except Exception, e:
         logger.error("VMManager.test_lab failed: " + str(e))
         return "Test lab failed"
