@@ -80,27 +80,27 @@ machine on which the ADS services are running.
    [[here][index.org]] for more details.
 
 
-1. As root, go into =src= directory and run make:
++ As root, go into =src= directory and run make:
 
 #+begin_src example
 $ cd src
 $ make
 #+end_src
 
-2. To stop the services, or restart
++ To stop the services, or restart
 #+begin_src example
 $ cd src
 $ make stop-server
 $ make restart-server
 #+end_src
 
-3. View the logs at /root/logs/ovpl.log by
++ View the logs at /root/logs/ovpl.log by
 #+begin_src example
 tail -f /root/logs/ovpl.log
 #+end_src
-4. Open the location =http://localhost:8080= from the browser and provide the lab
-  id and lab sources url.
 
++ Open the location =http://localhost:8080= from the browser and provide the lab
+  id and lab sources url.
 
 
 ** Other related documentation:
