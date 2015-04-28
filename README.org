@@ -3,7 +3,7 @@ Execute the following steps, to configure and then run ADS as a service:
 
 ** Edit the file ovpl/config/config.json
 
-1. To set the proxies.
+  1. To set the proxies.
 #+begin_src example
     "ENVIRONMENT": {
         "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
@@ -18,7 +18,7 @@ Execute the following steps, to configure and then run ADS as a service:
     },
 #+end_src
 
-2. Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
+  2. Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
 machine on which the ADS services are running.
 #+begin_src example
 "LOGSERVER_CONFIGURATION": {
@@ -26,22 +26,22 @@ machine on which the ADS services are running.
 	    },
 #+end_src
 
-3. Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly generated string.
+  3. Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly generated string.
 #+begin_src example
 "COOKIE_SECRET": "<generate a long random UUID>",
 
 #+end_src
 
-4. Leave the PERSONA_VERIFIER field as it is, if you are using the Mozilla's
+  4. Leave the PERSONA_VERIFIER field as it is, if you are using the Mozilla's
 default Persona provider service.
 
-5. Change APP_URL field and put the URL where the application is hosted.
+  5. Change APP_URL field and put the URL where the application is hosted.
 #+begin_src example
      "APP_URL": "http://ads-server-ip:8080",
 
 #+end_src
 
-6. Copy `config/sample_authorized_users.py` to `config/authorized_users.py`, and
+  6. Copy =config/sample_authorized_users.py= to =config/authorized_users.py=, and
    add actual email addresses of authorized users.
 
 * Choosing ADAPTER_NAME
@@ -52,7 +52,8 @@ default Persona provider service.
         "ADAPTER_NAME" :"CentOSVZAdapter",
 	}
 #+end_src
-** Settings for CentOSVZAdapter
+
+*** Settings for CentOSVZAdapter
    If using CentOSVZAdapter, edit the file ovpl/src/adapters/settings.py to set
    the following:
 
@@ -72,13 +73,13 @@ default Persona provider service.
       If the ip address of your base machine is 10.2.58.XXX, 
       SUBNET = ["10.2.58.12/28"]
 
-** Settings for AWSAdapter
+*** Settings for AWSAdapter
    If using AWSAdapter, copy =src/adapters/sample_aws_config.py= to
    =src/adapters/aws_config.py=, and edit the values accordingly. See
    [[here][index.org]] for more details.
 
 
-1. As root, go into `src` directory and run make:
+1. As root, go into =src= directory and run make:
 
 #+begin_src example
 $ cd src
