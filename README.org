@@ -3,13 +3,14 @@ Execute the following steps, to configure and then run ADS as a service:
 
 ** Edit the file ovpl/config/config.json
 
-  1. To set the proxies.
+  + To set the proxies.
 #+begin_src example
     "ENVIRONMENT": {
         "HTTP_PROXY":"http://proxy.vlabs.ac.in:8080",
         "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
     },
 #+end_src
+
    if no proxies are used, 
 #+begin_src example
     "ENVIRONMENT": {
@@ -18,7 +19,7 @@ Execute the following steps, to configure and then run ADS as a service:
     },
 #+end_src
 
-  2. Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
+  + Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
 machine on which the ADS services are running.
 #+begin_src example
 "LOGSERVER_CONFIGURATION": {
