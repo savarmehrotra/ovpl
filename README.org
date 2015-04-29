@@ -25,7 +25,7 @@ Execute the following steps, to configure and then run ADS as a service:
 machine on which the ADS services are running.
 #+begin_src example
 "LOGSERVER_CONFIGURATION": {
-            "SERVER_IP": "ads-server-ip",
+            "SERVER_IP": "ads-server-private-ip",
 	    },
 #+end_src
 
@@ -41,7 +41,7 @@ machine on which the ADS services are running.
 
   + Change APP_URL field and put the URL where the application is hosted.
 #+begin_src example
-     "APP_URL": "http://ads-server-ip:8080",
+     "APP_URL": "http://ads-server-public-ip:8080",
 #+end_src
 
   + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=,
