@@ -1,56 +1,7 @@
 {% extends "base.html" %}
 
-{% block CSS %}
-body {
-	background: #FFF;
-	text-align: center;
-	font-family: georgia;
-}
-
-#container {
-	margin: 0 auto;
-	width: 960px;
-}
-
-h1 {
-	font-size: 4em;
-	border-bottom: 1px solid #dddddd;
-	margin: 4%;
-}
-
-p {
-	font-size: 2em;	
-}
-
-.field {
-	 padding: 2%; 
-	 margin: 1px;
-}
-
-.textbox {
-	font-family: monospace;
-	width: 70%;
-}
-
-.textbox:focus {
-	outline: none;
-	border: 2px solid #6EA2DE;
-	box-shadow: 0 0 2px #95B9C7;
-
-}
-
-label { 
-	display: inline-block; 
-	width: 10%; 
-	margin-left: 1%; 
-}
-
-input { display: inline-block;}
-
-{% end %}
-
 {% block title %}
-			Controller - OVPL
+  OVPL | VLEAD Platform Services
 {% end %}
 
 {% block header %}
@@ -58,21 +9,32 @@ input { display: inline-block;}
 {% end %}
 
 {% block body %}
-<form action="/" method="post">
-	<div class="field">
-		<label> Lab ID </label> <input type="text" name="lab_id" id="lab_id" class="textbox">
-	</div>
+<div id="user-dash">
+  {% if current_user %}
+    Logged in as {{ current_user }}
+    <a href="#" class="btn btn-primary btn-sm" id="logout">Sign Out</a>
+  {% end %}
+</div>
+<form class="form-horizontal" method="POST">
+  <div class="form-group">
+    <label for="lab-id" class="col-md-2 control-label">Lab ID</label>
+    <div class="col-md-10">
+      <input type="text" class="form-control" id="lab-id" name="lab_id" placeholder="Enter lab id">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="lab-src-url" class="col-md-2 control-label">Repo URL</label>
+    <div class="col-md-10">
+      <input type="text" class="form-control" id="lab-src-url" name="lab_src_url" placeholder="Lab Repo URL">
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="lab-tag" class="col-md-2 control-label">Tag</label>
+    <div class="col-md-10">
+      <input type="text" class="form-control" id="lab-tag" name="version" placeholder="Release Tag">
+    </div>
+  </div>
 
-	<div class="field">
-		<label> Repo url </label> <input type="text" name="lab_src_url" id="lab_src_url" class="textbox">
-	</div>
-
-	<div class="field">
-		<label> Tag </label> <input type="text" name="version" id="version" class="textbox">
-	</div>
-
-	<div class="field">
-		<input type="submit" style="width: 8%; height: 5%">
-	</div>
+  <button type="submit" class="btn btn-primary btn-lg">Submit</button>
 </form>
 {% end %}

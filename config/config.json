@@ -1,33 +1,32 @@
-
 {
-
     "ENVIRONMENT": {
-        "HTTP_PROXY":"http://proxy.iiit.ac.in:8080",
-        "HTTPS_PROXY":"http://proxy.iiit.ac.in:8080"
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
     },
-    
+
     "CONTROLLER_CONFIG": {
-        "SERVER_PORT":8080,
-        "LOG_FILENAME":"/root/ovpl/log/ovpl.log"
+        "SERVER_PORT": 8080,
+        "COOKIE_SECRET": "<generate a long random UUID",
+        "PERSONA_VERIFIER": "https://verifier.login.persona.org/verify",
+        "APP_URL": "http://localhost:8080",
+        "LOG_FILENAME": "/root/logs/ovpl.log"
     },
 
     "LABMANAGER_CONFIG": {
-        "GIT_CLONE_LOC":"/root/labs/lab-repo-cache/",
-        "LAB_SPEC_LOC":"/scripts/labspec.json"
+        "GIT_CLONE_LOC":"/root/labs/",
+        "LAB_SPEC_DIR":"/scripts/",
+        "LAB_SPEC_FILE":"labspec.json"
     },
 
     "VMMANAGER_CONFIG": {
         "DISK_USAGE_URI":"/api/1.0/disk-usage",
         "MEMORY_USAGE_URI":"/api/1.0/mem-usage",
         "RUNNING_TIME_URI":"/api/1.0/running-time",
-        "RUNNING_PROCESSES_URI":"/api/1.0/running-processes",        
+        "RUNNING_PROCESSES_URI":"/api/1.0/running-processes",
         "CPU_LOAD_URI":"/api/1.0/cpu_load",
         "EXECUTE_URI":"/api/1.0/execute/([\\w*\\d*\\%\\-]+)",
         "TEST_LAB_URI":"/api/1.0/test-lab",
-        "SERVER_PORT":8089,
-        "GIT_CLONE_LOC":"/root/VMManager/lab-repo-cache/",
-        "LAB_SPEC_LOC":"/scripts/labspec.json",
-        "LOG_FILENAME":"/root/VMManager/log/vmmanager.log"
+        "SERVER_PORT":9089
     },
 
     "API_ENDPOINTS": {
@@ -36,7 +35,7 @@
 	"DESTROY_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/destroy",
 	"RESTART_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/restart"
     },
-    
+
     "VMPOOL_CONFIGURATION": {
         "VMPOOLS": [
             {
@@ -64,5 +63,24 @@
                 "PORT":"8000"
             }
         ]
+    },
+
+    "ADAPTER": {
+        "ADAPTER_NAME" :"CentOSBridgeVZAdapter",
+        "ADAPTER_PORT":8000,
+        "CREATE_URI":"/api/1.0/vm/create",
+        "DESTROY_URI":"/api/1.0/vm/destroy",
+        "RESTART_URI":"/api/1.0/vm/restart"
+    },
+
+    "LOGGING_CONFIGURATION": {
+        "__comment__" : "level 10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL",
+        "LOG_LEVEL":10 ,
+        "LOGSERVER_CONFIGURATION": {
+            "SERVER_IP": "localhost",
+            "SERVER_PORT": 8239,
+            "URI_ENDPOINT": "/log/",
+            "FILE_PATH": "/root/logs/"
+        }
     }
 }
