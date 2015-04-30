@@ -6,7 +6,7 @@ from utils.execute_commands import *
 
 class EmptyLabActionError(Exception):
     pass
-        
+
 class LabActionScript:
     """Runs an action which is usually a bash or Python script."""
     ACTION_EMPTY        = 0x1
@@ -30,7 +30,7 @@ class LabActionScript:
     BACKUP_SCRIPT_KEY   = "backup"
     STATS_SCRIPT_KEY    = "stats"
     PUBLISH_SCRIPT_KEY  = "publish"
-    
+
     def __init__(self, cmd):
         self._cmd = cmd.strip()
         self._state = LabActionScript.ACTION_EMPTY
@@ -49,10 +49,10 @@ class LabActionScript:
             self._state = LabActionScript.ACTION_COMPLETED
         except Exception, e:
             self._state = LabActionScript.ACTION_UNSUCCESSFUL
-            logger.error("LabActionScript::run() ose - " + str(ose))
+            logger.error("LabActionScript::run() exception is: %s" % str(e))
 
         return self
-    
+
     def run_async(self):
     	""" TODO: PROVIDE A DECENT IMPLEMENTATION!!"""
         """Runs a command asynchronously."""
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         except EmptyLabActionError:
             pass
         assert(action.empty() == True)
-    
+
     def testGitCloneAction():
         action = LabActionScript("git clone https://bitbucket.org/deviprasad/itworkshop2-spring-2014.git")
         action.run()
