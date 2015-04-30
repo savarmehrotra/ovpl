@@ -382,6 +382,7 @@ def construct_vzctl_args(lab_specz={}):
     vm_set_args = " --netif_add eth0,,,," + settings.SUBNET_BRIDGE + \
                   " --ram " + ram + \
                   " --swap " + swap + \
+                  " --nameserver " + settings.get_adapter_nameserver() + \
                   " --onboot yes" + \
                   " --save"
    
