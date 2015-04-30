@@ -1,6 +1,6 @@
-""" 
+"""
 VMPool manages a pool of VMs and the resources available for use by the VMs.
-Resources may include RAM, diskspace, IPs, etc.  For now, these resources 
+Resources may include RAM, diskspace, IPs, etc.  For now, these resources
 are handled by the platform adapters.  VMPool does this by maintaining a
 list of VMs via corresponding VMProxy objects.
 
@@ -17,7 +17,7 @@ from exceptions import Exception
 from http_logging.http_logger import logger
 from State import State
 
-#Globals
+# Globals
 CREATE_PATH = "/api/1.0/vm/create"
 DESTROY_PATH = "/api/1.0/vm/destroy"
 
@@ -25,20 +25,23 @@ DESTROY_PATH = "/api/1.0/vm/destroy"
 class VMPool:
     """ Manages a pool of VMs or VMProxy's """
 
-    def __init__(self, vmpool_id, vm_description, adapter_ip, adapter_port, create_path, destroy_path):
+    def __init__(self, vmpool_id, vm_description, adapter_ip, adapter_port,
+                 create_path, destroy_path):
 
-        logger.debug("VMPool: __init__(); poolID=%s, Desciption=%s, AdapterIP=%s, AdapterPort=%s, CreatePath=%s, DestroyPath=%s" % \
-                             (vmpool_id, vm_description, adapter_ip, adapter_port, create_path, destroy_path))        
+        logger.debug("VMPool: __init__(); poolID=%s, Desciption=%s"
+                     "AdapterIP=%s, AdapterPort=%s, CreatePath=%s"
+                     "DestroyPath=%s" % (vmpool_id, vm_description,
+                                         adapter_ip, adapter_port,
+                                         create_path, destroy_path))
 
         self.system = State.Instance()
-        #self.vms = []       # List of VMProxy objects
+        # self.vms = []       # List of VMProxy objects
         self.vmpool_id = vmpool_id
         self.vm_description = vm_description
         self.adapter_ip = adapter_ip
         self.adapter_port = adapter_port
         self.create_path = create_path
         self.destroy_path = destroy_path
-
 
     def create_vm(self, lab_spec):
         # vm_spec is a json string
@@ -74,38 +77,48 @@ class VMPool:
                 }
             }
 
-        logger.debug("VMPool: create_vm(); poolID=%s, Desciption=%s, AdapterIP=%s, AdapterPort=%s, CreatePath=%s, DestroyPath=%s" % \
-                             (self.vmpool_id, self.vm_description, self.adapter_ip, self.adapter_port, self.create_path, self.destroy_path))
+        logger.debug("VMPool: create_vm(); poolID=%s, Desciption=%s"
+                     "AdapterIP=%s, AdapterPort=%s, CreatePath=%s"
+                     "DestroyPath=%s" % (self.vmpool_id, self.vm_description,
+                                         self.adapter_ip, self.adapter_port,
+                                         self.create_path, self.destroy_path))
 
-        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, self.create_path)
+        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port,
+                                   self.create_path)
         payload = {'lab_spec': json.dumps(lab_spec)}
 
-        logger.debug("VMPool: create_vm(); adapter_url = %s, payload = %s" % (adapter_url, str(payload)))
+        logger.debug("VMPool: create_vm(); adapter_url = %s, payload = %s" %
+                     (adapter_url, str(payload)))
 
         try:
             result = requests.post(url=adapter_url, data=payload)
-            logger.debug("VMPool: create_vm(): Response text from adapter: " + result.text)
+            logger.debug("VMPool: create_vm(): Response text from adapter: " +
+                         result.text)
             if result.status_code == requests.codes.ok:
                 vm_id = result.json()["vm_id"]
                 vm_ip = result.json()["vm_ip"]
                 vmm_port = result.json()["vmm_port"]
                 return construct_state()
             else:
-                raise Exception("VMPool: create_vm(): Error creating VM: " + result.text)
+                raise Exception("VMPool: create_vm(): Error creating VM: " +
+                                result.text)
         except Exception, e:
-            logger.error("VMPool: create_vm(): Error communicating with adapter: " + str(e))
+            logger.error("VMPool: create_vm(): Error communicating with" +
+                         "adapter: " + str(e))
             raise Exception("VMPool: create_vm(): Error creating VM: " + str(e))
 
     def destroy_vm(self, vm_id):
         # Invoke platform adapter
         # Delete entry from VMs list
         logger.debug("VMPool.destroy_vm()")
-        adapter_url = "%s:%s%s" % (self.adapter_ip, self.adapter_port, self.destrpy_path)
+        adapter_url = "%s:%s:%s" % (self.adapter_ip, self.adapter_port,
+                                    self.destrpy_path)
         payload = {'vm_id': vm_id}
         try:
             result = requests.post(url=adapter_url, data=payload)
             logger.debug("Response text from adapter: " + result.text)
-            if result.status_code == requests.codes.ok and "Success" in result.text:
+            if (result.status_code == requests.codes.ok and
+               "Success" in result.text):
                 logger.debug("VMPool.destroy_vm()")
                 return True
             else:
@@ -115,7 +128,9 @@ class VMPool:
 
     def save_state(self, lab_id, vm_id):
         for r in self.system.state:
-            if r['lab_spec']['lab_id'] == lab_id and r['vm_info']['vm_id'] == vm_id and r['vmpool_info']['vmpool_id'] == self.vmpool_id:
+            if (r['lab_spec']['lab_id'] == lab_id and
+               r['vm_info']['vm_id'] == vm_id and
+               r['vmpool_info']['vmpool_id'] == self.vmpool_id):
                 self.system.state.remove(r)
                 self.system.save()
                 break
@@ -126,11 +141,16 @@ class VMPool:
 
     def undeploy_lab(self, lab_id):
         logger.debug("VMPool.undeploy_lab()")
-        map(lambda vm_id: self.destroy_and_save(lab_id, vm_id), self.dedicated_vms(lab_id))
+        map(lambda vm_id: self.destroy_and_save(lab_id, vm_id),
+            self.dedicated_vms(lab_id))
 
     def dedicated_vms(self, lab_id):
-        this_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state if r['lab_spec']['lab_id']==lab_id and r['vmpool_info']['vmpool_id']==self.vmpool_id])
-        other_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state if r['lab_spec']['lab_id']!=lab_id and r['vmpool_info']['vmpool_id']==self.vmpool_id])
+        this_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state
+                            if r['lab_spec']['lab_id'] == lab_id and
+                            r['vmpool_info']['vmpool_id'] == self.vmpool_id])
+        other_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state
+                             if r['lab_spec']['lab_id'] != lab_id and
+                             r['vmpool_info']['vmpool_id'] == self.vmpool_id])
         return list(this_lab_vms - other_lab_vms)
 
 

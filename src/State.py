@@ -2,11 +2,13 @@ import pymongo
 from Singleton import Singleton
 
 """
-TODO 
-- How should the state be defined 
-- Do not expose the state varible, instead define functions, that can be used to update the state.
+TODO
+- How should the state be defined
+- Do not expose the state varible, instead define functions,
+that can be used to update the state.
 - Define the state
 """
+
 
 @Singleton
 class State:

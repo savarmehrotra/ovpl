@@ -1,5 +1,6 @@
 """http://stackoverflow.com/questions/42558/python-and-the-singleton-pattern"""
 
+
 class Singleton:
     """
     A non-thread-safe helper class to ease implementing singletons.
