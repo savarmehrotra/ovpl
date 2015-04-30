@@ -68,19 +68,6 @@
    
 ** Platform for Continuous Delivery
 
-<<<<<<< HEAD
-
-* Releases
-** Release 1.0.2 
-   ADS will run from a container and be able to create a container on the base
-   machine with centos and openvz and deploy a lab on this newly created container.
-** Release 1.0.3
-   ADS will run from a VM on amazon cloud and be able to create a VM and deploy
-   a lab on this newly created VM.
-
-
-   
-=======
 * Releases
 ** Release v1.0.2 
    + Assumptions :: Both the containers, one hosting ADS services and the other
@@ -110,6 +97,3 @@
   ADS ::
    + creates a container within this bridged network and 
    + deploys lab on this newly created container.
-
- 
->>>>>>> develop
