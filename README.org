@@ -77,6 +77,17 @@ machine on which the ADS services are running.
       If the ip address of your base machine is 10.2.58.XXX, 
       SUBNET = ["10.2.58.12/28"]
 
+*** Settings Specific CentOSBrdigeVZAdapter
+Following are the specific settings for the bridge adapter. Edit the file 
+=ovpl/src/adapters/settings.py= to set the following:
+   1. Update the SUBNET_BRIDGE name with name of the bridge which is 
+      internal to private network
+      
+   2. In the function get_adapter_nameserver(), update the variable
+    NAME_SERVER from 'inherit' to the IP of the name server in the 
+    network.
+
+   
 *** Settings for AWSAdapter
    If using AWSAdapter, copy =src/adapters/sample_aws_config.py= to
    =src/adapters/aws_config.py=, and edit the values accordingly. See
