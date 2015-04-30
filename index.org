@@ -97,5 +97,3 @@
   ADS ::
    + creates a container within this bridged network and 
    + deploys lab on this newly created container.
-
- 
