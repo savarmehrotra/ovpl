@@ -48,3 +48,8 @@ nosetests.xml
 aws_config.py
 # private keys
 *.pem
+
+#literate
+*.py
+*.html
+sitemap.org

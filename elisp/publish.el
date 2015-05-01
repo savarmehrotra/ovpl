@@ -5,7 +5,7 @@
 
 ;;; Customized for use by vlead-system team.
 
-;; Maintainer: Venkatesh Choppella <venkatesh.choppell@iiit.ac.in>
+;; Maintainer: VChoppella LEADVenkatesh Choppella <venkatesh.choppell@iiit.ac.in>
 ;;  VLEAD  <engg@vlabs.ac.in>
 ;; Keywords: publish, org
 
@@ -121,7 +121,7 @@
 
 (setq org-tangled `("org-tangled"
   :base-directory ,*src-dir*
-  :base-extension "yml\\|yaml"
+  :base-extension "py"
   :publishing-directory ,*code-dir*
   :recursive t
   :publishing-function org-publish-attachment
@@ -142,7 +142,7 @@
 
 (setq org-static `("org-static"
   :base-directory ,*src-dir*
-  :base-extension "css\\|js\\|png\\|ico\\|jpg\\|png\\|gif\\|mp3\\|ogg\\|swf\\|emacs\\|sh\\|py\\|pdf\\|tex\\|css\\|ss\\|rkt\\|flv\\|tgz"
+  :base-extension "css\\|js\\|png\\|ico\\|jpg\\|png\\|gif\\|mp3\\|ogg\\|swf\\|emacs\\|sh\\|pdf\\|tex\\|css\\|ss\\|rkt\\|flv\\|tgz"
   :publishing-directory ,*docs-dir*
   :recursive t
   :publishing-function org-publish-attachment
