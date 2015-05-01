@@ -1,0 +1,11 @@
+#!/bin/bash
+
+DB_NAME="ovpl"
+VERSION="v1.0.4"
+
+$BACKUP_FILE=$1
+
+# untar the $OUT_FILE file
+tar xfvz $1
+# take the dump
+mongorestore -d $DB_NAME dump/$DB_NAME

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+DB_NAME="ovpl"
+OUT_FILE_NAME="labbackup"
+VERSION="v1.0.4"
+OUT_FILE="$OUT_FILE_NAME-$VERSION.tar"
+
+# take the dump
+mongodump -d $DB_NAME
+# tar the dump/$DB_NAME folder
+tar cfvz $OUT_FILE ./dump/$DB_NAME
