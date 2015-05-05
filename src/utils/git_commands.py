@@ -1,7 +1,7 @@
 import os
 import json
 from http_logging.http_logger import logger
-from utils.execute_commands import *
+from utils.execute_commands import execute_command
 from utils.envsetup import EnvSetUp
 
 e = EnvSetUp()
