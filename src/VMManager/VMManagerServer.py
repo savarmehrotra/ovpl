@@ -1,9 +1,9 @@
 #!/bin/python
 
 # Services exposed by the VM Manager
-# The REST url : 
+# The REST url:
 # http://host-name/api/1.0/disk-usage
-# http://host-name/api/1.0/running-time 
+# http://host-name/api/1.0/running-time
 # http://host-name/api/1.0/mem-usage
 # http://host-name/api/1.0/running-processes
 # http://host-name/api/1.0/cpu-load
@@ -11,11 +11,10 @@
 
 import urlparse
 import __init__
-
 # bunch of tornado imports
-import tornado.httpserver 
-import tornado.ioloop 
-import tornado.options 
+import tornado.httpserver
+import tornado.ioloop
+import tornado.options
 import tornado.web
 from tornado.options import define, options
 from http_logging.http_logger import logger
@@ -28,12 +27,12 @@ define("port", default=9089, help="run on the given port", type=int)
 
 class DiskUsageHandler(tornado.web.RequestHandler):
     def get(self):
-        #response = VMManager.disk_usage()
+        # response = VMManager.disk_usage()
         self.write(VMManager.disk_usage())
 
 
 class CPULoadHandler(tornado.web.RequestHandler):
-    def get(self):    
+    def get(self):
         self.write(VMManager.cpu_load())
 
 
@@ -49,7 +48,7 @@ class RunningProcHandler(tornado.web.RequestHandler):
 
 class MemUsageHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write(VMManager.mem_usage())  
+        self.write(VMManager.mem_usage())
 
 
 class ExecuteHandler(tornado.web.RequestHandler):
@@ -60,8 +59,10 @@ class ExecuteHandler(tornado.web.RequestHandler):
 class TestLabHandler(tornado.web.RequestHandler):
     def post(self):
         post_data = dict(urlparse.parse_qsl(self.request.body))
-        logger.info("VMManagerServer: TestLabHandler: post(): post_data = %s" % str(post_data))
-        self.write(VMManager.test_lab(post_data['lab_src_url'], post_data.get('version', None)))
+        logger.info("VMManagerServer: TestLabHandler: post(): post_data = %s" %
+                    str(post_data))
+        self.write(VMManager.test_lab(post_data['lab_src_url'],
+                                      post_data.get('version', None)))
 
     def get(self):
         logger.info("VMManagerServer: TestLabHandler: get()")
@@ -83,7 +84,7 @@ if __name__ == "__main__":
             (r"/api/1.0/execute/([\w*\d*\%\-]+)", ExecuteHandler),
             (r"/api/1.0/test-lab", TestLabHandler)
         ],
-        debug = False)
-    http_server = tornado.httpserver.HTTPServer(app) 
-    http_server.listen(options.port) 
+        debug=False)
+    http_server = tornado.httpserver.HTTPServer(app)
+    http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()
