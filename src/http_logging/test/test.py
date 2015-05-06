@@ -1,8 +1,6 @@
 import unittest
-import os
 import sys
 import json
-
 tests_spec = json.loads(open("config_for_tests.json").read())
 client_logging_module = tests_spec["CLIENT_LOGGING_PATH"]
 sys.path.append(client_logging_module)
