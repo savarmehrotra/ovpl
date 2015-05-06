@@ -5,6 +5,9 @@ VERSION="v1.0.4"
 
 BACKUP_FILE=$1
 
+# current directory where this file is kept
+CUR_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
 usage() {
   echo "Usage:"
   echo "$0 <path/to/the/backup/file.tar>"
@@ -25,6 +28,8 @@ if [ $? -ne 0 ]; then
   exit 1;
 fi
 
+# stop ADS services before restoring..
+$CUR_DIR/stop
 # restore from the dump folder
 mongorestore -d $DB_NAME dump/$DB_NAME
 if [ $? -ne 0 ]; then
@@ -32,6 +37,8 @@ if [ $? -ne 0 ]; then
   echo "Aborting restore."
   exit 1;
 fi
+# start back the ADS services
+$CUR_DIR/start
 
 # cleanup
 rm -rf ./dump
