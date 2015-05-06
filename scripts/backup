@@ -7,5 +7,19 @@ OUT_FILE="$OUT_FILE_NAME-$VERSION.tar"
 
 # take the dump
 mongodump -d $DB_NAME
+if [ $? -ne 0 ]; then
+  echo "Error: Something went wrong while taking db dump."
+  echo "Aborting backup."
+  exit 1;
+fi
+
 # tar the dump/$DB_NAME folder
 tar cfvz $OUT_FILE ./dump/$DB_NAME
+if [ $? -ne 0 ]; then
+  echo "Error: Something went wrong while tar-ing the dump."
+  echo "Aborting backup."
+  exit 1;
+fi
+
+echo "Backup successful."
+exit 0;

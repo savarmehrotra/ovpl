@@ -3,9 +3,38 @@
 DB_NAME="ovpl"
 VERSION="v1.0.4"
 
-$BACKUP_FILE=$1
+BACKUP_FILE=$1
 
-# untar the $OUT_FILE file
-tar xfvz $1
-# take the dump
+usage() {
+  echo "Usage:"
+  echo "$0 <path/to/the/backup/file.tar>"
+}
+
+if [ -z $BACKUP_FILE ]; then
+  echo "Error: No arguments were passed!!"
+  echo "Error: The path to the backup file must be passed."
+  usage
+  exit 1;
+fi
+
+# untar the $BACKUP_FILEfile
+tar xfvz $BACKUP_FILE
+if [ $? -ne 0 ]; then
+  echo "Error: Something went wrong while untaring."
+  echo "Aborting restore."
+  exit 1;
+fi
+
+# restore from the dump folder
 mongorestore -d $DB_NAME dump/$DB_NAME
+if [ $? -ne 0 ]; then
+  echo "Error: Something went wrong while restoring db dump."
+  echo "Aborting restore."
+  exit 1;
+fi
+
+# cleanup
+rm -rf ./dump
+
+echo "Restore successful."
+exit 0;
