@@ -1,7 +1,7 @@
 {
     "ENVIRONMENT": {
-        "HTTP_PROXY":"",
-        "HTTPS_PROXY":""
+        "HTTP_PROXY":"http://proxy",
+        "HTTPS_PROXY":"http://proxy"
     },
 
     "CONTROLLER_CONFIG": {

@@ -1,8 +1,8 @@
 import os
 import os.path
-from http_logging.http_logger import logger
-from utils.git_commands import *
-from utils.execute_commands import *
+from src.http_logging.http_logger import logger
+from src.utils.git_commands import *
+from src.utils.execute_commands import *
 
 class EmptyLabActionError(Exception):
     pass

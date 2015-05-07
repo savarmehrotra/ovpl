@@ -14,10 +14,10 @@ import json
 import time
 
 import __init__
-from http_logging.http_logger import logger
+from src.http_logging.http_logger import logger
 from LabActionRunner import LabActionRunner
-from utils.git_commands import *
-from utils.execute_commands import *
+from src.utils.git_commands import *
+from src.utils.execute_commands import *
 
 def execute(command):
     # do some validation
@@ -120,6 +120,6 @@ def test_lab(lab_src_url, version=None):
 
 
 if __name__ == "__main__":
-    test_lab("https://bitbucket.org/virtual-labs/cse02-programming.git")
+    #test_lab("https://bitbucket.org/virtual-labs/cse02-programming.git")
     print cpu_load()
     print mem_usage()

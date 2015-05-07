@@ -8,7 +8,7 @@ import time
 import math
 
 from http_logging.http_logger import logger
-from utils.envsetup import EnvSetUp
+from src.utils.envsetup import EnvSetUp
 from utils.git_commands import * 
 
 

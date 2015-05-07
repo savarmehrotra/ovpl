@@ -1,8 +1,8 @@
 import os
 import json
-from http_logging.http_logger import logger
-from utils.execute_commands import *
-from utils.envsetup import EnvSetUp
+from src.http_logging.http_logger import logger
+from src.utils.execute_commands import *
+from src.utils.envsetup import EnvSetUp
 
 e = EnvSetUp()
 config_spec = json.loads(open(e.get_ovpl_directory_path() +

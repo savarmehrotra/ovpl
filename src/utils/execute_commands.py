@@ -1,8 +1,8 @@
 # import os
 import subprocess
 # import json
-from http_logging.http_logger import logger
-from utils.envsetup import EnvSetUp
+from src.http_logging.http_logger import logger
+from src.utils.envsetup import EnvSetUp
 
 
 # Backporting check_output from 2.7 to 2.6

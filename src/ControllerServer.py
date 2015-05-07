@@ -60,7 +60,7 @@ class MainHandler(BaseHandler):
                       post_data['lab_id'],
                       post_data['lab_src_url']))
 
-        self.write(c.test_lab(post_data['lab_id'], post_data['lab_src_url'],
+        self.write(c.test_lab(self.current_user, self.post_data['lab_id'], post_data['lab_src_url'],
                               post_data.get('version', None)))
 
 

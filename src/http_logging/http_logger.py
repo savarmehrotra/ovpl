@@ -3,8 +3,7 @@ import os.path
 import logging
 from logging.handlers import HTTPHandler
 import json
-import __init__
-from utils.envsetup import EnvSetUp
+from src.utils.envsetup import EnvSetUp
 
 
 def __create_logger(name):

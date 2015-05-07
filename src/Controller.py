@@ -4,24 +4,23 @@ Controller interfaces with LabManager and VMPoolManager.
 
 """
 
-#from time import time
 from datetime import datetime
-import time
 
 import LabManager
 import VMPoolManager
 from State import State
-from http_logging.http_logger import logger
-from utils import git_commands
+from src.http_logging.http_logger import logger
+from src.utils import git_commands
+
 
 class Controller:
     def __init__(self):
         self.system = State.Instance()
         lab_spec = {}
 
-    def test_lab(self, lab_id, lab_src_url, revision_tag=None):
-        logger.debug("test_lab() for lab ID %s and git url %s" \
-                            % (lab_id, lab_src_url))
+    def test_lab(self, current_user, lab_id, lab_src_url, revision_tag=None):
+        logger.debug("test_lab() for lab ID %s and git url %s"
+                     % (lab_id, lab_src_url))
         try:
             lab_spec = LabManager.get_lab_reqs(lab_src_url, revision_tag)
             self.update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
@@ -63,7 +62,8 @@ class Controller:
         lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
         logger.debug("lab_repo_name: %s" %(lab_spec['lab_repo_name']))
 
-    def update_state(self, state):
+    def update_state(self, state, current_user):
+        state['lab_history']['deployed_by'] = current_user
         state['lab_history']['released_by'] = 'dummy'
         #state['lab_history']['released_on'] = strftime("%Y-%m-%d %H:%M:%S")
         state['lab_history']['released_on'] = datetime.utcnow()
@@ -78,9 +78,10 @@ class Controller:
 
 if __name__ == '__main__':
     c = Controller()
+    print "Hello World"
     #print c.test_lab("ovpl01", "https://github.com/nrchandan/vlab-computer-programming")
     #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
-    print c.test_lab("cse02", "https://github.com/Virtual-Labs/data-structures-iiith.git")
+    #print c.test_lab("cse02", "https://github.com/Virtual-Labs/data-structures-iiith.git")
     #print c.test_lab("cse08", "http://10.4.14.2/cse08.git")
     #print c.test_lab("ovpl01", "https://github.com/vlead/ovpl")
     #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
