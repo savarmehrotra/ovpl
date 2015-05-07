@@ -7,8 +7,6 @@ __all__ = [
     ]
 
 import re
-import sh
-
 RAM = "256M"
 RAM_MAX = "2048M"
 SWAP = "512M"
@@ -20,24 +18,25 @@ DISK_HARD_MUL = 1.5
 
 def get_ram_swap(ram, swap):
     ram = convert_to_megs(ram)
-    if ram == 0: 
+    if ram == 0:
         ram = convert_to_megs(RAM)
-    elif ram > convert_to_megs(RAM_MAX): 
-        ram = convert_to_megs(RAM_MAX) 
+    elif ram > convert_to_megs(RAM_MAX):
+        ram = convert_to_megs(RAM_MAX)
     ram = str(ram) + "M"
     swap = convert_to_megs(swap)
-    if swap == 0: 
-        swap = convert_to_megs(SWAP) 
-    elif swap > convert_to_megs(SWAP_MAX): 
+    if swap == 0:
+        swap = convert_to_megs(SWAP)
+    elif swap > convert_to_megs(SWAP_MAX):
         swap = convert_to_megs(SWAP_MAX)
     swap = str(swap) + "M"
     return (ram, swap)
 
+
 def get_disk_space(disk_soft):
     disk_soft = convert_to_megs(disk_soft)
-    if disk_soft == 0: 
+    if disk_soft == 0:
         disk_soft = convert_to_megs(DISK_SOFT)
-    elif disk_soft > convert_to_megs(DISK_SOFT_MAX): 
+    elif disk_soft > convert_to_megs(DISK_SOFT_MAX):
         disk_soft = convert_to_megs(DISK_SOFT_MAX)
     disk_soft = int(disk_soft / 1024)       # Converting to Gigs
     disk_hard = disk_soft * DISK_HARD_MUL
@@ -45,12 +44,13 @@ def get_disk_space(disk_soft):
     disk_hard = str(disk_hard) + "G"
     return (disk_soft, disk_hard)
 
+
 def convert_to_megs(value):
     if not value:
         return 0
     value = value.strip()
     m = re.match(r'([0-9]+)\s*([a-zA-Z]+)', value)
-    if m == None:
+    if m is None:
         return 0
     quantity = int(m.group(1))
     unit = m.group(2)
@@ -64,10 +64,12 @@ def convert_to_megs(value):
         return 0
     return quantity
 
+
 def test():
     test_unit_conversion()
     test_ram_swap()
     test_disk_space()
+
 
 def test_ram_swap():
     assert (RAM, SWAP) == get_ram_swap(None, None)
@@ -75,9 +77,11 @@ def test_ram_swap():
     assert ("100M", "150M") == get_ram_swap("100 mb", " 150MB")
     assert (RAM_MAX, SWAP_MAX) == get_ram_swap("100 Gigabytes", "100 gigs")
 
+
 def test_disk_space():
     (disk_soft, disk_hard) = get_disk_space(None)
     assert disk_soft == DISK_SOFT
+
 
 def test_unit_conversion():
     assert convert_to_megs(None) == 0
