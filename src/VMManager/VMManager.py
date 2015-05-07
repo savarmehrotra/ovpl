@@ -10,11 +10,10 @@
 # to do : handle exceptions
 
 import os
-import __init__
 from http_logging.http_logger import logger
 from LabActionRunner import LabActionRunner
 from utils.git_commands import *
-from utils.execute_commands import *
+from utils.execute_commands import execute_command
 
 
 def execute(command):
@@ -71,8 +70,10 @@ def test_lab(lab_src_url, version=None):
         try:
             http_proxy = os.environ["http_proxy"]
             https_proxy = os.environ["https_proxy"]
-            http_cmd = r'echo "Acquire::http::Proxy \"%s\";"%s' % (http_proxy, '>>/etc/apt/apt.conf')
-            https_cmd = r'echo "Acquire::https::Proxy \"%s\";"%s' % (https_proxy, '>>/etc/apt/apt.conf')
+            http_cmd = r'echo "Acquire::http::Proxy \"%s\";"%s'\
+                (http_proxy, '>>/etc/apt/apt.conf')
+            https_cmd = r'echo "Acquire::https::Proxy \"%s\";"%s'\
+                (https_proxy, '>>/etc/apt/apt.conf')
             (ret_code, output) = execute_command(http_cmd)
             (ret_code, output) = execute_command(https_cmd)
         except Exception, e:
