@@ -77,7 +77,7 @@ if __name__ == '__main__':
         action = LabActionScript("ls")
         action.run()
         print action._state
-        assert(action.unsuccessful() == False)
+        assert(action.unsuccessful() is False)
 
     def testEmptyAction():
         try:
@@ -85,12 +85,12 @@ if __name__ == '__main__':
             action.run()
         except EmptyLabActionError:
             pass
-        assert(action.empty() == True)
+        assert(action.empty() is True)
 
     def testGitCloneAction():
         action = LabActionScript("git clone https://bitbucket.org/deviprasad/itworkshop2-spring-2014.git")
         action.run()
-        assert(action.done() == True)
+        assert(action.done() is True)
 
     testInvalidPathPrefix()
     testEmptyAction()
