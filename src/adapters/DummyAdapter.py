@@ -134,12 +134,15 @@ def construct_vzctl_args(lab_specz={}):
         vm_spec = {"lab_ID": lab_spec['lab']['description']['id'],
                    "os": lab_spec['lab']['runtime_requirements']['platform']
                    ['os'],
-                   "os_version": lab_spec['lab']['runtime_requirements']['platform']
-                   ['osVersion'],
-            "ram": lab_spec['lab']['runtime_requirements']['platform']['memory']['min_required'],
-            "diskspace": lab_spec['lab']['runtime_requirements']['platform']['storage']['min_required'],
-            "swap": lab_spec['lab']['runtime_requirements']['platform']['memory']['swap']
-        }
+                   "os_version": lab_spec['lab']['runtime_requirements']
+                   ['platform']['osVersion'],
+                   "ram": lab_spec['lab']['runtime_requirements']['platform']
+                   ['memory']['min_required'],
+                   "diskspace": lab_spec['lab']['runtime_requirements']
+                   ['platform']['storage']['min_required'],
+                   "swap": lab_spec['lab']['runtime_requirements']['platform']
+                   ['memory']['swap']
+                   }
         return vm_spec
 
     vm_spec = get_vm_spec()
@@ -162,7 +165,6 @@ def construct_vzctl_args(lab_specz={}):
     return (vm_create_args, vm_set_args)
 
 
-
 def find_os_template(os, os_version):
     # What to do when request comes for unavailable OS/version?
     os = OS.upper() if os == "" else os.strip().upper()
@@ -183,15 +185,17 @@ def find_os_template(os, os_version):
     else:
         pass
 
+
 def validate_vm_id(vm_id):
     raw_id = str(vm_id).strip()
 
     m = re.match(r'^([0-9]+)$', raw_id)
-    if m == None:
+    if m is None:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be numeric.")
     raw_id = int(m.group(0))
     if raw_id <= 100:
-        raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
+        raise InvalidVMIDException("Invalid VM ID. \
+                                   VM ID must be greater than 100.")
     if raw_id > MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(raw_id)
@@ -202,27 +206,28 @@ def copy_vm_manager_files(vm_id):
     current_file_path = os.path.dirname(os.path.abspath(__file__))
     src_dir = current_file_path + VM_MANAGER_SRC_DIR
     dest_dir = "%s%s%s" % (VM_ROOT_DIR, vm_id, VM_MANAGER_DEST_DIR)
-    logger.debug("copy_vm_manager_files(): dest_dir = %s, src_dir = %s" % (dest_dir, src_dir))
+    logger.debug("copy_vm_manager_files(): dest_dir = %s, src_dir = %s" %
+                 (dest_dir, src_dir))
 
 
-def get_vm_ip( vm_id):
+def get_vm_ip(vm_id):
     vm_id = validate_vm_id(vm_id)
     return IP_ADDRESSES[vm_id]
 
 
 def test():
-    #vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
+    # vm_spec = VMSpec.VMSpec({'lab_ID': 'test99'})
     import json
     lab_spec = json.loads(open("sample_lab_spec.json").read())
     create_vm(lab_spec)
     create_vm(lab_spec, "99100")
-    #create_vm(vm_spec, "99101")
-    #create_vm("99102", vm_spec)
-    #create_vm("99103", vm_spec)
+    # create_vm(vm_spec, "99101")
+    # create_vm("99102", vm_spec)
+    # create_vm("99103", vm_spec)
     destroy_vm("99100")
-    #destroy_vm("99101")
-    #destroy_vm("99102")
-    #destroy_vm("99103")
+    # destroy_vm("99101")
+    # destroy_vm("99102")
+    # destroy_vm("99103")
 
 
 if __name__ == "__main__":
