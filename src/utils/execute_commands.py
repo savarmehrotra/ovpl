@@ -44,7 +44,7 @@ def execute_command(cmd):
 
 if __name__ == '__main__':
     cmd = "git clone " +\
-        "https://github.com/Virtual-Labs/computer-programming-iiith.git " +\
+        "https://github.com/Virtual-Labs/computer-programming-iiith.git " \
         "/root/labs/cse02-programming"
     try:
 
