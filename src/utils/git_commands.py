@@ -4,6 +4,7 @@ from src.http_logging.http_logger import logger
 from src.utils.execute_commands import *
 from src.utils.envsetup import EnvSetUp
 
+
 e = EnvSetUp()
 config_spec = json.loads(open(e.get_ovpl_directory_path() +
                               "/config/config.json").read())

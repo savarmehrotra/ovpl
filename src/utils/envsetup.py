@@ -47,7 +47,6 @@ class EnvSetUp:
         self.no_proxy += "localhost"
 
     def get_proxy_values(self):
-
         self.http_proxy = self.config_spec["ENVIRONMENT"]["HTTP_PROXY"]
         self.https_proxy = self.config_spec["ENVIRONMENT"]["HTTPS_PROXY"]
 

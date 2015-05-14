@@ -10,14 +10,12 @@
 # to do : handle exceptions
 
 import os
-import json
-import time
-
 import __init__
 from src.http_logging.http_logger import logger
 from LabActionRunner import LabActionRunner
 from src.utils.git_commands import *
 from src.utils.execute_commands import *
+
 
 def execute(command):
     # do some validation
@@ -29,25 +27,31 @@ def execute(command):
         logger.error("Execution failed: " + str(e))
         return "Error executing the command: " + str(e)
 
+
 def running_time():
     logger.info("Command executed: uptime")
     return execute("uptime")
+
 
 def mem_usage():
     logger.info("Command executed: free -mg")
     return execute("free -mg")
 
+
 def disk_usage():
     logger.info("Command executed: df -h")
     return execute("df -h")
+
 
 def running_processes():
     logger.info("Command executed: ps -e -o command")
     return execute("ps -e -o command")
 
+
 def cpu_load():
     logger.info("Command executed: ps -e -o pcpu")
     return execute("ps -e -o pcpu | awk '{s+=$1} END {print s\"%\"}'")
+
 
 def test_lab(lab_src_url, version=None):
     # check out the source with version provided
@@ -67,12 +71,13 @@ def test_lab(lab_src_url, version=None):
         try:
             http_proxy = os.environ["http_proxy"]
             https_proxy = os.environ["https_proxy"]
-            http_cmd = r'echo "Acquire::http::Proxy \"%s\";"%s'%(http_proxy, '>>/etc/apt/apt.conf')
-            https_cmd = r'echo "Acquire::https::Proxy \"%s\";"%s'%(https_proxy, '>>/etc/apt/apt.conf')
+            http_cmd = r'echo "Acquire::http::Proxy \"%s\";"%s' % (http_proxy, '>>/etc/apt/apt.conf')
+            https_cmd = r'echo "Acquire::https::Proxy \"%s\";"%s' % (https_proxy, '>>/etc/apt/apt.conf')
             (ret_code, output) = execute_command(http_cmd)
             (ret_code, output) = execute_command(https_cmd)
         except Exception, e:
-            logger.error("Writing to /etc/apt/apt.conf failed with error: %s" % (str(e)))
+            logger.error("Writing to /etc/apt/apt.conf failed with error: %s"
+                         % (str(e)))
             raise e
 
     def get_build_steps_spec(lab_spec):
@@ -89,11 +94,10 @@ def test_lab(lab_src_url, version=None):
 
     logger.info("Starting test_lab")
 
-
     try:
         fill_aptconf()
         repo_name = construct_repo_name(lab_src_url)
-        lab_spec = get_lab_spec(repo_name)    
+        lab_spec = get_lab_spec(repo_name)
         spec_path = get_spec_path(repo_name)
         logger.debug("spec_path: %s" % spec_path)
         os.chdir(spec_path)

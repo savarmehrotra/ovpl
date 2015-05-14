@@ -10,11 +10,14 @@ from utils.envsetup import EnvSetUp
 
 e = EnvSetUp()
 used_loggers = {}
-config_spec = json.loads(open(e.get_ovpl_directory_path() + "/config/config.json").read())
+config_spec = json.loads(open
+                         (e.get_ovpl_directory_path() +
+                          "/config/config.json").read())
 FILE_PATH = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["FILE_PATH"]
 
 if not os.path.isdir(FILE_PATH):
     os.mkdir(FILE_PATH)
+
 
 def get_logger(name):
     """Returns logger object"""
@@ -59,6 +62,3 @@ def log(arguments):
     record = logger.makeRecord(name, levelname, funcName, lineno,
                                fmt_string, record_format_args, None)
     logger.handle(record)
-
-
-

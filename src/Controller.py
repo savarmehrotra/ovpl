@@ -4,8 +4,8 @@ Controller interfaces with LabManager and VMPoolManager.
 
 """
 
-from datetime import datetime
 
+from datetime import datetime
 import LabManager
 import VMPoolManager
 from State import State

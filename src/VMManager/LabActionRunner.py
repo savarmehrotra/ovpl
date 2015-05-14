@@ -5,7 +5,7 @@ from LabActionScript import LabActionScript
 
 class LabActionRunner:
     """
-    
+
     An 'action' is an abstract operation in the life cycle of a lab.
     Each action consists of one or more 'step's.
     Each step involves the execution of zero or more 'scripts'.
@@ -29,17 +29,17 @@ class LabActionRunner:
             script.run()
             if script.unsuccessful():
                 raise Exception("Script " + a + " failed")
-    
+
     def _run_action_(self, action_id):
     	if not self._actions is None and self._actions.has_key(action_id):
     	    self._run_(self._actions[action_id]) # array of scripts to run wrt this action
-    
+
     # actions that build lab source code within a VM.
     # checkout, install dependencies, configure and build the lab sources.
     def run_install_source(self):
         if not self._actions is None and self._actions.has_key(LabActionScript.INSTALL_SCRIPT_KEY):
             self._run_(self._actions[LabActionScript.INSTALL_SCRIPT_KEY])
-    
+
     def run_build_steps(self):
     	if self._actions is None or not self._actions.has_key(LabActionScript.ACTION_BUILD_KEY):
     		return 0
@@ -49,17 +49,17 @@ class LabActionRunner:
             logger.info("Configuring the lab...")
             if steps.has_key(LabActionScript.CONFIGURE_SCRIPT_KEY):
     	        self._run_(steps[LabActionScript.CONFIGURE_SCRIPT_KEY])
-        
+
         def pre_build(steps):
             logger.info("Running the pre-build scripts...")
             if steps.has_key(LabActionScript.PRE_BUILD_SCRIPT_KEY):
     	        self._run_(steps[LabActionScript.PRE_BUILD_SCRIPT_KEY])
-        
+
         def build(steps):
             logger.info("Running the build scripts...")
             if steps.has_key(LabActionScript.BUILD_SCRIPT_KEY):
     	        self._run_(steps[LabActionScript.BUILD_SCRIPT_KEY])
-        
+
         def post_build(steps):
             logger.info("Running the post-build scripts...")
             if steps.has_key(LabActionScript.POST_BUILD_SCRIPT_KEY):
@@ -70,7 +70,7 @@ class LabActionRunner:
             if steps.has_key(LabActionScript.CHECK_STATUS_SCRIPT_KEY):
     	        return self._run_(steps[LabActionScript.CHECK_STATUS_SCRIPT_KEY])
             return 0
-        
+
         configure(build_steps)
         pre_build(build_steps)
         build(build_steps)
@@ -93,7 +93,7 @@ class LabActionRunner:
     def run_clean_lab(self):
         logger.debug("LabActionRunner::run_clean_lab()")
     	self._run_action_(LabActionScript.CLEAN_SCRIPT_KEY)
-    
+
     def run_backup_lab(self):
         logger.debug("LabActionRunner::run_backup_lab()")
     	self._run_action_(LabActionScript.BACKUP_SCRIPT_KEY)
@@ -114,17 +114,17 @@ if __name__ == '__main__':
 	        lar = LabActionRunner(json.loads(init_action_spec), "")
 	        #lar.display()
 	        lar.run_init_lab()
-	        
+
 	    def testEmptyBuildActions():
 	    	build_steps_spec = '{}'
 	    	lar = LabActionRunner(json.loads(build_steps_spec), "")
 	        lar.run_build_steps()
-	    
+
 	    def testEmptyBuildStepActions():
 	    	build_steps_spec = '{"build_steps": {}}'
 	    	lar = LabActionRunner(json.loads(build_steps_spec), "")
 	        lar.run_build_steps()
-	    
+
 	    def testEmptyConfigureBuildStepActions():
 	    	build_steps_spec = '{"build_steps": {"configure": []}}'
 	    	lar = LabActionRunner(json.loads(build_steps_spec), "")
