@@ -82,8 +82,7 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
 
     try:
-        config_spec = json.loads(open(e.get_ovpl_directory_path() +
-                                      "/config/config.json").read())
+        config_spec = e.get_config_spec()
     except IOError as e:
         logger.error("unable to load config.json. Exception: " + str(e))
         raise e

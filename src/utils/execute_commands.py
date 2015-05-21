@@ -1,9 +1,7 @@
-# import os
 import subprocess
-# import json
-from src.http_logging.http_logger import logger
-from src.utils.envsetup import EnvSetUp
+from src.httplogging.http_logger import logger
 
+__all__ = ['execute_command']
 
 # Backporting check_output from 2.7 to 2.6
 if "check_output" not in dir(subprocess):
@@ -12,7 +10,8 @@ if "check_output" not in dir(subprocess):
             raise ValueError(
                 'stdout argument not allowed, it will be overridden'
             )
-        process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+        process = subprocess.Popen(stdout=subprocess.PIPE,
+                                   *popenargs, **kwargs)
         output, unused_err = process.communicate()
         retcode = process.poll()
         if retcode:
@@ -25,7 +24,6 @@ if "check_output" not in dir(subprocess):
 
 
 def execute_command(cmd):
-    EnvSetUp()
     logger.debug("command: %s" % cmd)
     return_code = -1
     output = None
@@ -47,7 +45,6 @@ if __name__ == '__main__':
         "https://github.com/Virtual-Labs/computer-programming-iiith.git " \
         "/root/labs/cse02-programming"
     try:
-
         execute_command(cmd)
     except Exception, e:
         logger.error("command execution failed: %s" % str(e))
