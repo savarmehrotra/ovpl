@@ -1,23 +1,21 @@
 class BaseAdapter:
-	def create_vm(lab_spec):
-		raise Exception("BaseAdapter: unimplemented create_vm()")
+    def create_vm(lab_spec):
+        raise Exception("BaseAdapter: unimplemented create_vm()")
 
-	def init_vm(vm_id, lab_repo_name):
-		raise Exception("BaseAdapter: unimplemented init_()")
-		return (False, "unimplemented") #success status, response string
+    def init_vm(vm_id, lab_repo_name):
+        raise Exception("BaseAdapter: unimplemented init_()")
+        # success status, response string
+        return (False, "unimplemented")
 
 
 import netaddr
 import sh
-import json
-
 import settings
-from http_logging.http_logger import logger
-from utils.envsetup import EnvSetUp
 
 
 def find_available_ip():
-    #try and ping. if the IP does not respond, (gives wrong return code) return the IP as free
+    # try and ping. if the IP does not respond, (gives wrong return code)
+    # return the IP as free
     def is_ip_free(ip):
         try:
             sh.ping(str(ip), c=1)
@@ -27,13 +25,13 @@ def find_available_ip():
         return False
 
     def is_ip_usable(ip):
-            #reject IP's like  192.0.2.0 or 192.0.2.255 for subnet 192.0.2.0/24
+            # reject IP's like  192.0.2.0 or 192.0.2.255 for subnet 192.0.2.0/24
             return not (ip == ip_network.network or ip == ip_network.broadcast)
 
     for subnet in settings.get_subnet():
         ip_network = netaddr.IPNetwork(subnet)
         ip_addrs = list(ip_network)
-        #logger.debug("ip addresses: %s" % str(ip_addrs))
+        # logger.debug("ip addresses: %s" % str(ip_addrs))
         for ip in ip_addrs:
             if is_ip_usable(ip) and is_ip_free(ip):
                 return str(ip)

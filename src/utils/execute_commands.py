@@ -9,7 +9,9 @@ from utils.envsetup import EnvSetUp
 if "check_output" not in dir(subprocess):
     def f(*popenargs, **kwargs):
         if 'stdout' in kwargs:
-            raise ValueError('stdout argument not allowed, it will be overridden')
+            raise ValueError(
+                'stdout argument not allowed, it will be overridden'
+            )
         process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
         output, unused_err = process.communicate()
         retcode = process.poll()
@@ -23,7 +25,7 @@ if "check_output" not in dir(subprocess):
 
 
 def execute_command(cmd):
-    e = EnvSetUp()
+    EnvSetUp()
     logger.debug("command: %s" % cmd)
     return_code = -1
     output = None
@@ -42,7 +44,7 @@ def execute_command(cmd):
 
 if __name__ == '__main__':
     cmd = "git clone " +\
-        "https://github.com/Virtual-Labs/computer-programming-iiith.git " +\
+        "https://github.com/Virtual-Labs/computer-programming-iiith.git " \
         "/root/labs/cse02-programming"
     try:
 

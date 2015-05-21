@@ -95,7 +95,11 @@ class AWSAdapter(object):
         self.connection = self.create_connection()
 
     def create_connection(self):
-        return ec2.connect_to_region(self.region, **self.credentials)
+        # When keys are absent, it implies, the adapter uses IAM role.
+        if self.credentials["aws_access_key_id"]:
+            return ec2.connect_to_region(self.region, **self.credentials)
+        else:
+            return ec2.connect_to_region(self.region)
 
     def create_vm(self, lab_spec, dry_run=False):
         logger.debug("AWSAdapter: create_vm()")
