@@ -97,3 +97,10 @@
   ADS ::
    + creates a container within this bridged network and 
    + deploys lab on this newly created container.
+
+** Release v1.1.0
+   This release is about:
+   + providing support for life cycle management of ADS.
+   + and enhancing the ability of ADS to deploy a lab when IAM role is
+     associated with the machine running ADS services.
+
