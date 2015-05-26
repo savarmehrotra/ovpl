@@ -353,7 +353,7 @@ def construct_vzctl_args(lab_specz={}):
 
     # get the vm specs from the lab spec
     vm_spec = self.get_vm_spec(lab_specz)
-    ami_id = self.find_os_template(vm_spec["os"], vm_spec["os_version"])
+    template = self.find_os_template(vm_spec["os"], vm_spec["os_version"])
 
     def get_vm_spec():
 	""" Parse out VM related requirements from a given lab_spec """
@@ -400,7 +400,7 @@ def find_os_template(os, os_version):
     #print supported_template
 
     if os == "" or os_version == "":
-        raise OSNotFound('No os or version specified')
+        raise OSNotFound('No OS or Version specified')
 
     # sanitize input
     os = os.strip().upper()
@@ -420,14 +420,14 @@ def find_os_template(os, os_version):
     chosen_template = filter(lambda x: x['version'] == os_version, filtered_os)
     #print chosen_template
 
-    if not chosen_ami or not len(chosen_template):
+    if not chosen_template or not len(chosen_template):
         raise OSNotFound('No corresponding template for the given OS found')
 
     # chose the item; there should be only one.
     chosen_template = chosen_template[0]
 
     logger.debug("Choosing Template: %s; based on input OS: %s, version: %s" %
-                 (chosen_ami, os, os_version))
+                 (chosen_template, os, os_version))
     return chosen_template['template']
 
 
