@@ -421,7 +421,7 @@ def find_os_template(os, os_version):
     #print chosen_template
 
     if not chosen_ami or not len(chosen_template):
-        raise AMINotFound('No corresponding template for the given OS found')
+        raise OSNotFound('No corresponding template for the given OS found')
 
     # chose the item; there should be only one.
     chosen_template = chosen_template[0]
