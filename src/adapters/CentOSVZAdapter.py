@@ -353,7 +353,7 @@ def construct_vzctl_args(lab_specz={}):
 
     # get the vm specs from the lab spec
     vm_spec = self.get_vm_spec(lab_specz)
-    ami_id = self._find_ec2_ami(vm_spec["os"], vm_spec["os_version"])
+    ami_id = self.find_os_template(vm_spec["os"], vm_spec["os_version"])
 
     def get_vm_spec():
 	""" Parse out VM related requirements from a given lab_spec """
@@ -371,7 +371,7 @@ def construct_vzctl_args(lab_specz={}):
     vm_spec = get_vm_spec()
     lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
     host_name = lab_ID + "." + settings.get_adapter_hostname()
-    ip_address = BaseAdapter.find_available_ip()
+    #ip_address = BaseAdapter.find_available_ip()
     os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
     (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
     (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
