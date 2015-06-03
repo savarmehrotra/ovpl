@@ -352,9 +352,6 @@ def construct_vzctl_args(lab_specz={}):
     """ Returns a tuple of vzctl create arguments and set arguments """
 
     # get the vm specs from the lab spec
-    vm_spec = self.get_vm_spec(lab_specz)
-    template = self.find_os_template(vm_spec["os"], vm_spec["os_version"])
-
     def get_vm_spec():
 	""" Parse out VM related requirements from a given lab_spec """
 
