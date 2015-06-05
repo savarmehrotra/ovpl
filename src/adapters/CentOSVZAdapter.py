@@ -26,6 +26,8 @@ __all__ = [
 
 # Standard Library imports
 import re
+import os
+import json
 from exceptions import Exception
 
 # Third party imports
@@ -33,6 +35,8 @@ from exceptions import Exception
 # VLEAD imports
 import VMUtils
 from dict2default import dict2default
+import centosvz_config as config
+
 import settings
 import BaseAdapter
 from http_logging.http_logger import logger
@@ -52,6 +56,12 @@ class InvalidVMIDException(Exception):
     def __init__(msg):
         Exception.__init__(msg)
 
+class OSNotFound(Exception):
+    """
+    use this exception class to raise an exception when a suitable OS is not
+    found
+    """
+    pass
 
 class CentOSVZAdapter(object):
 
@@ -342,7 +352,10 @@ def get_vm_ip(vm_id):
 def construct_vzctl_args(lab_specz={}):
     """ Returns a tuple of vzctl create arguments and set arguments """
 
+    # get the vm specs from the lab spec
     def get_vm_spec():
+	""" Parse out VM related requirements from a given lab_spec """
+
         lab_spec = dict2default(lab_specz)
         vm_spec = {"lab_ID": lab_spec['lab']['description']['id'],
             "os": lab_spec['lab']['runtime_requirements']['platform']['os'],
@@ -374,24 +387,46 @@ def construct_vzctl_args(lab_specz={}):
 
 
 def find_os_template(os, os_version):
-    # What to do when request comes for unavailable OS/version?
-    os = OS.upper() if os == "" else os.strip().upper()
-    os_version = OS_VERSION if os_version == "" else os_version.strip()
-    if os == "UBUNTU":
-        if os_version == "12.04" or os_version == "12":
-            return "ubuntu-12.04-custom-x86_64"
-        elif os_version == "11.10" or os_version == "11":
-            return "ubuntu-11.10-x86_64"
-    elif os == "CENTOS":
-        if os_version == "6.3":
-            return "centos-6.3-x86_64"
-        elif os_version == "6.2":
-            return "centos-6.2-x86_64"
-    elif os == "DEBIAN":
-        if os_version == "6.0" or os_version == "6":
-            return "debian-6.0-x86_64"
-    else:
-        pass
+    """
+    Find a suitable os template from the list of supported templates from the given OS
+    and OS version. If not a suitable OS is found, raise appropriate
+    Exception
+    """
+    #print os
+    #print os_version
+    supported_template = config.supported_template
+    #print supported_template
+
+    if os == "" or os_version == "":
+        raise OSNotFound('No OS or Version specified')
+
+    # sanitize input
+    os = os.strip().upper()
+    os_version = os_version.strip()
+
+    if os == 'UBUNTU' and os_version == '12':
+        os_version = '12.04'
+
+    if os == 'UBUNTU' and os_version == '13':
+        os_version = '13.04'
+
+
+    # filter the supported_amis list by the os and the by the version
+    filtered_os = filter(lambda x: x['os'] == os, supported_template)
+    #print filtered_os
+    #print os_version
+    chosen_template = filter(lambda x: x['version'] == os_version, filtered_os)
+    #print chosen_template
+
+    if not chosen_template or not len(chosen_template):
+        raise OSNotFound('No corresponding template for the given OS found')
+
+    # chose the item; there should be only one.
+    chosen_template = chosen_template[0]
+
+    logger.debug("Choosing Template: %s; based on input OS: %s, version: %s" %
+                 (chosen_template, os, os_version))
+    return chosen_template['template']
 
 
 def validate_vm_id(vm_id):
