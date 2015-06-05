@@ -369,7 +369,7 @@ def construct_vzctl_args(lab_specz={}):
     vm_spec = get_vm_spec()
     lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
     host_name = lab_ID + "." + settings.get_adapter_hostname()
-    #ip_address = BaseAdapter.find_available_ip()
+    ip_address = BaseAdapter.find_available_ip()
     os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
     (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
     (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
@@ -429,7 +429,7 @@ def find_os_template(os, os_version):
     return chosen_template['template']
 
 
-def vadate_vm_id(vm_id):
+def validate_vm_id(vm_id):
     vm_id = str(vm_id).strip()
     m = re.match(r'^([0-9]+)$', vm_id)
     if m is None:
