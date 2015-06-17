@@ -1,8 +1,9 @@
 import os
 import sys
+print sys.path
 import json
-from src.adapters.settings import get_subnet
-from src.singleton import Singleton
+from adapters.settings import get_subnet
+from singleton import Singleton
 
 
 @Singleton
