@@ -68,6 +68,17 @@
    
 ** Platform for Continuous Delivery
 
+** Lab ID
+The key for the record that is saved into DB during deployment of a lab is
+lab_id.  The values used for lab_id are alphanumeric e.g cse02, and are
+provided by the lab deployer to deploy a lab.  lab_id is solely used to
+uniquely identify a record that is saved during deployment of lab in a database
+by ADS; essentially used for book keeping by the ADS.  
+
+In any situation, the user of ADS should not be burdened with providing a key.
+Instead, the generation should be the responsibility of ADS in such a way that
+a lab is always identified uniquely at any time.
+ssssss
 * Releases
 ** Release v1.0.2 
    + Assumptions :: Both the containers, one hosting ADS services and the other

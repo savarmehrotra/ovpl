@@ -3,9 +3,10 @@ import requests
 import time
 import math
 
-from src.httplogging.http_logger import logger
-from src.utils.envsetup import EnvSetUp
-from src.utils.git_commands import GitCommands
+from __init__ import *
+from httplogging.http_logger import logger
+from utils.envsetup import EnvSetUp
+from utils.git_commands import GitCommands
 
 
 class LabManager:

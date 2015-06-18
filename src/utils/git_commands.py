@@ -1,8 +1,9 @@
 import os
 import json
-from src.httplogging.http_logger import logger
-from src.utils.execute_commands import execute_command
-from src.utils.envsetup import EnvSetUp
+from __init__ import *
+from httplogging.http_logger import logger
+from utils.execute_commands import execute_command
+from utils.envsetup import EnvSetUp
 
 
 class LabSpecInvalid(Exception):

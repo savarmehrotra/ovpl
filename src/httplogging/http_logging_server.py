@@ -12,8 +12,8 @@ import tornado.options
 import tornado.httpserver
 from tornado.options import define, options
 
-
-from src.utils.envsetup import EnvSetUp
+from __init__ import *
+from utils.envsetup import EnvSetUp
 import helper
 
 define("port", default=8239, help="run on the given port", type=int)

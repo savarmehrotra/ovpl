@@ -1,5 +1,6 @@
 import subprocess
-from src.httplogging.http_logger import logger
+from __init__ import *
+from httplogging.http_logger import logger
 
 __all__ = ['execute_command']
 
@@ -41,10 +42,15 @@ def execute_command(cmd):
 
 
 if __name__ == '__main__':
+    '''
     cmd = "git clone " +\
         "https://github.com/Virtual-Labs/computer-programming-iiith.git " \
         "/root/labs/cse02-programming"
+   '''
+    cmd = "ls -la"
+
     try:
-        execute_command(cmd)
+        (ret_code, output) = execute_command(cmd)
+        logger.debug("output = %s" % output)
     except Exception, e:
         logger.error("command execution failed: %s" % str(e))

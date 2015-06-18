@@ -6,11 +6,12 @@ Controller interfaces with LabManager and VMPoolManager.
 
 
 from datetime import datetime
+from __init__ import *
 from lab_manager import LabManager
 from vm_pool_manager import VMPoolManager
-from State import State
-from src.http_logging.http_logger import logger
-from src.utils import git_commands
+from state import State
+from http_logging.http_logger import logger
+from utils import git_commands
 
 
 class Controller:

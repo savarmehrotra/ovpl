@@ -4,34 +4,39 @@ and decide which VMPool to use for creating a VM.
 """
 import json
 import os.path
+from __init__ import *
 import VMPool
+from state import State
 from http_logging.http_logger import logger
-from State import State
 from utils.envsetup import EnvSetUp
 
 
 class VMPoolManager:
+    state = None
+    VMPools = None
+    env = None
+    config_spec = None
+    create_url = None
+    destroy_url = None
 
     def __init__(self):
         """ State should be rewriten"""
         logger.debug("VMPoolManager: _init_()")
-        self.system = State.Instance()
-
+        self.state = State.Instance()
         self.VMPools = []
-        e = EnvSetUp()
-        config_spec = e.get_config_spec()
-        pools = config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"]
-        create_uri = config_spec["API_ENDPOINTS"]["CREATE_URI_ADAPTER_ENDPOINT"]
-        destroy_uri = config_spec["API_ENDPOINTS"]
-        ["DESTROY_URI_ADAPTER_ENDPOINT"]
+        self.env = EnvSetUp()
+        self.config_spec = env.get_config_spec()
+        self.pools = config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"]
+        self.create_uri = config_spec["API_ENDPOINTS"]["CREATE_URI_ADAPTER_ENDPOINT"]
+        self.destroy_uri = config_spec["API_ENDPOINTS"]["DESTROY_URI_ADAPTER_ENDPOINT"]
 
         for pool in pools:
-            self.add_vm_pool(pool["POOLID"],
-                             pool["DESCRIPTION"],
-                             pool["ADAPTERIP"],
-                             pool["PORT"],
-                             create_uri,
-                             destroy_uri)
+            self.add_vm_pool(self.pool["POOLID"],
+                             self.pool["DESCRIPTION"],
+                             self.pool["ADAPTERIP"],
+                             self.pool["PORT"],
+                             self.create_uri,
+                             self.destroy_uri)
 
         logger.debug("VMPoolManager: _init_();  vm_pools = %s" %
                      (str(self.VMPools)))
@@ -56,7 +61,7 @@ class VMPoolManager:
         logger.debug("VMPoolManager: get_available_pool()")
         if self.is_lab_static(lab_spec):
             return self.VMPools[1]
-        elif self.lab_on_windows(lab_spec):
+        elif self.is_lab_on_windows(lab_spec):
             return self.VMPools[2]
         else:
             return self.VMPools[0]
@@ -64,7 +69,7 @@ class VMPoolManager:
     def is_lab_static(self, lab_spec):
         return False
 
-    def lab_on_windows(self, lab_spec):
+    def is_lab_on_windows(self, lab_spec):
         return False
 
     def create_vm(self, lab_spec):

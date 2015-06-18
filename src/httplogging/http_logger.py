@@ -1,8 +1,9 @@
 import os
 import os.path
 import logging
+from __init__ import *
 from logging.handlers import HTTPHandler
-from src.utils.envsetup import EnvSetUp
+from utils.envsetup import EnvSetUp
 
 
 def __create_logger(name):

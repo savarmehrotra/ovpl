@@ -4,8 +4,8 @@ import logging.handlers
 
 # other impors
 import os
-
-from src.utils.envsetup import EnvSetUp
+from __init__ import *
+from utils.envsetup import EnvSetUp
 
 env = EnvSetUp.Instance()
 used_loggers = {}

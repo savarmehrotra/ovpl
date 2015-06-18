@@ -1,7 +1,7 @@
 import os
 import sys
-print sys.path
 import json
+from __init__ import *
 from adapters.settings import get_subnet
 from singleton import Singleton
 
@@ -33,7 +33,8 @@ class EnvSetUp:
                                              "/config/config.json").read())
 
     def setup_pythonpath(self):
-        sys.path.append(self.__ovpl_directroy_path)
+        if self.__ovpl_directroy_path not in sys.path:
+            sys.path.append(self.__ovpl_directroy_path)
 
     def create_no_proxy_string(self):
 

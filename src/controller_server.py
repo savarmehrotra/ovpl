@@ -23,9 +23,10 @@ import tornado.web
 from tornado.options import define, options
 
 # ADS imports
-from src.http_logging.http_logger import logger
-from src.utils.envsetup import EnvSetUp
-from src.controller import Controller
+from __init__ import *
+from http_logging.http_logger import logger
+from utils.envsetup import EnvSetUp
+from controller import Controller
 from config import authorized_users
 
 

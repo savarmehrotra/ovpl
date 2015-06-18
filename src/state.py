@@ -1,5 +1,6 @@
 import pymongo
-from src.singleton import Singleton
+from __init__ import *
+from singleton import Singleton
 
 
 @Singleton
@@ -13,3 +14,5 @@ class State:
         """Writes the information about the deployed lab to the database"""
         if "ovpl" in self.db.collection_names():
             self.db.ovpl.insert(record)
+
+    def get_record(self):
