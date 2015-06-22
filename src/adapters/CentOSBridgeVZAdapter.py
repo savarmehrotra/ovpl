@@ -82,12 +82,12 @@ class CentOSBridgeVZAdapter(object):
         except Exception, e:
             logger.error("ERROR = %s" % str(e))
 
-        textToSearch = 'x.x.x.x'
-        textToReplace = IP_ADDRESS
-        fileToSearch  = dest_dirc
-        fd = open( fileToSearch, 'r+' )
-        for line in fileinput.input( fileToSearch ):
-            fd.write( line.replace( textToSearch, textToReplace ) )
+        text_to_search = 'x.x.x.x'
+        text_to_replace = IP_ADDRESS
+        file_to_search  = dest_dirc
+        fd = open( file_to_search, 'r+' )
+        for line in fileinput.input( file_to_search ):
+            fd.write( line.replace( text_to_search, text_to_replace ) )
         fd.close()
         src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + "/root/ovpl/src/adapters/interfaces"
         dest_dir = "/vz/private/" + vm_id + "/etc/network/interfaces"
