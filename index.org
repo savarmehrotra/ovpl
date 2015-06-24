@@ -78,8 +78,16 @@ by ADS; essentially used for book keeping by the ADS.
 In any situation, the user of ADS should not be burdened with providing a key.
 Instead, the generation should be the responsibility of ADS in such a way that
 a lab is always identified uniquely at any time.
-ssssss
+
+
 * Releases
+** Conventions followed with the github issue tracker
+  + Done :: An issue is in done state when code review is completed, tested and
+            the branch in which this issue is addressed at the same level as
+            develop branch.
+  + Released :: The issue is in production or pushed to master branch and
+                tagged.
+
 ** Release v1.0.2 
    + Assumptions :: Both the containers, one hosting ADS services and the other
                     on which lab is deployed are created on a host machine
@@ -108,3 +116,17 @@ ssssss
   ADS ::
    + creates a container within this bridged network and 
    + deploys lab on this newly created container.
+
+** Release v1.0.5
+   Issues: 50, 49, 58, 44, 64, 57, 56, 37, 64, 65
+   release date : [2015-06-30 Tue]
+   
+** Release V1.1.0
+   Issues: 53, 48
+   release date: [2015-07-03 Fri]
+
+** release v1.1.1
+   Issues: 43, 41, 42, 46, 4, 3, 29
+
+** release v1.2.0
+   Issues: 54

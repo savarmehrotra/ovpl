@@ -8,16 +8,18 @@
 
 import json
 import urlparse
-import __init__
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
 from tornado.options import define, options
-from http_logging.http_logger import logger
+
+from __init__ import *
+from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
 
 define("port", default=8000, help="run on the given port", type=int)
+
 
 
 class CreateVMHandler(tornado.web.RequestHandler):
@@ -77,12 +79,12 @@ class RestartVMHandler(tornado.web.RequestHandler):
 
 if __name__ == "__main__":
 
-    e = EnvSetUp()
+    env = EnvSetUp.Instance()
     logger.debug("__main__()")
     tornado.options.parse_command_line()
 
     try:
-        config_spec = e.get_config_spec()
+        config_spec = env.get_config_spec()
     except IOError as e:
         logger.error("unable to load config.json. Exception: " + str(e))
         raise e

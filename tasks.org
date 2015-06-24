@@ -1,0 +1,7 @@
+* Tasks
+  1. ADAPTER should be part of the POOL, a pool should identify should contain what are all
+     the adpaters available in the pool". 
+     Currently, ADAPTER key is outside this. 
+
+
+

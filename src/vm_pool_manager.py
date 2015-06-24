@@ -1,14 +1,21 @@
 """
-VMPoolManager manages a set of VMPools i.e. maintain a list of available VMPools
+VMPoolManager manages a set of VMPools i.e.
+maintain a list of available VMPools
 and decide which VMPool to use for creating a VM.
 """
-import json
-import os.path
 from __init__ import *
-import VMPool
+from vm_pool import VMPool
 from state import State
-from http_logging.http_logger import logger
+from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
+
+
+class RecordNotFoundError(Exception):
+    def __init__(self, lab_id):
+        self.lab_id = lab_id
+
+    def __str__(self):
+        return repr(self.lab_id)
 
 
 class VMPoolManager:
@@ -23,32 +30,30 @@ class VMPoolManager:
         """ State should be rewriten"""
         logger.debug("VMPoolManager: _init_()")
         self.state = State.Instance()
-        self.VMPools = []
-        self.env = EnvSetUp()
-        self.config_spec = env.get_config_spec()
-        self.pools = config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"]
-        self.create_uri = config_spec["API_ENDPOINTS"]["CREATE_URI_ADAPTER_ENDPOINT"]
-        self.destroy_uri = config_spec["API_ENDPOINTS"]["DESTROY_URI_ADAPTER_ENDPOINT"]
+        self.vmPools = []
+        self.env = EnvSetUp.Instance()
+        self.config_spec = self.env.get_config_spec()
+        self.pools = self.config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"]
+        self.create_uri = self.config_spec["API_ENDPOINTS"]["CREATE_URI_ADAPTER_ENDPOINT"]
+        self.destroy_uri = self.config_spec["API_ENDPOINTS"]["DESTROY_URI_ADAPTER_ENDPOINT"]
 
-        for pool in pools:
-            self.add_vm_pool(self.pool["POOLID"],
-                             self.pool["DESCRIPTION"],
-                             self.pool["ADAPTERIP"],
-                             self.pool["PORT"],
+        for pool in self.pools:
+            self.add_vm_pool(pool["POOLID"],
+                             pool["DESCRIPTION"],
+                             pool["ADAPTERIP"],
+                             pool["PORT"],
                              self.create_uri,
                              self.destroy_uri)
-
-        logger.debug("VMPoolManager: _init_();  vm_pools = %s" %
-                     (str(self.VMPools)))
+        logger.debug("VMPoolManager: _init_();  vm_pools = %s" % (str(self.vmPools)))
 
     def add_vm_pool(self, vm_pool_id, vm_description, adapter_ip,
                     adapter_port, create_path, destroy_path):
         logger.debug("VMPoolManager: add_vm_pool(); %s, %s, %s, %s, %s, %s" %
                      (vm_pool_id, vm_description, adapter_ip,
                       adapter_port, create_path, destroy_path))
-        self.VMPools.append(VMPool.VMPool(vm_pool_id, vm_description,
-                                          adapter_ip, adapter_port,
-                                          create_path, destroy_path))
+        self.vmPools.append(VMPool(vm_pool_id, vm_description,
+                            adapter_ip, adapter_port,
+                            create_path, destroy_path))
 
     def get_available_pool(self, lab_spec):
         """Imagining four VMPools:
@@ -84,6 +89,25 @@ class VMPoolManager:
             self.VMPools[pool_id].undeploy_lab(lab_id)
 
     def get_used_pools(self, lab_id):
+        used_pools = []
         logger.debug("VMPoolManager: get_used_pools()")
-        return [d['vmpool_info']['vmpool_id'] for d in self.system.state
-                if d['lab_spec']['lab_id'] == lab_id]
+        deployment_record = self.state.get_record(lab_id)
+        logger.debug("Deployment Record = %s" % deployment_record)
+        if deployment_record is not None:
+            # Currently there is only pool where the lab is deployed
+            used_pools.append(deployment_record['vmpool_info']['vmpool_id'])
+            return used_pools
+        else:
+            logger.error("No record found with the lab id = %s" % lab_id)
+            raise RecordNotFoundError(lab_id)
+
+
+if __name__ == '__main__':
+    vmPoolMgr = VMPoolManager()
+    used_pools = None
+    try:
+        used_pools = vmPoolMgr.get_used_pools('cse044')
+    except Exception, e:
+        logger.debug("No record found with lab_id = %s" % e.lab_id)
+
+    print used_pools

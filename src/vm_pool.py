@@ -14,16 +14,21 @@ __all__ = [
 import json
 import requests
 from exceptions import Exception
-from http_logging.http_logger import logger
-from State import State
-
-# Globals
-CREATE_PATH = "/api/1.0/vm/create"
-DESTROY_PATH = "/api/1.0/vm/destroy"
+from __init__ import *
+from httplogging.http_logger import logger
+from state import State
 
 
 class VMPool:
     """ Manages a pool of VMs or VMProxy's """
+
+    state = None
+    vmpool_id = None
+    vm_description = None
+    adapter_ip = None
+    adapter_port = None
+    create_path = None
+    destroy_path = None
 
     def __init__(self, vmpool_id, vm_description, adapter_ip, adapter_port,
                  create_path, destroy_path):
@@ -34,7 +39,7 @@ class VMPool:
                                          adapter_ip, adapter_port,
                                          create_path, destroy_path))
 
-        self.system = State.Instance()
+        self.state = State.Instance()
         # self.vms = []       # List of VMProxy objects
         self.vmpool_id = vmpool_id
         self.vm_description = vm_description
@@ -125,34 +130,6 @@ class VMPool:
                 logger.error("Error destroying vm: " + result.text)
         except Exception, e:
             logger.error("Error communicating with adapter: " + str(e))
-
-    def save_state(self, lab_id, vm_id):
-        for r in self.system.state:
-            if (r['lab_spec']['lab_id'] == lab_id and
-               r['vm_info']['vm_id'] == vm_id and
-               r['vmpool_info']['vmpool_id'] == self.vmpool_id):
-                self.system.state.remove(r)
-                self.system.save()
-                break
-
-    def destroy_and_save(self, lab_id, vm_id):
-        if self.destroy_vm(vm_id):
-            self.save_state(lab_id, vm_id)
-
-    def undeploy_lab(self, lab_id):
-        logger.debug("VMPool.undeploy_lab()")
-        map(lambda vm_id: self.destroy_and_save(lab_id, vm_id),
-            self.dedicated_vms(lab_id))
-
-    def dedicated_vms(self, lab_id):
-        this_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state
-                            if r['lab_spec']['lab_id'] == lab_id and
-                            r['vmpool_info']['vmpool_id'] == self.vmpool_id])
-        other_lab_vms = set([r['vm_info']['vm_id'] for r in self.system.state
-                             if r['lab_spec']['lab_id'] != lab_id and
-                             r['vmpool_info']['vmpool_id'] == self.vmpool_id])
-        return list(this_lab_vms - other_lab_vms)
-
 
 if __name__ == "__main__":
     pool = VMPool("http://10.4.12.24", "8000")

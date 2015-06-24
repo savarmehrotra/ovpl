@@ -31,13 +31,13 @@ from exceptions import Exception
 # Third party imports
 
 # VLEAD imports
-import VMUtils
+from __init__ import *
+import vm_utils
 from dict2default import dict2default
 import settings
-import BaseAdapter
-from http_logging.http_logger import logger
-from utils.git_commands import *
-from utils.execute_commands import *
+from base_adapter import find_available_ip
+from httplogging.http_logger import logger
+from utils.execute_commands import execute_command
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"
@@ -61,7 +61,7 @@ class CentOSVZAdapter(object):
         segments"""
         """of an available IP address; vm_spec is an object """
         if vm_id == "":
-            ip_address = BaseAdapter.find_available_ip()
+            ip_address = find_available_ip()
             m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
             if m is not None:
                 # vm_id = str((int(m.group(1) + m.group(2)) + 10))
@@ -356,10 +356,10 @@ def construct_vzctl_args(lab_specz={}):
     vm_spec = get_vm_spec()
     lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
     host_name = lab_ID + "." + settings.get_adapter_hostname()
-    ip_address = BaseAdapter.find_available_ip()
+    ip_address = find_available_ip()
     os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
-    (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
-    (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
+    (ram, swap) = vm_utils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
+    (disk_soft, disk_hard) = vm_utils.get_disk_space(vm_spec["diskspace"])
     vm_create_args = " --ostemplate " + os_template + \
                      " --ipadd " + ip_address + \
                      " --diskspace " + disk_soft + ":" + disk_hard + \
