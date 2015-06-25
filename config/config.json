@@ -29,20 +29,25 @@
         "SERVER_PORT":9089
     },
 
-    "API_ENDPOINTS": {
-	"__comment__":"used by vm pool manager",
-	"CREATE_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/create",
-	"DESTROY_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/destroy",
-	"RESTART_URI_ADAPTER_ENDPOINT":"/api/1.0/vm/restart"
-    },
-
     "VMPOOL_CONFIGURATION": {
+      "__comment__":"used by vm pool manager",
+        "ADAPTER_ENDPOINTS": [
+            {"CREATE_URI":"/api/1.0/vm/create"},
+            {"DESTROY_URI":"/api/1.0/vm/destroy"},
+            {"RESTART_URI":"/api/1.0/vm/restart"}
+        ],
         "VMPOOLS": [
             {
                 "POOLID":1,
                 "DESCRIPTION":"LINUX",
                 "ADAPTERIP":"http://localhost",
-                "PORT":"8000"
+                "PORT":"8000",
+                "__comment__":"adapters in this pool, module & class",
+                "ADAPTERS": [
+                    {"asw_adapter" : "AWSAdapter"}, 
+                    {"centos_openvz_adapter" : "CentOSVZAdapter"},
+                    {"centos_bridged_adapter":"CentOSBridgeVZAdapter"}
+                ]
             },
             {
                 "POOLID":2,
@@ -63,14 +68,6 @@
                 "PORT":"8000"
             }
         ]
-    },
-
-    "ADAPTER": {
-        "ADAPTER_NAME" :"CentOSBridgeVZAdapter",
-        "ADAPTER_PORT":8000,
-        "CREATE_URI":"/api/1.0/vm/create",
-        "DESTROY_URI":"/api/1.0/vm/destroy",
-        "RESTART_URI":"/api/1.0/vm/restart"
     },
 
     "LOGGING_CONFIGURATION": {
