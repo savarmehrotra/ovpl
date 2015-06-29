@@ -39,21 +39,14 @@ def find_available_ip():
                     VZLIST, vm_id, vm_id))
         logger.debug("CentOSVZAdapter: vzlist command = %s" %
                      command)
-        """
         try:
             (ret_code, vzlist) = execute_command(command)
             if ret_code == 0:
                 return False
             else:
                 return True
+        
         except Exception, e:
-            #return True
-            raise e
-        """
-        ret_code = os.system(command)
-        if ret_code == 0:
-            return False
-        else:
             return True
             
     def is_ip_usable(ip):
