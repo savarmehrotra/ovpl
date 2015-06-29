@@ -30,7 +30,9 @@ def find_available_ip():
                 return True
             else:
                 return False
+
     def is_ctid_free(ip):
+        # to check vm_id is already exist or not
         m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip)
         vm_id = str(int(m.group(1) + m.group(2)))
         command = (r'ssh -o "%s" %s "%s %s| grep %s"' %
@@ -45,7 +47,6 @@ def find_available_ip():
                 return False
             else:
                 return True
-        
         except Exception, e:
             return True
             
