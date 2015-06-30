@@ -17,7 +17,7 @@ class Controller:
     def __init__(self):
         self.system = State.Instance()
 
-    def test_lab(self, lab_id, lab_src_url, revision_tag=None):
+    def test_lab(self, deployed_by, lab_id, lab_src_url, revision_tag=None):
         logger.debug("test_lab() for lab ID %s and git url %s" %
                      (lab_id, lab_src_url))
         try:
@@ -41,7 +41,7 @@ class Controller:
                                                          lab_src_url,
                                                          revision_tag)
                 if(ret_val):
-                    self.update_state(lab_state)
+                    self.update_state(lab_state, deployed_by)
                     logger.info("test_lab(): test succcessful")
                     return ip
                 else:
@@ -67,8 +67,8 @@ class Controller:
         lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
         logger.debug("lab_repo_name: %s" % (lab_spec['lab_repo_name']))
 
-    def update_state(self, state):
-        state['lab_history']['released_by'] = 'dummy'
+    def update_state(self, state, deployed_by):
+        state['lab_history']['released_by'] = deployed_by
         # state['lab_history']['released_on'] = strftime("%Y-%m-%d %H:%M:%S")
         state['lab_history']['released_on'] = datetime.utcnow()
         self.system.state.append(state)
@@ -82,13 +82,10 @@ class Controller:
 
 if __name__ == '__main__':
     c = Controller()
-    # print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
-    t = c.test_lab("cse02",
+    t = c.test_lab("test@example.com", "data-structures",
                    "https://github.com/Virtual-Labs/data-structures-iiith.git")
     print t
-    # print c.test_lab("cse08", "http://10.4.14.2/cse08.git")
-    # print c.test_lab("ovpl01", "https://github.com/vlead/ovpl")
-    # print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
-    # print c.test_lab("cse30", "https://github.com/avinassh/cse09")
+    # print c.test_lab("test@example.com", "ads",
+    #                  "https://github.com/vlead/ovpl")
     # print c.undeploy_lab("ovpl01")
-    # print c.undeploy_lab("cse30")
+    # print c.undeploy_lab("cse02")
