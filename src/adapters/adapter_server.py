@@ -36,7 +36,7 @@ class CreateVMHandler(tornado.web.RequestHandler):
 
         if success:
             logger.debug("created VM id = %s" % str(vm_id))
-            lab_repo_name = lab_spec['lab_repo_name']
+            lab_repo_name = lab_spec['lab']['lab_repo_name']
             logger.debug("lab_repo_name = %s" % lab_repo_name)
             (success, result) = adapter_instance.init_vm(vm_id, lab_repo_name)
             if success:

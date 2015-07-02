@@ -58,13 +58,11 @@ class LabManager:
         return (False, exception_str)
 
 if __name__ == '__main__':
-    print "Hello World"
-
 
     def test_testlab():
-        vmmgrurl = "http://172.16.0.2"
+        vmmgrurl = "http://10.2.56.4"
+        port = "9089"
         lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
-        port = "8000"
         labmgr = LabManager()
         try:
             (ret_val, ret_str) = labmgr.test_lab(vmmgrurl, port, lab_src_url)

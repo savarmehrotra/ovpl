@@ -16,13 +16,12 @@ import requests
 from exceptions import Exception
 from __init__ import *
 from httplogging.http_logger import logger
-from state import State
+from state import Record
 
 
 class VMPool:
     """ Manages a pool of VMs or VMProxy's """
 
-    state = None
     vmpool_id = None
     vm_description = None
     adapter_ip = None
@@ -39,7 +38,6 @@ class VMPool:
                                          adapter_ip, adapter_port,
                                          create_path, destroy_path))
 
-        self.state = State.Instance()
         # self.vms = []       # List of VMProxy objects
         self.vmpool_id = vmpool_id
         self.vm_description = vm_description
@@ -48,39 +46,23 @@ class VMPool:
         self.create_path = create_path
         self.destroy_path = destroy_path
 
+    def construct_state(self, lab_spec, vm_id, vm_ip, vm_port):
+        deploy_record = Record().record
+        logger.debug("before setting record = %s" % deploy_record)
+        deploy_record["lab_spec"] = lab_spec
+        deploy_record["vm_info"]["vm_id"] = vm_id
+        deploy_record["vm_info"]["vm_ip"] = vm_ip
+        deploy_record["vm_info"]["vm_port"] = vm_port
+        deploy_record["vmpool_info"]["vmpool_id"] = self.vmpool_id
+        deploy_record["vmpool_info"]["vm_description"] = self.vm_description
+        deploy_record["vmpool_info"]["adapter_ip"] = self.adapter_ip
+        deploy_record["vmpool_info"]["adapter_port"] = self.adapter_port
+        return deploy_record
+
     def create_vm(self, lab_spec):
         # vm_spec is a json string
         # Allocate a vm_id: not required as platform adapter will allocate it.
         # Invoke platform adapter server (POST)
-
-        def construct_state():
-            return {
-                "lab_spec": lab_spec,
-                "vm_info": {
-                    "vm_id": vm_id,
-                    "vm_ip": vm_ip,
-                    "vmm_port": vmm_port
-                },
-                "vmpool_info": {
-                    "vmpool_id": self.vmpool_id,
-                    "vm_description": self.vm_description,
-                    "adapter_ip": self.adapter_ip,
-                    "adapter_port": self.adapter_port
-                },
-                "vm_status": {
-                    "last_known_status": None,
-                    "last_successful_connection": None,
-                    "reconnect_attempts": None,
-                    "disk_usage": None,
-                    "mem_usage": None
-                },
-                "lab_history": {
-                    "released_by": None,
-                    "released_on": None,
-                    "destroyed_by": None,
-                    "destroyed_on": None
-                }
-            }
 
         logger.debug("VMPool: create_vm(); poolID=%s, Desciption=%s"
                      "AdapterIP=%s, AdapterPort=%s, CreatePath=%s"
@@ -102,15 +84,16 @@ class VMPool:
             if result.status_code == requests.codes.ok:
                 vm_id = result.json()["vm_id"]
                 vm_ip = result.json()["vm_ip"]
-                vmm_port = result.json()["vmm_port"]
-                return construct_state()
+                vm_port = result.json()["vmm_port"]
+                return construct_state(lab_spec, vm_id, vm_ip, vm_port)
             else:
                 raise Exception("VMPool: create_vm(): Error creating VM: " +
                                 result.text)
         except Exception, e:
             logger.error("VMPool: create_vm(): Error communicating with" +
                          "adapter: " + str(e))
-            raise Exception("VMPool: create_vm(): Error creating VM: " + str(e))
+            raise Exception("VMPool: create_vm(): Error creating VM: " +
+                            str(e))
 
     def destroy_vm(self, vm_id):
         # Invoke platform adapter
@@ -132,5 +115,24 @@ class VMPool:
             logger.error("Error communicating with adapter: " + str(e))
 
 if __name__ == "__main__":
-    pool = VMPool("http://10.4.12.24", "8000")
-    pool.create_vm(None)
+    # pool = VMPool("http://10.4.12.24", "8000")
+    # pool.create_vm(None)
+    def test_construct_state():
+        vmpool_id = 1
+        vm_description = "LINUXAdapter"
+        adapter_ip = "http://localhost"
+        adapter_port = "8000"
+        create_path = "/api/1.0/vm/create"
+        destroy_path = "/api/1.0/vm/destroy"
+
+        vm_pool = VMPool(vmpool_id, vm_description, adapter_ip,
+                         adapter_port, create_path, destroy_path)
+        lab_spec = "Hello World"
+        vm_id = "123"
+        vm_ip = "10.12.13.114"
+        vm_port = "8089"
+        deploy_record = vm_pool.construct_state(lab_spec, vm_id,
+                                                vm_ip, vm_port)
+        logger.debug("test_construct_state: record = %s" % deploy_record)
+
+    test_construct_state()

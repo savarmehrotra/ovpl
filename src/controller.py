@@ -12,12 +12,13 @@ from vm_pool_manager import VMPoolManager
 from state import State
 from httplogging.http_logger import logger
 from utils.git_commands import GitCommands
+from state import Record
 
 
 class Controller:
     state = None
     lab_spec = None
-    lab_vm_details = None
+    lab_deployment_record = None
     labmgr = None
     vmpoolmgr = None
     git = None
@@ -25,14 +26,14 @@ class Controller:
     def __init__(self):
         self.state = State.Instance()
         self.lab_spec = {}
-        self.lab_vm_details = {}
+        self.lab_deployment_record = Record().record
         self.labmgr = LabManager()
         self.vmpoolmgr = VMPoolManager()
         self.git = GitCommands()
 
     def test_lab(self, current_user, lab_id, lab_src_url, revision_tag=None):
-        logger.debug("test_lab() for lab ID %s and git url %s"
-                     % (lab_id, lab_src_url))
+        logger.debug("test_lab() for lab ID %s, git url %s, current user %s"
+                     % (lab_id, lab_src_url, current_user))
         try:
             self.lab_spec = self.labmgr.get_lab_reqs(lab_src_url,
                                                      revision_tag)
@@ -73,9 +74,9 @@ class Controller:
 
     def update_lab_spec(self, lab_spec, lab_id, lab_src_url, revision_tag):
         lab_spec['lab']['description']['id'] = lab_spec['lab_id'] = lab_id
-        lab_spec['lab_src_url'] = lab_src_url
-        lab_spec['lab_repo_name'] = self.git.construct_repo_name(lab_src_url)
-        lab_spec['revision_tag'] = revision_tag
+        lab_spec['lab']['lab_src_url'] = lab_src_url
+        lab_spec['lab']['lab_repo_name'] = self.git.construct_repo_name(lab_src_url)
+        lab_spec['lab']['revision_tag'] = revision_tag
         lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
         logger.debug("lab_repo_name: %s" % (lab_spec['lab_repo_name']))
 
@@ -90,17 +91,35 @@ class Controller:
         return "Success"
 
 if __name__ == '__main__':
-    c = Controller()
-    lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
-    #    print c.test_lab("travula@gmail.com", "cse02", url)
-    vmmgrurl = "http://172.16.0.2"
-    port = "8000"
-    revision_tag = None
-    labmgr = LabManager()
-    try:
-        (ret_val, ret_str) = labmgr.test_lab(vmmgrurl,
-                                             port,
-                                             lab_src_url,
-                                             revision_tag)
-    except Exception, e:
-        logger.error("test_lab(); Test failed with error: " + str(e))
+
+    def test_ctrl_test_lab():
+        lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        c = Controller()
+        print c.test_lab("travula@gmail.com", "cse02", lab_src_url)
+
+    def test_labmgr_test_lab():
+        vmmgrurl = "http://172.16.0.2"
+        lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        port = "9089"
+        revision_tag = None
+        labmgr = LabManager()
+        try:
+            (ret_val, ret_str) = labmgr.test_lab(vmmgrurl,
+                                                 port,
+                                                 lab_src_url,
+                                                 revision_tag)
+        except Exception, e:
+            logger.error("test_lab(); Test failed with error: " + str(e))
+
+    def insert_record():
+        c = Controller()
+        lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        revision_tag = None
+        lab_id = "cse04"
+        current_user = "travula@gmail.com"
+        lab_spec = c.labmgr.get_lab_reqs(lab_src_url, revision_tag)
+        update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
+        update_lab_vm_details(current_user)
+
+
+    test_ctrl_test_lab()
