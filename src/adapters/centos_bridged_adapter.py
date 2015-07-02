@@ -1,4 +1,5 @@
-""" A module for managing VMs on CentOS - OpenVZ platform (BridgeVZAdapter). """
+""" A module for managing VMs on CentOS -
+OpenVZ platform (BridgeVZAdapter). """
 
 __all__ = [
     'create_vm',
@@ -15,7 +16,7 @@ __all__ = [
     ]
 
 # Standard Library imports
-import __init__
+from __init__ import *
 import re
 import os
 import shutil
@@ -41,7 +42,7 @@ from utils.execute_commands import *
 VZCTL = "/usr/sbin/vzctl"
 VZLIST = "/usr/sbin/vzlist -a"
 IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
-#IP_ADDRESS_REGEX = 
+#IP_ADDRESS_REGEX =
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
 IP_ADDRESS = None
 
@@ -61,7 +62,7 @@ class CentOSBridgeVZAdapter(object):
         dirc = e.get_ovpl_directory_path()
         src_dirc = dirc + "/src/adapters/bridge-settings"
         dest_dirc = dirc + "/src/adapters/interfaces"
- 
+
         try:
             copy_command = "rsync -arz --progress " + src_dirc + " " + dest_dirc
             logger.debug("copy command = %s" % copy_command)
@@ -95,8 +96,8 @@ class CentOSBridgeVZAdapter(object):
 
     def create_container(self, vm_id, vm_create_args):
         try:
-            command = (r'ssh -o "%s" %s "%s create %s %s"' % 
-                        (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS, 
+            command = (r'ssh -o "%s" %s "%s create %s %s"' %
+                        (settings.NO_STRICT_CHECKING, settings.BASE_IP_ADDRESS,
                          VZCTL, vm_id, vm_create_args))
             logger.debug("BridgeVZAdapter: vm_create(): create command = %s" %
                          command)
@@ -153,8 +154,8 @@ class CentOSBridgeVZAdapter(object):
         vm_id = create_vm_id(vm_id)
 
         (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
-        
-        logger.debug("BridgeVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" % 
+
+        logger.debug("BridgeVZAdapter: create_vm(): ip = %s, vm_id = %s, vm_create_args = %s, vm_set_args = %s" %
                         (IP_ADDRESS, vm_id, vm_create_args, vm_set_args))
 
         success = True
@@ -220,7 +221,7 @@ class CentOSBridgeVZAdapter(object):
     def start_vm(self, vm_id):
         self.restart_vm(self, vm_id) #HACK
 
-    
+
     def start_vm_manager(self, vm_id):
 
         start_vm_manager_command = ("python %s%s %s" %
@@ -255,7 +256,7 @@ class CentOSBridgeVZAdapter(object):
                             command)
             (ret_code,output) = execute_command(command)
             return "Success"
-        
+
         except Exception, e:
             logger.error("Error stopping VM: " + str(e))
             return "Failed to stop VM: " + str(e)
@@ -285,7 +286,7 @@ def copy_public_key(vm_id):
         authorized_key_file = ("%s%s%s%s" %
                                 (settings.VM_ROOT_DIR, vm_id,
                                 settings.VM_DEST_DIR, ".ssh/authorized_keys"))
-    
+
         logger.debug("public key location = %s, authorized key location = %s" %
                     (public_key_file, authorized_key_file))
         command = (r'ssh -o "%s" %s "%s %s > %s"' %
@@ -320,7 +321,7 @@ def copy_files(src_dir, dest_dir):
         logger.error("ERROR = %s" % str(e))
         return False
 
-        
+
 def copy_ovpl_source(vm_id):
 
     src_dir =  "%s%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
@@ -338,23 +339,23 @@ def copy_lab_source(vm_id, lab_repo_name):
 
     directories = GIT_CLONE_LOC.split("/")
     labs_dir = directories[-2]
-    src_dir =  "%s%s%s%s%s%s" % (settings.VM_ROOT_DIR,                         
-                                 settings.ADS_SERVER_VM_ID,                    
-                                 settings.VM_DEST_DIR, labs_dir,               
-                                 "/", lab_repo_name)  
+    src_dir =  "%s%s%s%s%s%s" % (settings.VM_ROOT_DIR,
+                                 settings.ADS_SERVER_VM_ID,
+                                 settings.VM_DEST_DIR, labs_dir,
+                                 "/", lab_repo_name)
 
-    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id,                        
+    dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id,
                            settings.VM_DEST_DIR + "labs")
-                           
+
     logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
                  (vm_id, src_dir, dest_dir))
-    
+
     try:
         return copy_files(src_dir, dest_dir)
     except Exception, e:
         logger.error("ERROR = %s" % str(e))
         return False
-        
+
 def construct_vzctl_args(lab_specz={}):
     """ Returns a tuple of vzctl create arguments and set arguments """
 
@@ -385,7 +386,7 @@ def construct_vzctl_args(lab_specz={}):
                   " --nameserver " + settings.get_adapter_nameserver() + \
                   " --onboot yes" + \
                   " --save"
-   
+
     return (vm_create_args, vm_set_args)
 
 
@@ -448,13 +449,13 @@ def test():
     destroy_vm("99100")
     #destroy_vm("99101")
     #destroy_vm("99102")
-    #destroy_vm("99103")    
+    #destroy_vm("99103")
 
 
 if __name__ == "__main__":
 
     # Start an HTTP server and wait for invocation
-    # Parse the invocation command and route to 
+    # Parse the invocation command and route to
     # appropriate methods.
     #test()
     if copy_ovpl_source(584):

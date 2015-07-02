@@ -24,7 +24,7 @@ from tornado.options import define, options
 
 # ADS imports
 from __init__ import *
-from http_logging.http_logger import logger
+from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
 from controller import Controller
 from config import authorized_users
@@ -61,7 +61,7 @@ class MainHandler(BaseHandler):
                       post_data['lab_id'],
                       post_data['lab_src_url']))
 
-        self.write(c.test_lab(self.current_user, self.post_data['lab_id'],
+        self.write(c.test_lab(self.current_user, post_data['lab_id'],
                               post_data['lab_src_url'],
                               post_data.get('version', None)))
 
@@ -130,7 +130,7 @@ class LogoutHandler(BaseHandler):
 
 
 if __name__ == "__main__":
-    env = EnvSetUp()
+    env = EnvSetUp.Instance()
     config_spec = env.get_config_spec()
     tornado.options.parse_command_line()
     app = tornado.web.Application(

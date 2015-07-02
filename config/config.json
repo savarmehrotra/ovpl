@@ -1,4 +1,4 @@
-{
+ {
     "ENVIRONMENT": {
         "HTTP_PROXY":"http://proxy.iiit.ac.in:8080",
         "HTTPS_PROXY":"http://proxy.iiit.ac.in:8080"
@@ -6,9 +6,9 @@
 
     "CONTROLLER_CONFIG": {
         "SERVER_PORT": 8080,
-        "COOKIE_SECRET": "<generate a long random UUID",
+        "COOKIE_SECRET": "aakdksjlkjldkjasdieiei",
         "PERSONA_VERIFIER": "https://verifier.login.persona.org/verify",
-        "APP_URL": "http://localhost:8080",
+        "APP_URL": "http://10.2.56.182:8080",
         "LOG_FILENAME": "/root/logs/ovpl.log"
     },
 
@@ -31,11 +31,11 @@
 
     "VMPOOL_CONFIGURATION": {
       "__comment__":"used by vm pool manager",
-        "ADAPTER_ENDPOINTS": [
-            {"CREATE_URI":"/api/1.0/vm/create"},
-            {"DESTROY_URI":"/api/1.0/vm/destroy"},
-            {"RESTART_URI":"/api/1.0/vm/restart"}
-        ],
+        "ADAPTER_ENDPOINTS": {
+            "CREATE_URI":"/api/1.0/vm/create",
+            "DESTROY_URI":"/api/1.0/vm/destroy",
+            "RESTART_URI":"/api/1.0/vm/restart"
+        },
         "VMPOOLS": [
             {
                 "POOLID":1,
@@ -44,9 +44,9 @@
                 "PORT":"8000",
                 "__comment__":"adapters in this pool, module & class",
                 "ADAPTERS": [
-                    {"asw_adapter" : "AWSAdapter"}, 
-                    {"centos_openvz_adapter" : "CentOSVZAdapter"},
-                    {"centos_bridged_adapter":"CentOSBridgeVZAdapter"}
+                    {"ADAPTERID" : 1, "MODULE" : "asw_adapter", "ADAPTER" : "AWSAdapter"}, 
+                    {"ADAPTERID" : 2, "MODULE" : "centos_openvz_adapter", "ADAPTER" : "CentOSVZAdapter"},
+                    {"ADAPTERID" : 3, "MODULE" : "centos_bridged_adapter", "ADAPTER" : "CentOSBridgeVZAdapter"}
                 ]
             },
             {
@@ -70,11 +70,14 @@
         ]
     },
 
+    "__comment__" : "pick the adapter to use , this will be moved to base.config in the adapters folder",
+     "ADAPTER_TO_USE" : {"POOLID" : 1, "ADAPTERID" : 2},
+
     "LOGGING_CONFIGURATION": {
         "__comment__" : "level 10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL",
         "LOG_LEVEL":10 ,
         "LOGSERVER_CONFIGURATION": {
-            "SERVER_IP": "localhost",
+            "SERVER_IP": "10.2.56.182",
             "SERVER_PORT": 8239,
             "URI_ENDPOINT": "/log/",
             "FILE_PATH": "/root/logs/"

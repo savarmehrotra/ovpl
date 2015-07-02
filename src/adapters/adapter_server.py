@@ -1,6 +1,5 @@
 #!/bin/python
 
-# Author : Avinash <a@vlabs.ac.in>
 # Organization : VLEAD, Virtual-Labs
 
 # Services exposed by CentOSVZAdapter
@@ -16,10 +15,9 @@ from tornado.options import define, options
 
 from __init__ import *
 from httplogging.http_logger import logger
-from utils.envsetup import EnvSetUp
+import base_adapter
 
 define("port", default=8000, help="run on the given port", type=int)
-
 
 
 class CreateVMHandler(tornado.web.RequestHandler):
@@ -79,34 +77,27 @@ class RestartVMHandler(tornado.web.RequestHandler):
 
 if __name__ == "__main__":
 
-    env = EnvSetUp.Instance()
     logger.debug("__main__()")
     tornado.options.parse_command_line()
 
-    try:
-        config_spec = env.get_config_spec()
-    except IOError as e:
-        logger.error("unable to load config.json. Exception: " + str(e))
-        raise e
-    except Exception as e:
-        logger.error("unable to parse config.json. Exception: " + str(e))
-        raise e
+    adapter_details = base_adapter.get_adapter_details()
 
     # load the adapter class and instantiate the adapter
-    adapter_name = config_spec['ADAPTER']['ADAPTER_NAME']
-    module = __import__(adapter_name)
+    module_name = adapter_details.module_name
+    adapter_name = adapter_details.adapter_name
+    module = __import__(module_name)
     AdapterClass = getattr(module, adapter_name)
     adapter_instance = AdapterClass()
-
-    # make the Adapter log a test message
+    logger.debug("module_name = %s, adapter_name = %s" %
+                 (module_name, adapter_name))
     adapter_instance.test_logging()
 
-    options.port = config_spec['ADAPTER']["ADAPTER_PORT"]
+    options.port = int(adapter_details.port)
 
     # endpoints of our API to create, destroy and restart the server
-    create_uri = "/api/1.0/vm/create"
-    destroy_uri = "/api/1.0/vm/destroy"
-    restart_uri = "/api/1.0/vm/restart"
+    create_uri = adapter_details.create_uri
+    destroy_uri = adapter_details.destroy_uri
+    restart_uri = adapter_details.restart_uri
 
     logger.debug("__main__() PORT=%s, CreateURI=%s, DestroyURI=%s,"
                  "RestartURI=%s" %

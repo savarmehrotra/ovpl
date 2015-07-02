@@ -6,8 +6,7 @@ import math
 from __init__ import *
 from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
-from utils.git_commands import GitCommandsk
-
+from utils.git_commands import GitCommands
 
 
 class LabManager:
@@ -33,50 +32,57 @@ class LabManager:
             logger.error("Error: %s" % str(e))
             raise e
 
-        def test_lab(self, vmmgr_ip, port, lab_src_url, version=None):
-            if 'http' not in vmmgr_ip:
-                error = 'Protocol not specified in VMManager host address!!'
-                raise Exception(error)
-            logger.debug("vmmgr_ip = %s, port = %s, lab_src_url = %s" %
-                         (vmmgr_ip, port, lab_src_url))
-            payload = {"lab_src_url": lab_src_url, "version": version}
-            config_spec = self.env.get_config_spec()
-            TEST_LAB_API_URI = config_spec["VMMANAGER_CONFIG"]["TEST_LAB_URI"]
-            url = '%s:%s%s' % (vmmgr_ip, port, TEST_LAB_API_URI)
-            logger.debug("url = %s, payload = %s" % (url, str(payload)))
-            exception_str = ""
-            for i in (1, 2, 4, 8, 16):
-                time.sleep(i)
-                try:
-                    response = requests.post(url=url, data=payload)
-                    logger.debug("response = %s" % response)
-                    return ("Success" in response.text, response.text)
-                except Exception, e:
-                    exception_str = str(e)
-                    attempts = {0: 'first', 1: 'second', 2:
-                                'third', 3: 'fourth'}
-                    logger.error("Error installing lab on VM for the %s" %
-                                 "attempt with error: %s" %
-                                 (attempts[math.log(i)/math.log(2)], str(e)))
-            return (False, exception_str)
+    def test_lab(self, vmmgr_ip, port, lab_src_url, version=None):
+        if 'http' not in vmmgr_ip:
+            error = 'Protocol not specified in VMManager host address!!'
+            raise Exception(error)
+        logger.debug("vmmgr_ip = %s, port = %s, lab_src_url = %s" %
+                     (vmmgr_ip, port, lab_src_url))
+        payload = {"lab_src_url": lab_src_url, "version": version}
+        config_spec = self.env.get_config_spec()
+        TEST_LAB_API_URI = config_spec["VMMANAGER_CONFIG"]["TEST_LAB_URI"]
+        url = '%s:%s%s' % (vmmgr_ip, port, TEST_LAB_API_URI)
+        logger.debug("url = %s, payload = %s" % (url, str(payload)))
+        exception_str = ""
+        for i in (1, 2, 4, 8, 16):
+            time.sleep(i)
+            try:
+                response = requests.post(url=url, data=payload)
+                logger.debug("response = %s" % response)
+                return ("Success" in response.text, response.text)
+            except Exception, e:
+                exception_str = str(e)
+                attempts = ['first', 'second', 'third', 'fourth', 'fifth']
+                logger.error("Error installing lab on VM for the %s attempt with error %s" %
+                             (attempts[int(math.log(i)/math.log(2))], str(e)))
+        return (False, exception_str)
 
 if __name__ == '__main__':
+    print "Hello World"
 
-    labmgr = LabManager()
-    try:
+
+    def test_testlab():
+        vmmgrurl = "http://172.16.0.2"
         lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
-        lab_spec = labmgr.get_lab_reqs(lab_src_url, version=None)
-        logger.debug("Lab spec: %s" % str(lab_spec))
-    except Exception, e:
-        logger.error("Test failed with error: " + str(e))
+        port = "8000"
+        labmgr = LabManager()
+        try:
+            (ret_val, ret_str) = labmgr.test_lab(vmmgrurl, port, lab_src_url)
+            if (ret_val):
+                logger.debug("Test Successful, ret_val = %s, ret_str = %s" %
+                             (str(ret_val), ret_str))
+            else:
+                logger.debug("Test UnSuccessful, ret_val = %s, ret_str = %s" %
+                             (str(ret_val), ret_str))
+        except Exception, e:
+            logger.debug("Exception occured , error = %s" % str(e))
 
-'''
-    (ret_val, ret_str) = test_lab('http://10.2.58.130', '9089',
-    'https://bitbucket.org/virtual-labs/cse02-programming.git')
-    if (ret_val):
-        logger.debug("Test Successful, ret_val = %s, ret_str = %s" %
-        (str(ret_val), ret_str))
-    else:
-        logger.debug("Test UnSuccessful, ret_val = %s, ret_str = %s" %
-        (str(ret_val), ret_str))
-'''
+    def test_get_lab_reqs():
+        lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        try:
+            lab_spec = labmgr.get_lab_reqs(lab_src_url, version=None)
+            logger.debug("Lab spec: %s" % str(lab_spec))
+        except Exception, e:
+            logger.error("Test failed with error: " + str(e))
+
+    test_testlab()

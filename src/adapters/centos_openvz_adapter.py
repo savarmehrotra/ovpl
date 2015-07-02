@@ -38,6 +38,7 @@ import settings
 from base_adapter import find_available_ip
 from httplogging.http_logger import logger
 from utils.execute_commands import execute_command
+from utils.git_commands import GitCommands
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"
@@ -55,6 +56,9 @@ class InvalidVMIDException(Exception):
 
 class CentOSVZAdapter(object):
 
+    def __init__(self):
+        self.git = GitCommands()
+
     def create_vm(self, lab_spec, vm_id=""):
         logger.debug("CentOSVZAdapter: create_vm()")
         """If no vm_id is specified, it is computed using the last two
@@ -64,8 +68,8 @@ class CentOSVZAdapter(object):
             ip_address = find_available_ip()
             m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
             if m is not None:
-                # vm_id = str((int(m.group(1) + m.group(2)) + 10))
-                vm_id = m.group(1) + m.group(2)
+                vm_id = str((int(m.group(1) + m.group(2)) + 10))
+                # vm_id = m.group(1) + m.group(2)
         else:
             ip_address = None
             vm_id = validate_vm_id(vm_id)
@@ -117,7 +121,8 @@ class CentOSVZAdapter(object):
         success = True
         success = success and copy_public_key(vm_id)
         success = success and copy_ovpl_source(vm_id)
-        success = success and copy_lab_source(vm_id, lab_repo_name)
+        success = success and copy_lab_source(vm_id, lab_repo_name,
+                                              self.git.get_git_clone_loc())
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
         response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id),
@@ -295,9 +300,9 @@ def copy_ovpl_source(vm_id):
         return False
 
 
-def copy_lab_source(vm_id, lab_repo_name):
+def copy_lab_source(vm_id, lab_repo_name, git_clone_loc):
 
-    directories = GIT_CLONE_LOC.split("/")
+    directories = git_clone_loc.split("/")
     labs_dir = directories[-2]
     if settings.ADS_ON_CONTAINER:
         src_dir = "%s%s%s%s%s%s" % (settings.VM_ROOT_DIR,
@@ -400,7 +405,7 @@ def validate_vm_id(vm_id):
     if m is None:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be numeric.")
     vm_id = int(m.group(0))
-    if vm_id <= 100:
+    if vm_id <= 10:
         raise InvalidVMIDException("Invalid VM ID.VM ID must be greater \
                                    than 100.")
     if vm_id > settings.MAX_VM_ID:

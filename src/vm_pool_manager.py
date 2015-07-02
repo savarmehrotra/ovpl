@@ -20,7 +20,7 @@ class RecordNotFoundError(Exception):
 
 class VMPoolManager:
     state = None
-    VMPools = None
+    vmpools = None
     env = None
     config_spec = None
     create_url = None
@@ -30,28 +30,27 @@ class VMPoolManager:
         """ State should be rewriten"""
         logger.debug("VMPoolManager: _init_()")
         self.state = State.Instance()
-        self.vmPools = []
+        self.vmpools = []
         self.env = EnvSetUp.Instance()
         self.config_spec = self.env.get_config_spec()
         self.pools = self.config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"]
-        self.create_uri = self.config_spec["API_ENDPOINTS"]["CREATE_URI_ADAPTER_ENDPOINT"]
-        self.destroy_uri = self.config_spec["API_ENDPOINTS"]["DESTROY_URI_ADAPTER_ENDPOINT"]
 
         for pool in self.pools:
             self.add_vm_pool(pool["POOLID"],
                              pool["DESCRIPTION"],
                              pool["ADAPTERIP"],
                              pool["PORT"],
-                             self.create_uri,
-                             self.destroy_uri)
-        logger.debug("VMPoolManager: _init_();  vm_pools = %s" % (str(self.vmPools)))
+                             self.config_spec["VMPOOL_CONFIGURATION"]["ADAPTER_ENDPOINTS"]["CREATE_URI"],
+                             self.config_spec["VMPOOL_CONFIGURATION"]["ADAPTER_ENDPOINTS"]["DESTROY_URI"])
+
+        logger.debug("VMPoolManager: _init_();  vm_pools = %s" % (str(self.vmpools)))
 
     def add_vm_pool(self, vm_pool_id, vm_description, adapter_ip,
                     adapter_port, create_path, destroy_path):
         logger.debug("VMPoolManager: add_vm_pool(); %s, %s, %s, %s, %s, %s" %
                      (vm_pool_id, vm_description, adapter_ip,
                       adapter_port, create_path, destroy_path))
-        self.vmPools.append(VMPool(vm_pool_id, vm_description,
+        self.vmpools.append(VMPool(vm_pool_id, vm_description,
                             adapter_ip, adapter_port,
                             create_path, destroy_path))
 
@@ -65,11 +64,11 @@ class VMPoolManager:
         """
         logger.debug("VMPoolManager: get_available_pool()")
         if self.is_lab_static(lab_spec):
-            return self.VMPools[1]
+            return self.vmpools[1]
         elif self.is_lab_on_windows(lab_spec):
-            return self.VMPools[2]
+            return self.vmpools[2]
         else:
-            return self.VMPools[0]
+            return self.vmpools[0]
 
     def is_lab_static(self, lab_spec):
         return False
@@ -86,7 +85,7 @@ class VMPoolManager:
         logger.debug("VMPoolManager: undeploy_lab()")
         used_pools = self.get_used_pools(lab_id)
         for pool_id in used_pools:
-            self.VMPools[pool_id].undeploy_lab(lab_id)
+            self.vmpools[pool_id].undeploy_lab(lab_id)
 
     def get_used_pools(self, lab_id):
         used_pools = []

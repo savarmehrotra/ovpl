@@ -10,11 +10,12 @@
 # to do : handle exceptions
 
 import os
-import __init__
-from src.http_logging.http_logger import logger
-from LabActionRunner import LabActionRunner
-from src.utils.git_commands import *
-from src.utils.execute_commands import *
+from __init__ import *
+from httplogging.http_logger import logger
+from lab_action_runner import LabActionRunner
+from utils.git_commands import GitCommands
+from utils.execute_commands import execute_command
+from utils.envsetup import EnvSetUp
 
 
 def execute(command):
@@ -61,8 +62,8 @@ def test_lab(lab_src_url, version=None):
     # get the appropriate the actions from lab_spec.json
     # run LabAction Runner
         # instantiate the object
-    from utils.envsetup import EnvSetUp
-    e = EnvSetUp()
+    e = EnvSetUp.Instance()
+    git = GitCommands()
     logger.info("Environment http_proxy = %s" % os.environ["http_proxy"])
     logger.info("Environment https_proxy = %s" % os.environ["https_proxy"])
 
@@ -96,9 +97,9 @@ def test_lab(lab_src_url, version=None):
 
     try:
         fill_aptconf()
-        repo_name = construct_repo_name(lab_src_url)
-        lab_spec = get_lab_spec(repo_name)
-        spec_path = get_spec_path(repo_name)
+        repo_name = git.construct_repo_name(lab_src_url)
+        lab_spec = git.get_lab_spec(repo_name)
+        spec_path = git.get_spec_path(repo_name)
         logger.debug("spec_path: %s" % spec_path)
         os.chdir(spec_path)
         logger.debug("Changed to Diretory: %s" % spec_path)

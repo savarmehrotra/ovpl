@@ -1,6 +1,7 @@
 import pymongo
 from __init__ import *
 from singleton import Singleton
+from httplogging.http_logger import logger
 
 
 class DuplicateRecord(Exception):
@@ -19,6 +20,7 @@ class State:
         self.db = pymongo.MongoClient().ovpl
 
     def save(self, record):
+        logger.debug("Insert the record = %s" % record)
         """Writes the information about the deployed lab to the database"""
         """ First check if the lab is deployed already"""
         records = list(self.db.ovpl.find())

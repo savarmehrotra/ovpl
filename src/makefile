@@ -1,14 +1,14 @@
 test: stop-server
-	python http_logging/http_logging_server.py &
-	python2 adapters/AdapterServer.py &
-	python2 ControllerServer.py &
+	python httplogging/http_logging_server.py &
+	python2 adapters/adapter_server.py &
+	python2 controller_server.py &
 
 start-server:
-	python http_logging/http_logging_server.py &
+	python httplogging/http_logging_server.py &
 	sleep 1
-	python2 adapters/AdapterServer.py &
+	python2 adapters/adapter_server.py &
 	sleep 1
-	python2 Controller.py &
+	python2 controller_server.py &
 
 stop-server:
 	-killall python2 #HACK!
