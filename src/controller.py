@@ -22,6 +22,7 @@ class Controller:
     labmgr = None
     vmpoolmgr = None
     git = None
+    deploy_recod = None
 
     def __init__(self):
         self.state = State.Instance()
@@ -30,30 +31,38 @@ class Controller:
         self.labmgr = LabManager()
         self.vmpoolmgr = VMPoolManager()
         self.git = GitCommands()
+        self.deploy_record = Record()
 
     def test_lab(self, current_user, lab_id, lab_src_url, revision_tag=None):
         logger.debug("test_lab() for lab ID %s, git url %s, current user %s"
                      % (lab_id, lab_src_url, current_user))
         try:
+            # Get lab sources and from it the deployment specification
+            # of the lab
             self.lab_spec = self.labmgr.get_lab_reqs(lab_src_url,
                                                      revision_tag)
-            self.update_lab_spec(self.lab_spec, lab_id, lab_src_url,
-                                 revision_tag)
+            self.update_lab_spec(lab_id, lab_src_url, revision_tag)
+
+            # create a VM to deploy the lab
             logger.debug("test_lab(); invoking create_vm() on vmpoolmgr")
-            self.lab_vm_details = self.vmpoolmgr.create_vm(self.lab_spec)
+            self.deploy_record.record = self.vmpoolmgr.create_vm(self.lab_spec)
+
             logger.debug("test_lab(): Returned from VMPool = %s" %
-                         (str(self.lab_vm_details)))
-            ip = self.lab_vm_details['vm_info']['vm_ip']
-            port = self.lab_vm_details['vm_info']['vmm_port']
+                         (str(self.deploy_record.record)))
+            ip = self.deploy_record.record['vm_info']['vm_ip']
+            port = self.deploy_record.record['vm_info']['vm_port']
             vmmgrurl = "http://" + ip
             logger.debug("test_lab(): vmmgrurl = %s" % (vmmgrurl))
+
+            # deploy the lab on the newly created container.
             try:
                 (ret_val, ret_str) = self.labmgr.test_lab(vmmgrurl,
                                                           port,
                                                           lab_src_url,
                                                           revision_tag)
                 if(ret_val):
-                    self.update_lab_vm_details(current_user)
+                    self.update_deploy_record(current_user)
+                    self.state.save(self.deploy_record.record)
                     logger.info("test_lab(): test succcessful, ip = %s" % ip)
                     return ip
                 else:
@@ -63,27 +72,30 @@ class Controller:
             except Exception, e:
                 logger.error("test_lab(); Test failed with error: " + str(e))
                 return "Test failed: See log file for errors"
-                """ TODO: Garbage collection clean up for the created VM """
-            finally:
-                logger.debug("finally block, lab_id = %s" % lab_id)
-                self.state.save(self.lab_vm_details)
         except Exception, e:
-            logger.debug("except  block, lab_id = %s" % lab_id)
             logger.error("test_lab(): Test failed with error: " + str(e))
             return "Test failed: See log file for errors"
 
-    def update_lab_spec(self, lab_spec, lab_id, lab_src_url, revision_tag):
-        lab_spec['lab']['description']['id'] = lab_spec['lab_id'] = lab_id
-        lab_spec['lab']['lab_src_url'] = lab_src_url
-        lab_spec['lab']['lab_repo_name'] = self.git.construct_repo_name(lab_src_url)
-        lab_spec['lab']['revision_tag'] = revision_tag
-        lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
-        logger.debug("lab_repo_name: %s" % (lab_spec['lab_repo_name']))
+    def update_lab_spec(self, lab_id, lab_src_url, revision_tag):
+        self.lab_spec['lab']['description']['id'] = \
+            self.lab_spec['lab_id'] = lab_id
+        self.lab_spec['lab']['lab_src_url'] = lab_src_url
+        self.lab_spec['lab']['lab_repo_name'] = \
+            self.git.construct_repo_name(lab_src_url)
+        self.lab_spec['lab']['revision_tag'] = revision_tag
+        self.lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
+        logger.debug("lab_repo_name: %s" %
+                     (self.lab_spec['lab']['lab_repo_name']))
 
-    def update_lab_vm_details(self, current_user):
-        self.lab_vm_details['lab_history']['deployed_by'] = current_user
-        self.lab_vm_details['lab_history']['released_by'] = 'dummy'
-        self.lab_vm_details['lab_history']['released_on'] = datetime.utcnow()
+    def update_deploy_record(self, current_user):
+        logger.debug("current user is %s" % current_user)
+        self.deploy_record.record['lab_history']['deployed_by'] = current_user
+        self.deploy_record.record['lab_history']['released_by'] = 'dummy'
+        self.deploy_record.record['lab_history']['released_on'] = \
+            datetime.utcnow()
+        self.deploy_record.record['id'] = self.lab_spec['lab']['lab_src_url']
+        logger.debug("Lab deployed by %s" %
+                     self.deploy_record.record['lab_history']['deployed_by'])
 
     def undeploy_lab(self, lab_id):
         logger.debug("undeploy_lab for lab_id %s" % lab_id)
@@ -93,13 +105,15 @@ class Controller:
 if __name__ == '__main__':
 
     def test_ctrl_test_lab():
-        lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        lab_src_url = \
+            "https://github.com/Virtual-Labs/computer-programming-iiith.git"
         c = Controller()
         print c.test_lab("travula@gmail.com", "cse02", lab_src_url)
 
     def test_labmgr_test_lab():
         vmmgrurl = "http://172.16.0.2"
-        lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        lab_src_url = \
+            "https://github.com/Virtual-Labs/computer-programming-iiith.git"
         port = "9089"
         revision_tag = None
         labmgr = LabManager()
@@ -111,15 +125,5 @@ if __name__ == '__main__':
         except Exception, e:
             logger.error("test_lab(); Test failed with error: " + str(e))
 
-    def insert_record():
-        c = Controller()
-        lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
-        revision_tag = None
-        lab_id = "cse04"
-        current_user = "travula@gmail.com"
-        lab_spec = c.labmgr.get_lab_reqs(lab_src_url, revision_tag)
-        update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
-        update_lab_vm_details(current_user)
-
-
-    test_ctrl_test_lab()
+    """ List the tests here to be run """
+    # test_ctrl_test_lab()

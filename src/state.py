@@ -47,35 +47,96 @@ class DuplicateRecord(Exception):
 @Singleton
 class State:
     db = None
+    collection_name = None
 
     def __init__(self):
         self.db = pymongo.MongoClient().ovpl
+        self.collection_name = "deploy_records"
 
     def save(self, record):
         try:
-            lab_id = record["lab_spec"]["lab_id"]
+            record_id = record["id"]
             # logger.debug("Insert the record = %s" % record)
-            logger.debug("lab id = %s" % lab_id)
+            logger.debug("record id = %s" % record_id)
             """Writes the information about the deployed lab to the database"""
             """ First check if the lab is deployed already"""
-            records = list(self.db.ovpl.find())
-            for record in records:
-                if record['lab_spec']['lab_id'] == lab_id:
-                    raise DuplicateRecord(lab_id)
-                if "ovpl" in self.db.collection_names():
-                    self.db.ovpl.insert(record)
+            existing_record = self.read_record(record_id)
+            if not existing_record:
+                self.write_record(record)
+                logger.debug("Insert of record with Id = %s successful" %
+                             record_id)
+            else:
+                raise DuplicateRecord(record_id)
         except Exception, e:
-            raise Exception("State, save record to database failed, error = %s"
-                            % str(e))
+            raise Exception("State, save record to database failed, error = %s" % str(e))
 
-    def get_record(self, lab_id):
-        records = list(self.db.ovpl.find())
-        #  For now perusing the lists to get the record,
-        # but, mongodb query should be executed to fectch the record.
-        for record in records:
-            if record['lab_spec']['lab_id'] == lab_id:
-                return record
+    def read_record(self, id):
+        return list(self.db[self.collection_name].find({'id': id}))
+
+    def read_records(self):
+        return list(self.db[self.collection_name].find())
+
+    def write_record(self, record):
+        self.db[self.collection_name].insert(record)
+
 
 if __name__ == '__main__':
-    state = State.Instance()
-#    record =
+    from vm_pool import VMPool
+    from controller import Controller
+
+    def create_record(lab_src_url=None, c=None):
+        logger.debug("Test case insert_record")
+        if c is None:
+            c = Controller()
+            if lab_src_url is None:
+                lab_src_url = \
+                    "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        revision_tag = None
+        lab_id = "cse04"
+        current_user = "travula@gmail.com"
+        vmpool_id = 1
+        vm_description = "LINUXAdapter"
+        adapter_ip = "http://localhost"
+        adapter_port = "8000"
+        create_path = "/api/1.0/vm/create"
+        destroy_path = "/api/1.0/vm/destroy"
+        vm_id = "123"
+        vm_ip = "10.12.13.114"
+        vm_port = "8089"
+        try:
+            vm_pool = VMPool(vmpool_id, vm_description, adapter_ip,
+                             adapter_port, create_path, destroy_path)
+            c.lab_spec = c.labmgr.get_lab_reqs(lab_src_url, revision_tag)
+            logger.debug("returned from lab_manager and the controller's lab_spec = %s"
+                         % c.lab_spec)
+            c.update_lab_spec(lab_id, lab_src_url, revision_tag)
+            record = vm_pool.construct_state(c.lab_spec, vm_id,
+                                             vm_ip, vm_port)
+            c.deploy_record.record = record
+            c.update_deploy_record(current_user)
+            logger.debug("deploy_record = %s" % c.deploy_record.record)
+            logger.debug("ID = %s" % c.deploy_record.record['id'])
+            return c.deploy_record
+        except Exception, e:
+            logger.debug("Error inserting record, error is %s" % str(e))
+
+    def test_record(lab_src_url=None):
+        lab_src_url = \
+            "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        deploy_record = create_record(lab_src_url)
+        if deploy_record.record['id'] == lab_src_url:
+            logger.debug("Test: test_record PASSED")
+
+    def test_save():
+        lab_src_url = \
+            "http://github.com/Virtual-Labs/computer-programming-iiith.git"
+        state = State.Instance()
+        deploy_record = create_record(lab_src_url)
+        state.save(deploy_record.record)
+
+    # Run Tests
+    # test_record()
+    try:
+        test_save()
+    except Exception, e:
+        logger.debug(str(e))

@@ -126,7 +126,7 @@ class CentOSVZAdapter(object):
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
         response = {"vm_id": vm_id, "vm_ip": get_vm_ip(vm_id),
-                    "vmm_port": settings.VM_MANAGER_PORT}
+                    "vm_port": settings.VM_MANAGER_PORT}
         logger.debug("CentOSVZAdapter: init_vm(): success = %s, response = %s" %
                      (success, response))
         return (success, response)

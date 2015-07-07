@@ -57,6 +57,7 @@ class VMPool:
         deploy_record["vmpool_info"]["vm_description"] = self.vm_description
         deploy_record["vmpool_info"]["adapter_ip"] = self.adapter_ip
         deploy_record["vmpool_info"]["adapter_port"] = self.adapter_port
+        logger.debug("after setting record = %s" % deploy_record)
         return deploy_record
 
     def create_vm(self, lab_spec):
@@ -84,8 +85,8 @@ class VMPool:
             if result.status_code == requests.codes.ok:
                 vm_id = result.json()["vm_id"]
                 vm_ip = result.json()["vm_ip"]
-                vm_port = result.json()["vmm_port"]
-                return construct_state(lab_spec, vm_id, vm_ip, vm_port)
+                vm_port = result.json()["vm_port"]
+                return self.construct_state(lab_spec, vm_id, vm_ip, vm_port)
             else:
                 raise Exception("VMPool: create_vm(): Error creating VM: " +
                                 result.text)
@@ -135,4 +136,8 @@ if __name__ == "__main__":
                                                 vm_ip, vm_port)
         logger.debug("test_construct_state: record = %s" % deploy_record)
 
+    def test_create_vm():
+        pass
+
+    # Run Tests here
     test_construct_state()

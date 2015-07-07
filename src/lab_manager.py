@@ -77,10 +77,12 @@ if __name__ == '__main__':
 
     def test_get_lab_reqs():
         lab_src_url = "https://github.com/Virtual-Labs/computer-programming-iiith.git"
+        labmgr = LabManager()
         try:
             lab_spec = labmgr.get_lab_reqs(lab_src_url, version=None)
             logger.debug("Lab spec: %s" % str(lab_spec))
         except Exception, e:
             logger.error("Test failed with error: " + str(e))
 
-    test_testlab()
+    #    test_testlab()
+    test_get_lab_reqs()
