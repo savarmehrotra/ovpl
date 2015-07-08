@@ -39,6 +39,7 @@ from base_adapter import find_available_ip
 from httplogging.http_logger import logger
 from utils.execute_commands import execute_command
 from utils.git_commands import GitCommands
+import centosvz_config as config
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"
@@ -47,6 +48,18 @@ IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
 # IP_ADDRESS_REGEX =
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1
 # [0-9]{2}|2[0-4][0-9]|25[0-5])$";
+
+
+class OSNotFound(Exception):
+    """
+    use this exception class to raise an exception when a suitable OS is not
+    found
+    """
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return repr(self.msg)
 
 
 class InvalidVMIDException(Exception):
@@ -379,24 +392,56 @@ def construct_vzctl_args(lab_specz={}):
 
 
 def find_os_template(os, os_version):
-    # What to do when request comes for unavailable OS/version?
-    os = OS.upper() if os == "" else os.strip().upper()
-    os_version = OS_VERSION if os_version == "" else os_version.strip()
-    if os == "UBUNTU":
-        if os_version == "12.04" or os_version == "12":
-            return "ubuntu-12.04-custom-x86_64"
-        elif os_version == "11.10" or os_version == "11":
-            return "ubuntu-11.10-x86_64"
-    elif os == "CENTOS":
-        if os_version == "6.3":
-            return "centos-6.3-x86_64"
-        elif os_version == "6.2":
-            return "centos-6.2-x86_64"
-    elif os == "DEBIAN":
-        if os_version == "6.0" or os_version == "6":
-            return "debian-6.0-x86_64"
+    """
+    Find a suitable os template from the list of supported templates from
+    the given OS and OS version. If a suitable OS is not found, raise
+    appropriate Exception
+    """
+    logger.debug("OS = %s and OS_VERSION = %s" % (os, os_version))
+    supported_template = config.supported_template
+    logger.debug("Supported template = %s" % supported_template)
+
+    if os == "" or os_version == "":
+        msg = "No OS or Version specified"
+        logger.error(msg)
+        raise OSNotFound(msg)
+
+    # sanitize input
+    os = os.strip().upper()
+    os_version = os_version.strip()
+
+    if os == 'UBUNTU' and os_version == '12':
+        os_version = '12.04'
+
+    if os == 'UBUNTU' and os_version == '13':
+        os_version = '13.04'
+
+    # filter the supported template list by the os and the by the version
+    all_versions_of_os = filter(lambda x: x['os'] == os, supported_template)
+    logger.debug("List of all the supported versions of OS = %s is %s" %
+                 (os, all_versions_of_os))
+
+    if all_versions_of_os:
+        chosen_template = filter(lambda x: x['version'] ==
+                                 os_version, all_versions_of_os)
+        logger.debug("The templete supported for OS = %s, Version = %s is %s" %
+                     (os, os_version, chosen_template))
     else:
-        pass
+        msg = "OS = %s is not supported" % os
+        logger.error(msg)
+        raise OSNotFound(msg)
+
+    if not chosen_template or not len(chosen_template):
+        msg = "Version = %s is not supported" % os_version
+        logger.error(msg)
+        raise OSNotFound(msg)
+
+    # chose the item; there should be only one.
+    chosen_template = chosen_template[0]
+
+    logger.debug("Choosen Template: %s; based on input OS: %s, version: %s" %
+                 (chosen_template, os, os_version))
+    return chosen_template['template']
 
 
 def validate_vm_id(vm_id):
@@ -434,7 +479,18 @@ if __name__ == "__main__":
     # Parse the invocation command and route to
     # appropriate methods.
     # test()
-    if copy_ovpl_source(584):
-        logger.debug("test Successful")
-    else:
-        logger.debug("test UNSuccessful")
+    # if copy_ovpl_source(584):
+    #    logger.debug("test Successful")
+    # else:
+    #    logger.debug("test UNSuccessful")
+
+    def test_find_os_template():
+        os = "ubuntu"
+        os_version = "12"
+        try:
+            template = find_os_template(os, os_version)
+            logger.debug("Returned template = %s" % template)
+        except Exception, e:
+            logger.debug("Exception = %s" % str(e))
+
+    test_find_os_template()
