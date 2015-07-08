@@ -1,200 +1,128 @@
-#+TITLE: Design of ADS and related services
+#+TITLE: Level 5 Definition Guide
 #+Author: VLEAD
-#+Date: [2015-03-20 Fri]
+#+Date: [2015-05-22 Fri]
 #+PROPERTY: session *scratch*
 #+PROPERTY: results output
 #+PROPERTY: exports code
 #+SETUPFILE: org-templates/level-0.org
 #+options: ^:nil
 
+* Integration Levels
 
-* Introduction
+** Level 0 
+   Lab does not adhere to any of the integration critetia
 
-* Requirements
+** Level 1 :: Versioned
+   Complete sources are versioned at an available location. 
 
-* Design
-  
-* Implementation
-** Source
-#+BEGIN_SRC python :tangle Controller.py :eval no
-"""
-Main interface of OVPL with the external world.
-Controller interfaces with LabManager and VMPoolManager.
+** Level 2 :: Buildable
+   Sources conform to a lab development kit. They are buildable through scripts.
 
-"""
+** Level 3 :: Testable
+   Lab has unit and integration tests and is testable on a central test server.
 
-#from time import time
-from datetime import datetime
-import time
+** Level 4 :: Hostable
+   Lab is deployable on a central hosting server
 
-import LabManager
-import VMPoolManager
-from State import State
-from http_logging.http_logger import logger
-from utils import git_commands
-
-class Controller:
-    def __init__(self):
-        self.system = State.Instance()
-        lab_spec = {}
-
-    def test_lab(self, lab_id, lab_src_url, revision_tag=None):
-        logger.debug("test_lab() for lab ID %s and git url %s" \
-                            % (lab_id, lab_src_url))
-        try:
-            lab_spec = LabManager.get_lab_reqs(lab_src_url, revision_tag)
-            self.update_lab_spec(lab_spec, lab_id, lab_src_url, revision_tag)
-            if lab_spec['lab']['runtime_requirements']['hosting'] == 'dedicated':
-               """ TODO: Undeploy , fnd proper place to invoke undeploy"""
-            #   self.undeploy_lab(lab_id)
-            vmpoolmgr = VMPoolManager.VMPoolManager()
-            logger.debug("test_lab(); invoking create_vm() on vmpoolmgr")
-            lab_state = vmpoolmgr.create_vm(lab_spec)
-            logger.debug("test_lab(): Returned from VMPool = %s" % (str(lab_state)))
-            ip = lab_state['vm_info']['vm_ip']
-            port = lab_state['vm_info']['vmm_port']
-            vmmgrurl = "http://" + ip
-            logger.debug("test_lab(): vmmgrurl = %s" % (vmmgrurl))
-            try:
-                (ret_val, ret_str) = LabManager.test_lab(vmmgrurl, port, lab_src_url, revision_tag)
-                if(ret_val):
-                    self.update_state(lab_state)
-                    logger.info("test_lab(): test succcessful")
-                    return ip
-                else:
-                    logger.error("test_lab(); Test failed with error:" + str(ret_str))
-                    return "Test failed: See log file for errors"
-            except Exception, e:
-                logger.error("test_lab(); Test failed with error: " + str(e))
-                return "Test failed: See log file for errors"
-                """ TODO: Garbage collection clean up for the created VM """
-            finally:
-                self.system.save()
-        except Exception, e:
-            logger.error("test_lab(): Test failed with error: " + str(e))
-            return "Test failed: See log file for errors"
-
-    def update_lab_spec(self, lab_spec, lab_id, lab_src_url, revision_tag):
-        lab_spec['lab']['description']['id'] = lab_spec['lab_id'] = lab_id
-        lab_spec['lab_src_url'] = lab_src_url
-        lab_spec['lab_repo_name'] = git_commands.construct_repo_name(lab_src_url)
-        lab_spec['revision_tag'] = revision_tag
-        lab_spec['lab']['runtime_requirements']['hosting'] = 'dedicated'
-        logger.debug("lab_repo_name: %s" %(lab_spec['lab_repo_name']))
-
-    def update_state(self, state):
-        state['lab_history']['released_by'] = 'dummy'
-        #state['lab_history']['released_on'] = strftime("%Y-%m-%d %H:%M:%S")
-        state['lab_history']['released_on'] = datetime.utcnow()
-        self.system.state.append(state)
-
-
-
-if __name__ == '__main__':
-    c = Controller()
-    #print c.test_lab("ovpl01", "https://github.com/nrchandan/vlab-computer-programming")
-    #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
-    print c.test_lab("cse02", "https://github.com/Virtual-Labs/data-structures-iiith.git")
-    #print c.test_lab("cse08", "http://10.4.14.2/cse08.git")
-    #print c.test_lab("ovpl01", "https://github.com/vlead/ovpl")
-    #print c.test_lab("ovpl01", "https://github.com/avinassh/cse09")
-    #print c.test_lab("cse30", "https://github.com/avinassh/cse09")
-    #print c.undeploy_lab("ovpl01")
-    #print c.undeploy_lab("cse30")
-
-#+END_SRC
-
-** Define the undeploy_lab
-#+BEGIN_SRC python :tangle Controller.py :eval no 
-      def undeploy_lab(self, lab_id):
-          logger.debug("undeploy_lab for lab_id %s" % lab_id)
-#+END_SRC
-** Redefine the undeploy
-#+BEGIN_SRC python :tangle Controller.py :eval no 
-          vmpoolmgr = VMPoolManager.VMPoolManager()
-          vmpoolmgr.undeploy_lab(lab_id)
-          return "Success"
-
-#+END_SRC
-
-* Test Cases
-
-* Design dicsussions
-
-** Deploying a Lab :: A case for using configuration management tools.
-   To deploy a lab, there are two steps: 
-   + Provision a VM
-   + Install the lab on the provisioned VM.
-
-   Provisioning and installation details are declared in a deployment
-   specification file.
-
-   One of the drawbacks of this approach is that abstraction happens at two
-   levels: first when the deployment specification is defined by the integrator
-   and second when the these declarations are interpreted while execution.  It
-   might take several cycles of testing for the integrator to figure out the
-   way the installer is interpreting the specification before getting it right.
-
-   Also, the integrator might be asking for help from VLEAD while going through
-   these cycles of testing.  VLEAD will have to invest some of it's engineering
-   resources towards support. 
-
-   To avoid these pitfalls, configuration tools can be used to our advantage.
-   An integrator can be made entirely responsible for delivering a playbook (in
-   ansible terms) which is self-contained and interpreted only by configuration
-   manager (ansible in this case).
-
-   In such a scenario. ADS role is limited to providing the playbook to the
-   configuration server which would configure and install the lab on the
-   provisioned machine.  Both lab integrator and ADS use the same configuration
-   management tool precluding ambiguities, development and support.
-
-   Lab integrator would still have to provide the specification of the machine
-   on which the lab is deployed/configured.
-
-** Life cycle management of labs
-   Life cycle management is the ability to perform the following tasks on a
-   lab: start, stop, backup, restore from a previous backup and test.  Having
-   such functionality helps continuous releases of the software running the
-   lab.  This management of a lab is achieved through a bunch of scripts -
-   start, stop, backup, restore, test. These scripts are developed by the
-   integrator.
-
-   Auto deployment and life cycle management of labs enable continuous
-   development, testing and release of software.  If the onus on the integrator
-   is to make a lab auto-deployable with life-cycle management scripts, it is
-   imperative for VLEAD to build a platform for continuous delivery
+** Level 5 :: Automated Deployment of a Lab
+   Lab is supported by a specification and scripts for automated deployment
    
-** Platform for Continuous Delivery
-
-* Releases
-** Release v1.0.2 
-   + Assumptions :: Both the containers, one hosting ADS services and the other
-                    on which lab is deployed are created on a host machine
-                    configured with CentOS and OpenVZ.
-
-   ADS runs from a container and
-   + creates a container on a host machine and
-   + deploys a lab on this newly created container,
+   At this level, the lab gets deployed on a machine without manual
+   intervention.  The specification for deployment is in place which is the
+   input to the deployment service.
    
+   The deployment specification will capture all the steps that are required
+   to deploy a lab.
+   
+** Level 6 :: Life-Cycle Management
+   Lab is supported by a set of scripts for life-cycle management of lab. 
+   Life
 
-** Release v1.0.3
-  + Assumptions :: ADS runs on a VM on AWS cloud
+    Life cycle management is the ability to perform these tasks on a lab:
+    start, stop, backup, restore from a previous backup and test.  Having such
+    functionality helps continuous releases of the software running the lab.
+    This management of a lab is achieved through the following bunch of
+    scripts. These scripts are developed by the integrator.
 
-  1. ADS
-     + creates a VM within AWS cloud, and 
-     + deploys lab on this newly created VM.
-  2. Only authorized users deploy the labs.
+*** Structure of the scripts 
+    + README.txt
+    + scripts/
+      - start
+      - stop
+      - backup
+      - restore
+      - test
+      - labspec.json
+    + src/
+    
+*** Scripts
+**** Start a Lab
+     Script =start= provides a mechanism to start databases, web server,
+     application defined services and populating data stores that are required
+     for the lab to work.  The script ensures all services are started and the
+     dependencies of the lab are initialized in the right order.
 
+**** Stop a Lab
+     Script =stop= stops the lab from running.  This script does a clean
+     termination of all the processes and services initiated by the lab.  This
+     script backs up the relevant data and state information that is necessary
+     to bring back the lab to the state it was in before termination.
 
-** Release v1.0.4
-   + Assumptions :: 
-     - ADS runs from a container within a bridged network
-     - Both the containers, one hosting ADS services and the other on which lab
-       is deployed are created on a host machine configured with CentOS and
-       OpenVZ.
-  ADS ::
-   + creates a container within this bridged network and 
-   + deploys lab on this newly created container.
+**** Back up a Lab
+     Script =backup= captures and saves the relevant data that is essential to
+     bring the lab to the same state it was in at the time of backup.  The
+     relevant data could vary with each version of lab software released.  A
+     subset of relevant data is user information, configuration, user files and
+     databases.
 
- 
+     There is a high possibility that this relevant data varies with each
+     version of lab software.  Therefore, when a backup is made, it is ensured
+     that the version of lab software is also captured.
+
+     This script is required for: disaster recovery, enable newer
+     versions of lab deployment by retaining the old data, regular backups,
+     etc.
+     
+     When the =backup= script is executed, a single file is generated in the
+     same directoy.  The version of the lab software is appended to the
+     generated file. The file is named =labbackup_<version>.tar=.  Example
+     values of =<version>= are =v1.0=, =v1.0.1= , etc.  More information on
+     versioning/tagging is available [[http://git-scm.com/book/en/v2/Git-Basics-Tagging][here]].
+
+     If there is no backup required for a lab, the script should still be in
+     place, which can either be empty or contain comments. 
+
+**** Restore a Lab
+     Script =restore= restores data backed up by =backup= script.  The
+     =restore= script takes the filename as argument and uses the supplied file
+     for restoration.
+
+     #+BEGIN_SRC 
+     % restore labbackup_<version>.tar
+     #+END_SRC
+
+     The =restore= script works with at least two versions of lab software when
+     there is more than one version of lab software available. 
+
+     1) =restore= script restores the lab from the backup file generated by the
+        =backup= script. Both the =restore= and =backup= are part of the same
+        release of the lab software.
+
+     2) =restore= script restores the lab from the backup file generated by the
+        =backup= script contained in the previous release of the lab software.
+
+     If restoration process requires certain services to be stopped or started,
+     then =restore= script takes care of all such requirements.
+     
+     If there is no restoration required for a lab, the script should still be in
+     place, which can either be empty or contain comments. 
+
+**** Test a Lab
+     When a lab is hosted, script =test= provides a mechanism to ascertain the
+     lab is fully functional.  These test cases are run immediately after the
+     lab is deployed and also at regular intervals. The developers are informed
+     of the failure in test cases with the test output.
+
+     A test script indicates either successful or unsuccessful execution of all
+     tests.  The output the test script is saved to a file named
+     =test_results.txt= in the same directory.
