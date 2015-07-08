@@ -14,7 +14,7 @@ from tornado.options import define, options
 
 from __init__ import *
 from utils.envsetup import EnvSetUp
-import helper
+import httplogging.helper as helper
 
 define("port", default=8239, help="run on the given port", type=int)
 

@@ -12,6 +12,7 @@ def set_import_search_path():
     path_list = path_list[:-2]  # remove src - till ovpl
     ovpl_directory_path = "/".join(path_list)
     src_path = ovpl_directory_path + "/src"
+    tests_path = ovpl_directory_path + "/tests"
     utils_path = src_path + "/utils"
     adapters_path = src_path + "/adapters"
     httplogging_path = src_path + "/httplogging"
@@ -21,6 +22,8 @@ def set_import_search_path():
         sys.path.append(ovpl_directory_path)
     if src_path not in sys.path:
         sys.path.append(src_path)
+    if tests_path not in sys.path:
+        sys.path.append(tests_path)
     if utils_path not in sys.path:
         sys.path.append(utils_path)
     if adapters_path not in sys.path:

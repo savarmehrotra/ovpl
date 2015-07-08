@@ -10,9 +10,9 @@ from __init__ import *
 from lab_manager import LabManager
 from vm_pool_manager import VMPoolManager
 from state import State
+from state import Record
 from httplogging.http_logger import logger
 from utils.git_commands import GitCommands
-from state import Record
 
 
 class Controller:
