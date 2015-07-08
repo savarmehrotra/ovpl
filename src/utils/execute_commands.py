@@ -32,10 +32,10 @@ def execute_command(cmd):
         output = subprocess.check_output(cmd, shell=True)
         return_code = 0
     except subprocess.CalledProcessError as cpe:
-        logger.error("Called Process Error: %s" % cpe)
+        logger.error("Called Process Error Message: %s" % cpe.output)
         raise cpe
     except OSError as ose:
-        logger.error("OSError: %s" % ose)
+        logger.error("OSError: %s" % ose.output)
         raise ose
 
     return (return_code, output)
