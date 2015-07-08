@@ -29,14 +29,14 @@ import sys
 import fileinput
 
 # VLEAD imports
-import VMUtils
+import vm_utils
 from dict2default import dict2default
 import settings
-import BaseAdapter
-from http_logging.http_logger import logger
-from utils.git_commands import *
+import base_adapter
+from httplogging.http_logger import logger
+from utils.git_commands import GitCommands
 from utils.envsetup import EnvSetUp
-from utils.execute_commands import *
+from utils.execute_commands import execute_command
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"
@@ -52,14 +52,17 @@ class InvalidVMIDException(Exception):
 
 
 class CentOSBridgeVZAdapter(object):
+    def __init__(self):
+        self.env = EnvSetUp.Instance()
+        self.git = GitCommands()
     """
     Every newly created container needs to be set with IP_ADDRESS in the interfaces file.
     This acheived by modifying the x.x.x.x variable in the template file with the container IP_ADDRESS
     and then copying it to /etc/network/interfaces.
     """
     def prepare_vm_for_bridged_network(self, vm_id):
-        e = EnvSetUp()
-        dirc = e.get_ovpl_directory_path()
+        #e = EnvSetUp()
+        dirc = self.env.get_ovpl_directory_path()
         src_dirc = dirc + "/src/adapters/bridge-settings"
         dest_dirc = dirc + "/src/adapters/interfaces"
 
@@ -169,11 +172,11 @@ class CentOSBridgeVZAdapter(object):
         success = True
         success = success and copy_public_key(vm_id)
         success = success and copy_ovpl_source(vm_id)
-        success = success and copy_lab_source(vm_id, lab_repo_name)
+        success = success and copy_lab_source(vm_id, lab_repo_name, self.git.get_git_clone_loc())
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
         response = {"vm_id": vm_id, "vm_ip": IP_ADDRESS,
-                    "vmm_port": settings.VM_MANAGER_PORT}
+                    "vm_port": settings.VM_MANAGER_PORT}
         logger.debug("BridgeVZAdapter: init_vm(): success = %s, response = %s" %
                         (success, response))
         return (success, response)
@@ -335,9 +338,9 @@ def copy_ovpl_source(vm_id):
         logger.error("ERROR = %s" % str(e))
         return False
 
-def copy_lab_source(vm_id, lab_repo_name):
+def copy_lab_source(vm_id, lab_repo_name, git_clone_loc):
 
-    directories = GIT_CLONE_LOC.split("/")
+    directories = git_clone_loc.split("/")
     labs_dir = directories[-2]
     src_dir =  "%s%s%s%s%s%s" % (settings.VM_ROOT_DIR,
                                  settings.ADS_SERVER_VM_ID,
@@ -374,8 +377,8 @@ def construct_vzctl_args(lab_specz={}):
     lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
     host_name = lab_ID + "." + settings.get_adapter_hostname()
     os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
-    (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
-    (disk_soft, disk_hard) = VMUtils.get_disk_space(vm_spec["diskspace"])
+    (ram, swap) = vm_utils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
+    (disk_soft, disk_hard) = vm_utils.get_disk_space(vm_spec["diskspace"])
     vm_create_args = " --ostemplate " + os_template + \
                      " --diskspace " + disk_soft + ":" + disk_hard + \
                      " --hostname " + host_name
@@ -428,7 +431,7 @@ def create_vm_id(vm_id):
     logger.debug("create_vm_id(): vm_id = %s" % vm_id)
     if vm_id == "":
         global IP_ADDRESS
-        IP_ADDRESS = BaseAdapter.find_available_ip()
+        IP_ADDRESS = base_adapter.find_available_ip()
         m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', IP_ADDRESS)
         if m != None:
             vm_id = str((int(m.group(1) + m.group(2)) + 100))
