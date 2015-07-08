@@ -79,6 +79,11 @@ class State:
     def write_record(self, record):
         self.db[self.collection_name].insert(record)
 
+    def delete_record(self, id):
+        return list(self.db[self.collection_name].remove({'id': id}))
+
+    def delete_records(self):
+        return list(self.db[self.collection_name].remove())
 
 if __name__ == '__main__':
     from vm_pool import VMPool
