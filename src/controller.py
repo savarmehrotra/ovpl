@@ -27,7 +27,6 @@ class Controller:
     def __init__(self):
         self.state = State.Instance()
         self.lab_spec = {}
-        self.lab_deployment_record = Record().record
         self.labmgr = LabManager()
         self.vmpoolmgr = VMPoolManager()
         self.git = GitCommands()
@@ -37,6 +36,11 @@ class Controller:
         logger.debug("test_lab() for lab ID %s, git url %s, current user %s"
                      % (lab_id, lab_src_url, current_user))
         try:
+            record_list = self.state.read_record(lab_src_url)
+            if record_list:
+                msg = "Lab with the url = %s is already deployed" % lab_src_url
+                logger.debug(msg)
+                return msg
             # Get lab sources and from it the deployment specification
             # of the lab
             self.lab_spec = self.labmgr.get_lab_reqs(lab_src_url,
