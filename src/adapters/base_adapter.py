@@ -1,8 +1,15 @@
 import netaddr
 import sh
+import re
+
 from __init__ import *
 from utils.envsetup import EnvSetUp
+from utils.execute_commands import execute_command
+from httplogging.http_logger import logger
 import settings
+
+VZCTL = "/usr/sbin/vzctl"
+VZLIST = "/usr/sbin/vzlist -a"
 
 
 class BaseAdapter:
@@ -26,9 +33,30 @@ def find_available_ip():
         try:
             sh.ping(str(ip), c=1)
         except sh.ErrorReturnCode:
-            return True
+            if is_ctid_free(str(ip)):
+                return True
+            else:
+                return False
 
-        return False
+    def is_ctid_free(ip):
+        # to check vm_id is already exist or not
+        m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip)
+        vm_id = str(int(m.group(1) + m.group(2)))
+        command = (r'ssh -o "%s" %s "%s %s| grep %s"' %
+                   (settings.NO_STRICT_CHECKING,
+                    settings.BASE_IP_ADDRESS,
+                    VZLIST, vm_id, vm_id))
+        logger.debug("CentOSVZAdapter: vzlist command = %s" %
+                     command)
+        try:
+            (ret_code, vzlist) = execute_command(command)
+            if ret_code == 0:
+                return False
+            else:
+                return True
+        except Exception:
+            logger.debug("No container found with vm id = %s" % vm_id)
+            return True
 
     def is_ip_usable(ip):
         #  reject IP's like  192.0.2.0 or 192.0.2.255 for subnet 192.0.2.0/24
@@ -66,3 +94,10 @@ def get_adapter_details():
         config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"][pool_id]["ADAPTERS"][adapter_id]["ADAPTER"]
 
     return adapter_details
+
+if __name__ == '__main__':
+    def test_find_available_ip():
+        ip = find_available_ip()
+        logger.debug("IP = %s" % ip)
+
+    test_find_available_ip()
