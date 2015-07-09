@@ -10,7 +10,7 @@ import settings
 
 VZCTL = "/usr/sbin/vzctl"
 VZLIST = "/usr/sbin/vzlist -a"
-
+OVPL_DIR_PATH = EnvSetUp.Instance().get_ovpl_directory_path()
 
 class BaseAdapter:
     def create_vm(lab_spec):

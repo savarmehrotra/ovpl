@@ -32,7 +32,7 @@ import fileinput
 import vm_utils
 from dict2default import dict2default
 import settings
-import base_adapter
+from base_adapter import find_available_ip, OVPL_DIR_PATH
 from httplogging.http_logger import logger
 from utils.git_commands import GitCommands
 from utils.envsetup import EnvSetUp
@@ -61,10 +61,10 @@ class CentOSBridgeVZAdapter(object):
     and then copying it to /etc/network/interfaces.
     """
     def prepare_vm_for_bridged_network(self, vm_id):
-        #e = EnvSetUp()
-        dirc = self.env.get_ovpl_directory_path()
-        src_dirc = dirc + "/src/adapters/bridge-settings"
-        dest_dirc = dirc + "/src/adapters/interfaces"
+        ovpl_dir_name = OVPL_DIR_PATH.split("/")[-1]
+        vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
+        src_dirc = OVPL_DIR_PATH + "/src/adapters/bridge-settings"
+        dest_dirc = OVPL_DIR_PATH + "/src/adapters/interfaces"
 
         try:
             copy_command = "rsync -arz --progress " + src_dirc + " " + dest_dirc
@@ -87,7 +87,7 @@ class CentOSBridgeVZAdapter(object):
             fd.write( line.replace( textToSearch, textToReplace ) )
         fd.close()
 
-        src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + "/root/ovpl/src/adapters/interfaces"
+        src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + OVPL_DIR_PATH + "/src/adapters/interfaces"
         dest_dir = "/vz/private/" + vm_id + "/etc/network/interfaces"
         logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
         try:
@@ -226,11 +226,12 @@ class CentOSBridgeVZAdapter(object):
 
 
     def start_vm_manager(self, vm_id):
-
+        ovpl_dir_name = OVPL_DIR_PATH.split("/")[-1]
+        vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
         start_vm_manager_command = ("python %s%s %s" %
-                                    (settings.VMMANAGERSERVER_PATH,
-                                    settings.VM_MANAGER_SCRIPT,
-                                    ">>/root/vm.log 2>&1 </dev/null &" ))
+                                    (vm_ovpl_path + "/src/vmmanager/",
+                                     settings.VM_MANAGER_SCRIPT,
+                                     ">>/root/vm.log 2>&1 </dev/null &" ))
         command = (r"ssh -o '%s' %s%s '%s'" %
                     (settings.NO_STRICT_CHECKING,
                     "root@", IP_ADDRESS,
@@ -326,9 +327,9 @@ def copy_files(src_dir, dest_dir):
 
 
 def copy_ovpl_source(vm_id):
-
-    src_dir =  "%s%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
-                           settings.VM_DEST_DIR, "ovpl")
+    
+    src_dir =  "%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
+                           OVPL_DIR_PATH)
     dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR)
     logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
 
@@ -431,7 +432,7 @@ def create_vm_id(vm_id):
     logger.debug("create_vm_id(): vm_id = %s" % vm_id)
     if vm_id == "":
         global IP_ADDRESS
-        IP_ADDRESS = base_adapter.find_available_ip()
+        IP_ADDRESS = find_available_ip()
         m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', IP_ADDRESS)
         if m != None:
             vm_id = str((int(m.group(1) + m.group(2))))

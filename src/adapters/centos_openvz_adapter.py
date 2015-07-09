@@ -35,7 +35,7 @@ from __init__ import *
 import vm_utils
 from dict2default import dict2default
 import settings
-from base_adapter import find_available_ip
+from base_adapter import find_available_ip, OVPL_DIR_PATH
 from httplogging.http_logger import logger
 from utils.execute_commands import execute_command
 from utils.git_commands import GitCommands
@@ -189,10 +189,11 @@ class CentOSVZAdapter(object):
         self.restart_vm(self, vm_id)
 
     def start_vm_manager(self, vm_id):
-
+        ovpl_dir_name = OVPL_DIR_PATH.split("/")[-1]
+        vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
         ip_address = get_vm_ip(vm_id)
         start_vm_manager_command = ("python %s%s %s" %
-                                    (settings.VMMANAGERSERVER_PATH,
+                                    (vm_ovpl_path + "/src/vmmanager/",
                                      settings.VM_MANAGER_SCRIPT,
                                      ">>/root/vm.log 2>&1 </dev/null &"))
         command = (r"ssh -o '%s' %s%s '%s'" %
@@ -297,10 +298,10 @@ def copy_files(src_dir, dest_dir):
 def copy_ovpl_source(vm_id):
 
     if settings.ADS_ON_CONTAINER:
-        src_dir = "%s%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
-                                settings.VM_DEST_DIR, "ovpl")
+        src_dir = "%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
+                              vm_ovpl_path)
     else:
-        src_dir = "%s%s" % (settings.VM_DEST_DIR, "ovpl")
+        src_dir = "%s" % (OVPL_DIR_PATH)
 
     dest_dir = "%s%s%s" % (settings.VM_ROOT_DIR, vm_id, settings.VM_DEST_DIR)
     logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
