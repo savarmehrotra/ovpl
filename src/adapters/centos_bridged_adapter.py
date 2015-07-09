@@ -419,8 +419,8 @@ def validate_vm_id(vm_id):
     if m == None:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be numeric.")
     vm_id = int(m.group(0))
-    if vm_id <= 100:
-        raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 100.")
+    if vm_id <= 0:
+        raise InvalidVMIDException("Invalid VM ID.  VM ID must be greater than 0.")
     if vm_id > settings.MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
@@ -434,7 +434,7 @@ def create_vm_id(vm_id):
         IP_ADDRESS = base_adapter.find_available_ip()
         m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', IP_ADDRESS)
         if m != None:
-            vm_id = str((int(m.group(1) + m.group(2)) + 100))
+            vm_id = str((int(m.group(1) + m.group(2))))
         else:
             vm_id = validate_vm_id(vm_id)
     logger.debug("create_vm_id(): vm_id = %s" % vm_id)
