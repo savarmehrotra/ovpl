@@ -81,7 +81,7 @@ class CentOSVZAdapter(object):
             ip_address = find_available_ip()
             m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip_address)
             if m is not None:
-                vm_id = str((int(m.group(1) + m.group(2)) + 10))
+                vm_id = str((int(m.group(1) + m.group(2))))
                 # vm_id = m.group(1) + m.group(2)
         else:
             ip_address = None
@@ -450,9 +450,9 @@ def validate_vm_id(vm_id):
     if m is None:
         raise InvalidVMIDException("Invalid VM ID.  VM ID must be numeric.")
     vm_id = int(m.group(0))
-    if vm_id <= 10:
+    if vm_id <= 0:
         raise InvalidVMIDException("Invalid VM ID.VM ID must be greater \
-                                   than 100.")
+                                   than 0.")
     if vm_id > settings.MAX_VM_ID:
         raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
     return str(vm_id)
