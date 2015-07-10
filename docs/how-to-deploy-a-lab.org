@@ -14,7 +14,7 @@
 #+PROPERTY: eval no
 
  Check [[https://github.com/vlead/setup-ovpl-centos/blob/master/user-docs/setup-centos.org][prerequisites]] to run ADS (Auto Deployment Service) as a
- Service.  If these already exists, please Continue with the following
+ Service.  If these all prerequisites are already exists, please Continue with the following
  instructions:
 
 * Settings for ADS 
