@@ -44,7 +44,7 @@
                 "PORT":"8000",
                 "__comment__":"adapters in this pool, module & class",
                 "ADAPTERS": [
-                    {"ADAPTERID" : 1, "MODULE" : "asw_adapter", "ADAPTER" : "AWSAdapter"}, 
+                    {"ADAPTERID" : 1, "MODULE" : "aws_adapter", "ADAPTER" : "AWSAdapter"}, 
                     {"ADAPTERID" : 2, "MODULE" : "centos_openvz_adapter", "ADAPTER" : "CentOSVZAdapter"},
                     {"ADAPTERID" : 3, "MODULE" : "centos_bridged_adapter", "ADAPTER" : "CentOSBridgeVZAdapter"}
                 ]
