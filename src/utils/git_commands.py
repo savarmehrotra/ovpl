@@ -105,8 +105,7 @@ class GitCommands:
             return json.loads(open(spec_file_path).read())
         except Exception, e:
             logger.error("Lab spec JSON invalid: " + str(e))
-            raise LabSpecInvalid("Lab spec JSON invalid: " + str(e))
-
+            
 
 if __name__ == '__main__':
     git = GitCommands()
