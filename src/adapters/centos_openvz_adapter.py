@@ -299,7 +299,7 @@ def copy_ovpl_source(vm_id):
 
     if settings.ADS_ON_CONTAINER:
         src_dir = "%s%s%s" % (settings.VM_ROOT_DIR, settings.ADS_SERVER_VM_ID,
-                              vm_ovpl_path)
+                              OVPL_DIR_PATH)
     else:
         src_dir = "%s" % (OVPL_DIR_PATH)
 
