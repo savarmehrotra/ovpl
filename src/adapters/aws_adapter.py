@@ -28,12 +28,12 @@ from time import sleep
 from boto import ec2
 
 # ADS imports
-import VMUtils
+import vm_utils
 from dict2default import dict2default
 import settings
-from http_logging.http_logger import logger
+from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
-from utils.git_commands import GIT_CLONE_LOC
+from utils.git_commands import GitCommands
 from utils.execute_commands import execute_command
 
 # import the AWS configuration
@@ -93,7 +93,9 @@ class AWSAdapter(object):
         self.key_name = self.key_file_path.split('/')[-1].split('.pem')[0]
 
         self.connection = self.create_connection()
-
+        self.env = EnvSetUp.Instance()
+        self.git = GitCommands()
+        
     def create_connection(self):
         # When keys are absent, it implies, the adapter uses IAM role.
         if self.credentials["aws_access_key_id"]:
@@ -354,8 +356,8 @@ class AWSAdapter(object):
 
     # copy the ADS source into the newly created lab VM
     def _copy_ovpl_source(self, ip_addr):
-        env = EnvSetUp()
-        src_dir = env.get_ovpl_directory_path()
+       # env = EnvSetUp()
+        src_dir = self.env.get_ovpl_directory_path()
 
         dest_dir = "{0}@{1}:{2}".format(self.VM_USER, ip_addr,
                                         settings.VM_DEST_DIR)
@@ -372,7 +374,7 @@ class AWSAdapter(object):
 
     # copy the lab source into the newly created lab VM
     def _copy_lab_source(self, ip_addr, lab_repo_name):
-        src_dir = GIT_CLONE_LOC[:-1] + "/" + lab_repo_name
+        src_dir = str(self.git.git_clone_loc) + "/" + lab_repo_name
 
         dest_dir = "{0}@{1}:{2}labs/".format(self.VM_USER, ip_addr,
                                              settings.VM_DEST_DIR)
@@ -450,7 +452,7 @@ class AWSAdapter(object):
 
         # use someone's super intelligent method to get RAM in megs- in a string
         # with 'M' appended at the end!! </sarcasm>
-        (ram, swap) = VMUtils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
+        (ram, swap) = vm_utils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
 
         # convert stupid RAM string in 'M' to an integer
         # no idea why would one deal with RAM values in strings!!
