@@ -2,11 +2,12 @@
 import unittest
 import json
 import requests
+from __init__ import *
 
 # ADS imports
-from src.adapters.AWSAdapter import AWSAdapter
-from src import LabManager
-from src.http_logging.http_logger import test_logger
+from adapters.aws_adapter import AWSAdapter
+from lab_manager import LabManager
+from httplogging.http_logger import test_logger
 
 
 class TestAWSAdapter(unittest.TestCase):
@@ -17,11 +18,12 @@ class TestAWSAdapter(unittest.TestCase):
         self.lab_spec = json.loads(open("scripts/labspec.json").read())
 
         self.adapter = AWSAdapter()
-
+        self.lab = LabManager()
+        
         # the source code of the lab to be tested for deployment is copied
         # in /root/labs folder. here, ovpl is itself treated as a lab.
         self.repo_name = "ovpl"
-        LabManager.get_lab_reqs("https://github.com/vlead/ovpl.git")
+        self.lab.get_lab_reqs("https://github.com/vlead/ovpl.git")
 
         # VM creation is part of setup since this is the requirement for every
         # test case.
@@ -69,7 +71,7 @@ class TestAWSAdapter(unittest.TestCase):
         vm_ip = result[1]['vm_ip']
         test_logger.debug("test_vm_mgr_running(): vm ip : %s" % vm_ip)
 
-        vm_mgr_port = result[1]['vmm_port']
+        vm_mgr_port = result[1]['vm_port']
         test_logger.debug("test_vm_mgr_running(): vm manager port : %s" %
                           vm_mgr_port)
 
