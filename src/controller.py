@@ -74,10 +74,10 @@ class Controller:
                                  str(ret_str))
                     return "Test failed: See log file for errors"
             except Exception, e:
-                logger.error("test_lab(); Test failed with error: " + str(e))
+                logger.error("test_lab(); Test failed with error: %s" % str(e))
                 return "Test failed: See log file for errors"
         except Exception, e:
-            logger.error("test_lab(): Test failed with error: " + str(e))
+            logger.error("test_lab(): Test failed with error: %s" % str(e))
             return "Test failed: See log file for errors"
 
     def update_lab_spec(self, lab_id, lab_src_url, revision_tag):
