@@ -1,0 +1,138 @@
+#+TITLE:     How to deploy a lab on CentOS OpenVZ Platform
+#+AUTHOR:    Khushpreet Kaur
+#+DATE:      2015-07-10 Friday
+
+#+SETUPFILE: ./org-templates/level-0.org
+#+LINK_HOME: ./index.html
+#+LINK_UP:   ./index.html
+
+#+OPTIONS: LaTeX:t          Do the right thing automatically (MathJax)
+
+#+PROPERTY: results output
+#+PROPERTY: tangle no
+#+PROPERTY: exports code
+#+PROPERTY: eval no
+
+ Check [[https://github.com/vlead/setup-ovpl-centos/blob/master/user-docs/setup-centos.org][prerequisites]] to run ADS (Auto Deployment Service) as a
+ Service.  If these all prerequisites are already exists, please Continue with the following
+ instructions:
+
+* Settings for ADS 
+  
+  Execute the following steps, to configure and then run ADS as a
+  service:
+
+** Edit the file =ovpl/config/config.json= 
+
+  + To set the proxies.
+#+begin_src example
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"http://proxy. vlabs.ac.in:8080",
+        "HTTPS_PROXY":"http://proxy.vlabs.ac.in:8080"
+    },
+#+end_src
+
+  + if no proxies are used, 
+#+begin_src example
+    "ENVIRONMENT": {
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
+    },
+#+end_src
+  
+
+  + Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of
+    the machine on which the ADS services are running.
+#+begin_src example
+"LOGSERVER_CONFIGURATION": {
+            "SERVER_IP": "ads-server-private-ip",
+	    },
+#+end_src
+
+  + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long
+    randomly generated string.
+
+#+begin_src example
+"COOKIE_SECRET": "<generate a long random UUID>",
+#+end_src
+
+  + Leave the PERSONA_VERIFIER field as it is, if you are using the
+    Mozilla's default Persona provider service.
+
+  + Change APP_URL field and put the URL where the application is
+    hosted.
+#+begin_src example
+     "APP_URL": "http://ads-server-public-ip:8080",
+#+end_src
+
+  + Copy =config/sample_authorized_users.py= to
+    =config/authorized_users.py=, and add actual email addresses of
+    authorized users.
+
+** Choosing ADAPTER_NAME
+   In the ADAPTER section, change the ADAPTER_NAME to
+   "CentOSVZAdapter".
+
+#+begin_src example
+"ADAPTER": {
+        "ADAPTER_NAME" :"CentOSVZAdapter",
+	}
+#+end_src
+
+*** Settings for CentOSVZAdapter
+
+   Edit the file =ovpl/src/adapters/settings.py= to set the following:
+
+   1. If the services are running on the base machine, set
+      ADS_ON_CONTAINER to False.
+
+   2. If the services are running on a container, set ADS_ON_CONTAINER
+      to True.
+
+   3. Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
+      base machine on which containers are created.
+
+   4. Set ADS_SERVER_VM_ID to CTID of container running ADS.
+      ADS_SERVER_VM_ID = "<CTID>"
+
+   5. SUBNET field to match with the subnet of your base machine If
+      the ip address of your base machine is 10.2.58.XXX, SUBNET =
+      ["10.2.58.12/28"]
+
+** Commands to Manage the Service
++ As root, go into =src= directory and run make:
+#+begin_src example
+$ cd src
+$ make
+#+end_src
+
++ To stop the services, or restart
+#+begin_src example
+$ cd src
+$ make stop-server
+$ make restart-server
+#+end_src
+
++ View the logs at /root/logs/ovpl.log by
+#+begin_src example
+tail -f /root/logs/ovpl.log
+#+end_src
+
+
+* Deploy a Lab
+
+At this point, ADS is running and you are ready to deploy a lab.
+
+- To deploy your lab ::
+     - Open the browser.
+     - Enter =localhost:8080= as the url.
+     - The form requires you to fill =Lab ID=. You may assign any new
+       alphanumeric name as a lab id.
+     - Also, fill in the =Repo url= with the url of the lab sources on
+       github repository.
+     - Click =submit= to deploy your lab.
+     - If the deployment is successful, an =IP address= will appear in
+       the same browser window.
+     - Enter the =IP address= in the address bar to view the newly
+       deployed lab.
+
