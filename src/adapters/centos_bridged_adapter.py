@@ -61,8 +61,6 @@ class CentOSBridgeVZAdapter(object):
     and then copying it to /etc/network/interfaces.
     """
     def prepare_vm_for_bridged_network(self, vm_id):
-        ovpl_dir_name = OVPL_DIR_PATH.split("/")[-1]
-        vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
         src_dirc = OVPL_DIR_PATH + "/src/adapters/bridge-settings"
         dest_dirc = OVPL_DIR_PATH + "/src/adapters/interfaces"
 
