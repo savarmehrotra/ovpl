@@ -23,6 +23,10 @@
   service:
 
 ** Edit the file =ovpl/config/config.json= 
+#+begin_src example
+cd ../ovpl/config
+vim config.json
+#+end_src
 
   + To set the proxies.
 #+begin_src example
@@ -40,6 +44,30 @@
     },
 #+end_src
   
+    + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long
+    randomly generated string.
+
+#+begin_src example
+"COOKIE_SECRET": "<generate a long random UUID>",
+#+end_src
+
+  + Leave the PERSONA_VERIFIER field as it is, if you are using the
+    Mozilla's default Persona provider service.
+  
+  + Change APP_URL field and put the URL where the application is
+    hosted.
+#+begin_src example
+     "APP_URL": "http://ads-server-public-ip:8080",
+#+end_src
+
+  + Choosing ADAPTER_NAME:In the ADAPTER section, change the
+    ADAPTER_NAME to "CentOSVZAdapter".
+
+#+begin_src example
+"ADAPTER": {
+        "ADAPTER_NAME" :"CentOSVZAdapter",
+	}
+#+end_src
 
   + Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of
     the machine on which the ADS services are running.
@@ -49,40 +77,24 @@
 	    },
 #+end_src
 
-  + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long
-    randomly generated string.
-
-#+begin_src example
-"COOKIE_SECRET": "<generate a long random UUID>",
-#+end_src
-
-  + Leave the PERSONA_VERIFIER field as it is, if you are using the
-    Mozilla's default Persona provider service.
-
-  + Change APP_URL field and put the URL where the application is
-    hosted.
-#+begin_src example
-     "APP_URL": "http://ads-server-public-ip:8080",
-#+end_src
 
   + Copy =config/sample_authorized_users.py= to
-    =config/authorized_users.py=, and add actual email addresses of
-    authorized users.
-
-** Choosing ADAPTER_NAME
-   In the ADAPTER section, change the ADAPTER_NAME to
-   "CentOSVZAdapter".
-
+    =config/authorized_users.py= to add email addresses.
 #+begin_src example
-"ADAPTER": {
-        "ADAPTER_NAME" :"CentOSVZAdapter",
-	}
+cp sample_authorized_users.py authorized_users.py
 #+end_src
 
+  + Add actual email addresses of authorized users.
+
+
+
 *** Settings for CentOSVZAdapter
-
+   
    Edit the file =ovpl/src/adapters/settings.py= to set the following:
-
+#+begin_src example
+cd ../src/adapters
+vim settings.py
+#+end_src
    1. If the services are running on the base machine, set
       ADS_ON_CONTAINER to False.
 
@@ -102,7 +114,7 @@
 ** Commands to Manage the Service
 + As root, go into =src= directory and run make:
 #+begin_src example
-$ cd src
+$ cd ../src
 $ make
 #+end_src
 
