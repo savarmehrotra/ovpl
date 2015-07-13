@@ -35,7 +35,7 @@ from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
 from utils.git_commands import GitCommands
 from utils.execute_commands import execute_command
-
+from base_adapter import OVPL_DIR_PATH
 # import the AWS configuration
 import aws_config as config
 
@@ -148,7 +148,7 @@ class AWSAdapter(object):
 
         # Return info for AdapterServer: the VM's id, IP and port of VM Mgr
         info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
-                "vmm_port": settings.VM_MANAGER_PORT}
+                "vm_port": settings.VM_MANAGER_PORT}
 
         # wait until the VM is up with the SSH service..
         # until then we won't be able to go ahead with later steps..
@@ -227,6 +227,8 @@ class AWSAdapter(object):
 
     # start the VM Manager component on the lab VM
     def start_vm_manager(self, vm_ip_addr):
+        ovpl_dir_name = OVPL_DIR_PATH.split("/")[-1]
+        vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
         logger.debug("AWSAdapter: Attempting to start VMMgr: vm_ip:%s"
                      % (vm_ip_addr))
 
@@ -234,7 +236,7 @@ class AWSAdapter(object):
             format(self.key_file_path, self.VM_USER, vm_ip_addr)
 
         vmmgr_cmd = "'python {0}{1} >> vmmgr.log 2>&1 < /dev/null &'".\
-            format(settings.VMMANAGERSERVER_PATH, settings.VM_MANAGER_SCRIPT)
+            format(vm_ovpl_path, settings.VM_MANAGER_SERVER_PATH)
 
         command = ssh_command + vmmgr_cmd
 
@@ -357,7 +359,7 @@ class AWSAdapter(object):
     # copy the ADS source into the newly created lab VM
     def _copy_ovpl_source(self, ip_addr):
        # env = EnvSetUp()
-        src_dir = self.env.get_ovpl_directory_path()
+        src_dir = OVPL_DIR_PATH
 
         dest_dir = "{0}@{1}:{2}".format(self.VM_USER, ip_addr,
                                         settings.VM_DEST_DIR)

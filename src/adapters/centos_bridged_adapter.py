@@ -61,8 +61,8 @@ class CentOSBridgeVZAdapter(object):
     and then copying it to /etc/network/interfaces.
     """
     def prepare_vm_for_bridged_network(self, vm_id):
-        src_dirc = OVPL_DIR_PATH + "/src/adapters/bridge-settings"
-        dest_dirc = OVPL_DIR_PATH + "/src/adapters/interfaces"
+        src_dirc = OVPL_DIR_PATH + settings.BRIDGE_NETWORK_SETUP_PATH + "bridge-settings"
+        dest_dirc = OVPL_DIR_PATH + settings.BRIDGE_NETWORK_SETUP_PATH + "interfaces"
 
         try:
             copy_command = "rsync -arz --progress " + src_dirc + " " + dest_dirc
@@ -85,7 +85,7 @@ class CentOSBridgeVZAdapter(object):
             fd.write( line.replace( textToSearch, textToReplace ) )
         fd.close()
 
-        src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + OVPL_DIR_PATH + "/src/adapters/interfaces"
+        src_dir = "/vz/private/" + settings.ADS_SERVER_VM_ID + OVPL_DIR_PATH + settings.BRIDGE_NETWORK_SETUP_PATH + "interfaces"
         dest_dir = "/vz/private/" + vm_id + "/etc/network/interfaces"
         logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" % (vm_id, src_dir, dest_dir))
         try:
@@ -227,8 +227,8 @@ class CentOSBridgeVZAdapter(object):
         ovpl_dir_name = OVPL_DIR_PATH.split("/")[-1]
         vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
         start_vm_manager_command = ("python %s%s %s" %
-                                    (vm_ovpl_path + "/src/vmmanager/",
-                                     settings.VM_MANAGER_SCRIPT,
+                                    (vm_ovpl_path,
+                                     settings.VM_MANAGER_SERVER_PATH,
                                      ">>/root/vm.log 2>&1 </dev/null &" ))
         command = (r"ssh -o '%s' %s%s '%s'" %
                     (settings.NO_STRICT_CHECKING,

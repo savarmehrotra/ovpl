@@ -5,26 +5,25 @@ print sys.path
 ADS_ON_CONTAINER = False
 # BASE_IP_ADDRESS will hold the IP of the base machine on
 # which containers will be created"
-BASE_IP_ADDRESS = "root@10.2.56.182"
+BASE_IP_ADDRESS = "root@<base-ip>"
 NO_STRICT_CHECKING = "StrictHostKeyChecking no"
 # ADS_SERVER_ID will be CTID of the container running ADS services
-ADS_SERVER_VM_ID = "<CTID>"
+ADS_SERVER_VM_ID = "<ctid>"
 VM_ROOT_DIR = "/vz/root/"
 VM_DEST_DIR = "/root/"
-VMMANAGERSERVER_PATH = "/root/ovpl/src/vmmanager/"
 VM_MANAGER_PORT = "9089"
 
 # run VMManagerServer with the default VMManager
-VM_MANAGER_SCRIPT = "vm_manager_server.py"
+VM_MANAGER_SERVER_PATH = "/src/vmmanager/vm_manager_server.py"
 MAX_VM_ID = 2147483644  # 32-bit; exact value based on trial-and-error
 
 # Settings for Bridged Adapter
-SUBNET_BRIDGE = "base1br"
-
+SUBNET_BRIDGE = "<bridge-name>"
+BRIDGE_NETWORK_SETUP_PATH = "/src/adapters/"
 
 def get_subnet():
     # Subnet: IP addresses will be picked from and assigend to lab VMs
-    SUBNET = ["10.2.56.182/24"]
+    SUBNET = ["x.x.x.x/x"]
     assert isinstance(SUBNET, list)
     return SUBNET
 
