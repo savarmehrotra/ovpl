@@ -6,7 +6,7 @@ from __init__ import *
 from utils.envsetup import EnvSetUp
 from utils.execute_commands import execute_command
 from httplogging.http_logger import logger
-import settings
+from config.adapters import base_config
 
 VZCTL = "/usr/sbin/vzctl"
 VZLIST = "/usr/sbin/vzlist -a"
@@ -25,6 +25,31 @@ class BaseAdapter:
 class AdapterDetails:
     pass
 
+def get_test_lab_id():
+    # can be used to create a test lab ID if lab id is empty
+    LAB_ID = base_config.LAB_ID
+    assert isinstance(LAB_ID, str)
+    assert LAB_ID != ""
+    return LAB_ID
+
+def get_test_os():
+    # can be used to set a default OS if OS is not specified in lab spec
+    OS = base_config.OS 
+    assert isinstance(OS, str)
+    assert OS != ""
+    return OS
+
+def get_test_os_version():
+    # can be used to set a default OS version
+    # if OS is not specified in lab spec
+    OS_VERSION = base_config.OS_VERSION
+    assert isinstance(OS_VERSION, str)
+    assert OS_VERSION != ""
+    return OS_VERSION
+
+def get_adapter_hostname():
+    HOST_NAME = base_config.HOST_NAME
+    return HOST_NAME
 
 def find_available_ip():
     # try and ping. if the IP does not respond, (gives wrong return code)
@@ -43,8 +68,8 @@ def find_available_ip():
         m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', ip)
         vm_id = str(int(m.group(1) + m.group(2)))
         command = (r'ssh -o "%s" %s "%s %s| grep %s"' %
-                   (settings.NO_STRICT_CHECKING,
-                    settings.BASE_IP_ADDRESS,
+                   (base_config.NO_STRICT_CHECKING,
+                    base_config.BASE_IP_ADDRESS,
                     VZLIST, vm_id, vm_id))
         logger.debug("CentOSVZAdapter: vzlist command = %s" %
                      command)
@@ -62,7 +87,7 @@ def find_available_ip():
         #  reject IP's like  192.0.2.0 or 192.0.2.255 for subnet 192.0.2.0/24
         return not (ip == ip_network.network or ip == ip_network.broadcast)
 
-    for subnet in settings.get_subnet():
+    for subnet in base_config.SUBNET:
         ip_network = netaddr.IPNetwork(subnet)
         ip_addrs = list(ip_network)
         # logger.debug("ip addresses: %s" % str(ip_addrs))
@@ -70,7 +95,7 @@ def find_available_ip():
             if is_ip_usable(ip) and is_ip_free(ip):
                 return str(ip)
 
-    raise Exception("unable to find free ip in subnet ", settings.get_subnet())
+    raise Exception("unable to find free ip in subnet ", base_config.SUBNET)
     return None
 
 
