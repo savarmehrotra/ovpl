@@ -2,7 +2,7 @@ import os
 import sys
 import json
 from __init__ import *
-from adapters.settings import get_subnet
+from config.adapters.base_config import SUBNET
 from singleton import Singleton
 
 
@@ -38,7 +38,7 @@ class EnvSetUp:
 
     def create_no_proxy_string(self):
 
-        for subnet in get_subnet():
+        for subnet in SUBNET:
             parts = subnet.split(".")
             parts[2] = parts[3] = "0"
             self.__no_proxy = ".".join(parts) + "/16,"
