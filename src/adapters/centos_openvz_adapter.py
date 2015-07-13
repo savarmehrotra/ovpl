@@ -193,8 +193,8 @@ class CentOSVZAdapter(object):
         vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
         ip_address = get_vm_ip(vm_id)
         start_vm_manager_command = ("python %s%s %s" %
-                                    (vm_ovpl_path + "/src/vmmanager/",
-                                     settings.VM_MANAGER_SCRIPT,
+                                    (vm_ovpl_path,
+                                     settings.VM_MANAGER_SERVER_PATH,
                                      ">>/root/vm.log 2>&1 </dev/null &"))
         command = (r"ssh -o '%s' %s%s '%s'" %
                    (settings.NO_STRICT_CHECKING,
