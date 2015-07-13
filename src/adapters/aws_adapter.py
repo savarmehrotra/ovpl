@@ -148,7 +148,7 @@ class AWSAdapter(object):
 
         # Return info for AdapterServer: the VM's id, IP and port of VM Mgr
         info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
-                "vmm_port": settings.VM_MANAGER_PORT}
+                "vm_port": settings.VM_MANAGER_PORT}
 
         # wait until the VM is up with the SSH service..
         # until then we won't be able to go ahead with later steps..
@@ -227,14 +227,16 @@ class AWSAdapter(object):
 
     # start the VM Manager component on the lab VM
     def start_vm_manager(self, vm_ip_addr):
+        ovpl_dir_name = OVPL_DIR_PATH.split("/")[-1]
+        vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
         logger.debug("AWSAdapter: Attempting to start VMMgr: vm_ip:%s"
                      % (vm_ip_addr))
 
         ssh_command = "ssh -i {0} -o StrictHostKeyChecking=no {1}@{2} ".\
             format(self.key_file_path, self.VM_USER, vm_ip_addr)
 
-        vmmgr_cmd = "'python {0} >> vmmgr.log 2>&1 < /dev/null &'".\
-            format(settings.VM_MANAGER_SERVER_PATH)
+        vmmgr_cmd = "'python {0}{1} >> vmmgr.log 2>&1 < /dev/null &'".\
+            format(vm_ovpl_path, settings.VM_MANAGER_SERVER_PATH)
 
         command = ssh_command + vmmgr_cmd
 
