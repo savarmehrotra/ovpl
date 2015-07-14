@@ -10,7 +10,6 @@ NO_STRICT_CHECKING = "StrictHostKeyChecking no"
 ADS_SERVER_VM_ID = "<CTID>"
 VM_ROOT_DIR = "/vz/root/"
 VM_DEST_DIR = "/root/"
-VMMANAGERSERVER_PATH = "/root/ovpl/src/VMManager/"
 VM_MANAGER_PORT = "9089"
 LAB_ID = "engg01"
 OS = "Ubuntu"
@@ -18,6 +17,5 @@ OS_VERSION = "12.04"
 HOST_NAME = "vlabs.ac.in"
 ADAPTER_NAME_SERVER = "inherit"
 # run VMManagerServer with the default VMManager
-VM_MANAGER_SCRIPT = "VMManagerServer.py VMManager"
+VM_MANAGER_SERVER_PATH = "/src/vmmanager/vm_manager_server.py"
 MAX_VM_ID = 2147483644  # 32-bit; exact value based on trial-and-error
-
