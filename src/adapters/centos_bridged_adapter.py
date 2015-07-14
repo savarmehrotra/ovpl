@@ -47,17 +47,6 @@ IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
 IP_ADDRESS = None
 
-class OSNotFound(Exception):
-    """
-    use this exception class to raise an exception when a suitable OS is not
-    found
-    """
-    def __init__(self, msg):
-        self.msg = msg
-
-    def __str__(self):
-        return repr(self.msg)
-
 class InvalidVMIDException(Exception):
     def __init__(msg):
         Exception.__init__(msg)
@@ -387,7 +376,7 @@ def construct_vzctl_args(lab_specz={}):
     vm_spec = get_vm_spec()
     lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
     host_name = lab_ID + "." + base_adapter.get_adapter_hostname()
-    os_template = find_os_template(vm_spec["os"], vm_spec["os_version"])
+    os_template = base_adapter.find_os_template(vm_spec["os"], vm_spec["os_version"], config.supported_template)
     (ram, swap) = vm_utils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
     (disk_soft, disk_hard) = vm_utils.get_disk_space(vm_spec["diskspace"])
     vm_create_args = " --ostemplate " + os_template + \
@@ -402,60 +391,6 @@ def construct_vzctl_args(lab_specz={}):
                   " --save"
 
     return (vm_create_args, vm_set_args)
-
-
-def find_os_template(os, os_version):
-    """
-    Find a suitable os template from the list of supported templates from
-    the given OS and OS version. If a suitable OS is not found, raise
-    appropriate Exception
-    """
-    logger.debug("OS = %s and OS_VERSION = %s" % (os, os_version))
-    supported_template = config.supported_template
-    logger.debug("Supported template = %s" % supported_template)
-
-    if os == "" or os_version == "":
-        msg = "No OS or Version specified"
-        logger.error(msg)
-        raise OSNotFound(msg)
-
-    # sanitize input
-    os = os.strip().upper()
-    os_version = os_version.strip()
-
-    if os == 'UBUNTU' and os_version == '12':
-        os_version = '12.04'
-
-    if os == 'UBUNTU' and os_version == '13':
-        os_version = '13.04'
-
-    # filter the supported template list by the os and the by the version
-    all_versions_of_os = filter(lambda x: x['os'] == os, supported_template)
-    logger.debug("List of all the supported versions of OS = %s is %s" %
-                 (os, all_versions_of_os))
-
-    if all_versions_of_os:
-        chosen_template = filter(lambda x: x['version'] ==
-                                 os_version, all_versions_of_os)
-        logger.debug("The templete supported for OS = %s, Version = %s is %s" %
-                     (os, os_version, chosen_template))
-    else:
-        msg = "OS = %s is not supported" % os
-        logger.error(msg)
-        raise OSNotFound(msg)
-
-    if not chosen_template or not len(chosen_template):
-        msg = "Version = %s is not supported" % os_version
-        logger.error(msg)
-        raise OSNotFound(msg)
-
-    # chose the item; there should be only one.
-    chosen_template = chosen_template[0]
-
-    logger.debug("Choosen Template: %s; based on input OS: %s, version: %s" %
-                 (chosen_template, os, os_version))
-    return chosen_template['template']
-
 
 def validate_vm_id(vm_id):
     vm_id = str(vm_id).strip()
