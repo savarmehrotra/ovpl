@@ -39,15 +39,6 @@ import base_adapter
 # import the AWS configuration
 from config.adapters import aws_config as config
 
-
-class AMINotFound(Exception):
-    """
-    use this exception class to raise an exception when a suitable AMI is not
-    found
-    """
-    pass
-
-
 class AWSKeyFileNotFound(Exception):
     """
     use this exception class to raise exceptions when AWS .pem key file is
@@ -450,7 +441,7 @@ class AWSAdapter(object):
 
         # pass OS and OS version and get a relavant AMI id for the corresponding
         # image
-        ami_id = self._find_ec2_ami(vm_spec["os"], vm_spec["os_version"])
+        ami_id = base_adapter.find_os_template(vm_spec["os"], vm_spec["os_version"], config.supported_amis)
 
         # use someone's super intelligent method to get RAM in megs- in a string
         # with 'M' appended at the end!! </sarcasm>
@@ -480,44 +471,7 @@ class AWSAdapter(object):
             "swap": runtime_reqs['platform']['memory']['swap']
         }
         return vm_spec
-
-    def _find_ec2_ami(self, os, os_version):
-        """
-        Find a suitable AMI from the list of supported AMIs from the given OS
-        and OS version. If not a suitable OS is found, raise appropriate
-        Exception
-        """
-        supported_amis = config.supported_amis
-
-        if os == "" or os_version == "":
-            raise AMINotFound('No corresponding AMI for the given OS found')
-
-        # sanitize input
-        os = os.strip().upper()
-        os_version = os_version.strip()
-
-        if os == 'UBUNTU' and os_version == '12':
-            os_version = '12.04'
-
-        if os == 'UBUNTU' and os_version == '14':
-            os_version = '14.04'
-
-        # filter the supported_amis list by the os and the by the version
-        filtered_os = filter(lambda x: x['os'] == os, supported_amis)
-        chosen_ami = filter(lambda x: x['version'] == os_version, filtered_os)
-
-        if not chosen_ami or not len(chosen_ami):
-            raise AMINotFound('No corresponding AMI for the given OS found')
-
-        # chose the item; there should be only one.
-        chosen_ami = chosen_ami[0]
-
-        logger.debug("Choosing AMI: %s; based on input OS: %s, version: %s" %
-                     (chosen_ami, os, os_version))
-
-        return chosen_ami['ami_id']
-
-
+    
 if __name__ == "__main__":
 
     f = open('../scripts/labspec.json', 'r')
