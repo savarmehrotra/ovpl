@@ -30,14 +30,14 @@ from boto import ec2
 # ADS imports
 import vm_utils
 from dict2default import dict2default
-import settings
+from config.adapters import base_config
 from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
 from utils.git_commands import GitCommands
 from utils.execute_commands import execute_command
-from base_adapter import OVPL_DIR_PATH
+import base_adapter
 # import the AWS configuration
-import aws_config as config
+from config.adapters import aws_config as config
 
 
 class AMINotFound(Exception):
@@ -95,7 +95,7 @@ class AWSAdapter(object):
         self.connection = self.create_connection()
         self.env = EnvSetUp.Instance()
         self.git = GitCommands()
-        
+
     def create_connection(self):
         # When keys are absent, it implies, the adapter uses IAM role.
         if self.credentials["aws_access_key_id"]:
@@ -148,7 +148,7 @@ class AWSAdapter(object):
 
         # Return info for AdapterServer: the VM's id, IP and port of VM Mgr
         info = {"vm_id": vm_id, "vm_ip": vm_ip_addr,
-                "vm_port": settings.VM_MANAGER_PORT}
+                "vm_port": base_config.VM_MANAGER_PORT}
 
         # wait until the VM is up with the SSH service..
         # until then we won't be able to go ahead with later steps..
@@ -189,7 +189,7 @@ class AWSAdapter(object):
         # check if the VMManager service came up and running..
         logger.debug("Ensuring VMManager service is running on VM %s" %
                      vm_ip_addr)
-        vmmgr_port = int(settings.VM_MANAGER_PORT)
+        vmmgr_port = int(base_config.VM_MANAGER_PORT)
         success = self.wait_for_service(vm_ip_addr, vmmgr_port,
                                         self.TIME_BEFORE_NEXT_RETRY,
                                         config.TIMEOUT)
@@ -227,8 +227,8 @@ class AWSAdapter(object):
 
     # start the VM Manager component on the lab VM
     def start_vm_manager(self, vm_ip_addr):
-        ovpl_dir_name = OVPL_DIR_PATH.split("/")[-1]
-        vm_ovpl_path = settings.VM_DEST_DIR + ovpl_dir_name
+        ovpl_dir_name = base_adapter.OVPL_DIR_PATH.split("/")[-1]
+        vm_ovpl_path = base_config.VM_DEST_DIR + ovpl_dir_name
         logger.debug("AWSAdapter: Attempting to start VMMgr: vm_ip:%s"
                      % (vm_ip_addr))
 
@@ -236,7 +236,7 @@ class AWSAdapter(object):
             format(self.key_file_path, self.VM_USER, vm_ip_addr)
 
         vmmgr_cmd = "'python {0}{1} >> vmmgr.log 2>&1 < /dev/null &'".\
-            format(vm_ovpl_path, settings.VM_MANAGER_SERVER_PATH)
+            format(vm_ovpl_path, base_config.VM_MANAGER_SERVER_PATH)
 
         command = ssh_command + vmmgr_cmd
 
@@ -359,10 +359,10 @@ class AWSAdapter(object):
     # copy the ADS source into the newly created lab VM
     def _copy_ovpl_source(self, ip_addr):
        # env = EnvSetUp()
-        src_dir = OVPL_DIR_PATH
+        src_dir = base_adapter.OVPL_DIR_PATH
 
         dest_dir = "{0}@{1}:{2}".format(self.VM_USER, ip_addr,
-                                        settings.VM_DEST_DIR)
+                                        base_config.VM_DEST_DIR)
 
         logger.debug("ip_address = %s, src_dir=%s, dest_dir=%s" %
                      (ip_addr, src_dir, dest_dir))
@@ -379,7 +379,7 @@ class AWSAdapter(object):
         src_dir = str(self.git.git_clone_loc) + "/" + lab_repo_name
 
         dest_dir = "{0}@{1}:{2}labs/".format(self.VM_USER, ip_addr,
-                                             settings.VM_DEST_DIR)
+                                             base_config.VM_DEST_DIR)
 
         logger.debug("ip_address = %s, src_dir=%s, dest_dir=%s" %
                      (ip_addr, src_dir, dest_dir))
@@ -438,13 +438,13 @@ class AWSAdapter(object):
         # derive hostname from the slug given in labspec
         if 'slug' in lab_spec['lab']['description']:
             slug = lab_spec['lab']['description']['slug']
-            hostname = "%s.%s" % (slug, settings.get_adapter_hostname())
+            hostname = "%s.%s" % (slug, base_config.HOST_NAME)
         else:
             if vm_spec["lab_ID"] == "":
-                lab_ID = settings.get_test_lab_id()
+                lab_ID = base_adapter.get_test_lab_id()
             else:
                 lab_ID = vm_spec["lab_ID"]
-            hostname = "%s.%s" % (lab_ID, settings.get_adapter_hostname())
+            hostname = "%s.%s" % (lab_ID, base_adapter.get_adapter_hostname())
 
         logger.debug("AWSAdapter: hostname of the lab: %s" % hostname)
 
