@@ -12,6 +12,7 @@ VZCTL = "/usr/sbin/vzctl"
 VZLIST = "/usr/sbin/vzlist -a"
 OVPL_DIR_PATH = EnvSetUp.Instance().get_ovpl_directory_path()
 
+
 class BaseAdapter:
     def create_vm(lab_spec):
         raise Exception("BaseAdapter: unimplemented create_vm()")
@@ -25,6 +26,7 @@ class BaseAdapter:
 class AdapterDetails:
     pass
 
+
 class OSNotFound(Exception):
     """
     use this exception class to raise an exception when a suitable OS is not
@@ -35,6 +37,7 @@ class OSNotFound(Exception):
 
     def __str__(self):
         return repr(self.msg)
+
 
 def find_os_template(os, os_version, supported_template):
     """
@@ -59,7 +62,7 @@ def find_os_template(os, os_version, supported_template):
 
     if os == 'UBUNTU' and os_version == '13':
         os_version = '13.04'
-        
+
     # filter the supported template list by the os and the by the version
     all_versions_of_os = filter(lambda x: x['os'] == os, supported_template)
     logger.debug("List of all the supported versions of OS = %s is %s" %
@@ -87,6 +90,7 @@ def find_os_template(os, os_version, supported_template):
                  (chosen_template, os, os_version))
     return chosen_template['id']
 
+
 def get_test_lab_id():
     # can be used to create a test lab ID if lab id is empty
     LAB_ID = base_config.LAB_ID
@@ -94,12 +98,14 @@ def get_test_lab_id():
     assert LAB_ID != ""
     return LAB_ID
 
+
 def get_test_os():
     # can be used to set a default OS if OS is not specified in lab spec
-    OS = base_config.OS 
+    OS = base_config.OS
     assert isinstance(OS, str)
     assert OS != ""
     return OS
+
 
 def get_test_os_version():
     # can be used to set a default OS version
@@ -109,9 +115,11 @@ def get_test_os_version():
     assert OS_VERSION != ""
     return OS_VERSION
 
+
 def get_adapter_hostname():
     HOST_NAME = base_config.HOST_NAME
     return HOST_NAME
+
 
 def find_available_ip():
     # try and ping. if the IP does not respond, (gives wrong return code)
@@ -176,9 +184,11 @@ def get_adapter_details():
     adapter_details.port = \
         config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"][pool_id]["PORT"]
     adapter_details.module_name = \
-        config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"][pool_id]["ADAPTERS"][adapter_id]["MODULE"]
+        config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"][pool_id]["ADAPTERS"] \
+        [adapter_id]["MODULE"]
     adapter_details.adapter_name = \
-        config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"][pool_id]["ADAPTERS"][adapter_id]["ADAPTER"]
+        config_spec["VMPOOL_CONFIGURATION"]["VMPOOLS"][pool_id]["ADAPTERS"] \
+        [adapter_id]["ADAPTER"]
 
     return adapter_details
 

@@ -7,8 +7,8 @@ region = "us-east-1"
 # Credentials can be left empty if IAM is enabled. ADS itself, while creating a
 # new VM will take care of user credentials.
 credentials = {
-        "aws_access_key_id": "your-access-key",
-        "aws_secret_access_key": "your-access-secret"
+    "aws_access_key_id": "your-access-key",
+    "aws_secret_access_key": "your-access-secret"
 }
 # give then key file path - relative to the src directory
 # NOTE: advisable to use absolute paths..
@@ -27,7 +27,7 @@ default_gateway = "<ip-address-of-gateway>"
 # AMI. More details can also be given like tag names etc.
 # NOTE: The following can be used w/o modifications. Leave it as it is.
 supported_amis = [
-    {'os': 'UBUNTU', 'version': '12.04', 'id': 'ami-9c3b0cf4'}
+    {'os': 'UBUNTU', 'version': '12.04', 'id': 'ami-9c3b0cf4'},
     {'os': 'UBUNTU', 'version': '14.04', 'id': 'ami-9a562df2'},
     {'os': 'CENTOS', 'version': '6.6', 'id': 'ami-61655b08'},
     {'os': 'DEBIAN', 'version': '7.0', 'id': 'ami-e0efab88'}
@@ -36,8 +36,8 @@ supported_amis = [
 # Configure here the available/supported instance types
 # NOTE: The following can be used w/o modifications. Leave it as it is.
 available_instance_types = [
-        {'ram': 1024, 'instance_type': 't2.micro'},
-        {'ram': 2048, 'instance_type': 't2.small'}
+    {'ram': 1024, 'instance_type': 't2.micro'},
+    {'ram': 2048, 'instance_type': 't2.small'}
 ]
 
 # Name of the VMs that you want to tag.
@@ -46,4 +46,3 @@ vm_tag = "test.aws.adapter.ads"
 
 # timeout in secs after which waiting for service should be abandoned
 TIMEOUT = 300
-

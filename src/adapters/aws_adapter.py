@@ -39,6 +39,7 @@ import base_adapter
 # import the AWS configuration
 from config.adapters import aws_config as config
 
+
 class AWSKeyFileNotFound(Exception):
     """
     use this exception class to raise exceptions when AWS .pem key file is
@@ -349,7 +350,7 @@ class AWSAdapter(object):
 
     # copy the ADS source into the newly created lab VM
     def _copy_ovpl_source(self, ip_addr):
-       # env = EnvSetUp()
+        # env = EnvSetUp()
         src_dir = base_adapter.OVPL_DIR_PATH
 
         dest_dir = "{0}@{1}:{2}".format(self.VM_USER, ip_addr,
@@ -441,7 +442,9 @@ class AWSAdapter(object):
 
         # pass OS and OS version and get a relavant AMI id for the corresponding
         # image
-        ami_id = base_adapter.find_os_template(vm_spec["os"], vm_spec["os_version"], config.supported_amis)
+        ami_id = base_adapter.find_os_template(vm_spec["os"],
+                                               vm_spec["os_version"],
+                                               config.supported_amis)
 
         # use someone's super intelligent method to get RAM in megs- in a string
         # with 'M' appended at the end!! </sarcasm>
@@ -471,7 +474,7 @@ class AWSAdapter(object):
             "swap": runtime_reqs['platform']['memory']['swap']
         }
         return vm_spec
-    
+
 if __name__ == "__main__":
 
     f = open('../scripts/labspec.json', 'r')
