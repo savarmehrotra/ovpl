@@ -19,7 +19,6 @@ Execute the following steps, to configure and then run ADS as a service:
     },
 #+end_src
   
-  *Note:* CentOSBridgeVZAdapter does not require the proxy settings.
 
   + Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
 machine on which the ADS services are running.
@@ -47,14 +46,11 @@ machine on which the ADS services are running.
   + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=,
     and add actual email addresses of authorized users.
 
-** Choosing ADAPTER_NAME
-   In the ADAPTER section, change the ADAPTER_NAME to appropriate adapter used.
-   Possible values for now are - "CentOSVZAdapter", "AWSAdapter" and
-   "CentOSBridgeVZAdapter"
+** Choosing POOL AND ADAPTER
+   Choose =POOLID= and =ADAPTERID= from =VPOOLS= section. Make the appropriate change in =ADAPTER_TO_USE=
+   
 #+begin_src example
-"ADAPTER": {
-        "ADAPTER_NAME" :"CentOSVZAdapter",
-	}
+"ADAPTER_TO_USE" : {"POOLID" : 1, "ADAPTERID" : 2}
 #+end_src
 
 *** Settings for CentOSVZAdapter and CentOSBridgeVZAdapter
