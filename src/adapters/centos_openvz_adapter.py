@@ -49,6 +49,7 @@ IP_ADDRESS_REGEX = r"[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"
 # "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1
 # [0-9]{2}|2[0-4][0-9]|25[0-5])$";
 
+
 class InvalidVMIDException(Exception):
     def __init__(msg):
         Exception.__init__(msg)
@@ -82,7 +83,8 @@ class CentOSVZAdapter(object):
 
         try:
             command = (r'ssh -o "%s" %s "%s create %s %s"' %
-                       (base_config.NO_STRICT_CHECKING, base_config.BASE_IP_ADDRESS,
+                       (base_config.NO_STRICT_CHECKING,
+                        base_config.BASE_IP_ADDRESS,
                         VZCTL, vm_id, vm_create_args))
             logger.debug("CentOSVZAdapter: create_vm(): create command = %s" %
                          command)
@@ -238,7 +240,8 @@ def copy_public_key(vm_id):
     try:
         if base_config.ADS_ON_CONTAINER:
             public_key_file = ("%s%s%s%s" %
-                               (base_config.VM_ROOT_DIR, base_config.ADS_SERVER_VM_ID,
+                               (base_config.VM_ROOT_DIR,
+                                base_config.ADS_SERVER_VM_ID,
                                 base_config.VM_DEST_DIR, ".ssh/id_rsa.pub"))
         else:
             public_key_file = ("%s" %
@@ -246,7 +249,8 @@ def copy_public_key(vm_id):
 
         authorized_key_file = ("%s%s%s%s" %
                                (base_config.VM_ROOT_DIR, vm_id,
-                                base_config.VM_DEST_DIR, ".ssh/authorized_keys"))
+                                base_config.VM_DEST_DIR,
+                                ".ssh/authorized_keys"))
 
         logger.debug("public key location = %s, authorized key location = %s" %
                      (public_key_file, authorized_key_file))
@@ -285,12 +289,14 @@ def copy_files(src_dir, dest_dir):
 def copy_ovpl_source(vm_id):
 
     if base_config.ADS_ON_CONTAINER:
-        src_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, base_config.ADS_SERVER_VM_ID,
+        src_dir = "%s%s%s" % (base_config.VM_ROOT_DIR,
+                              base_config.ADS_SERVER_VM_ID,
                               base_adapter.OVPL_DIR_PATH)
     else:
         src_dir = "%s" % (base_adapter.OVPL_DIR_PATH)
 
-    dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id, base_config.VM_DEST_DIR)
+    dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id,
+                           base_config.VM_DEST_DIR)
     logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
                  (vm_id, src_dir, dest_dir))
 
@@ -351,19 +357,27 @@ def construct_vzctl_args(lab_specz={}):
     def get_vm_spec():
         lab_spec = dict2default(lab_specz)
         vm_spec = {"lab_ID": lab_spec['lab']['description']['id'],
-            "os": lab_spec['lab']['runtime_requirements']['platform']['os'],
-            "os_version": lab_spec['lab']['runtime_requirements']['platform']['osVersion'],
-            "ram": lab_spec['lab']['runtime_requirements']['platform']['memory']['min_required'],
-            "diskspace": lab_spec['lab']['runtime_requirements']['platform']['storage']['min_required'],
-            "swap": lab_spec['lab']['runtime_requirements']['platform']['memory']['swap']
-        }
+                   "os": lab_spec['lab']['runtime_requirements']['platform']
+                                 ['os'],
+                   "os_version": lab_spec['lab']['runtime_requirements']
+                                         ['platform']['osVersion'],
+                   "ram": lab_spec['lab']['runtime_requirements']['platform']
+                                  ['memory']['min_required'],
+                   "diskspace": lab_spec['lab']['runtime_requirements']
+                                        ['platform']['storage']['min_required'],
+                   "swap": lab_spec['lab']['runtime_requirements']['platform']
+                                   ['memory']['swap']
+                   }
         return vm_spec
 
     vm_spec = get_vm_spec()
-    lab_ID = base_adapter.get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
+    lab_ID = base_adapter.get_test_lab_id() if vm_spec["lab_ID"] == "" \
+        else vm_spec["lab_ID"]
     host_name = lab_ID + "." + base_adapter.get_adapter_hostname()
     ip_address = base_adapter.find_available_ip()
-    os_template = base_adapter.find_os_template(vm_spec["os"], vm_spec["os_version"], config.supported_template)
+    os_template = base_adapter.find_os_template(vm_spec["os"],
+                                                vm_spec["os_version"],
+                                                config.supported_template)
     (ram, swap) = vm_utils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
     (disk_soft, disk_hard) = vm_utils.get_disk_space(vm_spec["diskspace"])
     vm_create_args = " --ostemplate " + os_template + \
