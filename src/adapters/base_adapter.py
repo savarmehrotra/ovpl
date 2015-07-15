@@ -39,14 +39,14 @@ class OSNotFound(Exception):
         return repr(self.msg)
 
 
-def find_os_template(os, os_version, supported_template):
+def find_os_template(os, os_version, supported_images):
     """
-    Find a suitable os template from the list of supported templates from
+    Find a suitable os image from the list of supported images from
     the given OS and OS version. If a suitable OS is not found, raise
     appropriate Exception
     """
     logger.debug("OS = %s and OS_VERSION = %s" % (os, os_version))
-    logger.debug("Supported template = %s" % supported_template)
+    logger.debug("Supported images = %s" % supported_images)
 
     if os == "" or os_version == "":
         msg = "No OS or Version specified"
@@ -63,15 +63,14 @@ def find_os_template(os, os_version, supported_template):
     if os == 'UBUNTU' and os_version == '13':
         os_version = '13.04'
 
-    # filter the supported template list by the os and the by the version
-    all_versions_of_os = filter(lambda x: x['os'] == os, supported_template)
+    # filter the supported image list by the os and the by the version
+    all_versions_of_os = filter(lambda x: x['os'] == os, supported_images)
     logger.debug("List of all the supported versions of OS = %s is %s" %
                  (os, all_versions_of_os))
-    print supported_template
     if all_versions_of_os:
         chosen_template = filter(lambda x: x['version'] ==
                                  os_version, all_versions_of_os)
-        logger.debug("The templete supported for OS = %s, Version = %s is %s" %
+        logger.debug("The image supported for OS = %s, Version = %s is %s" %
                      (os, os_version, chosen_template))
     else:
         msg = "OS = %s is not supported" % os
@@ -86,7 +85,7 @@ def find_os_template(os, os_version, supported_template):
     # chose the item; there should be only one.
     chosen_template = chosen_template[0]
 
-    logger.debug("Choosen Template: %s; based on input OS: %s, version: %s" %
+    logger.debug("Choosen image: %s; based on input OS: %s, version: %s" %
                  (chosen_template, os, os_version))
     return chosen_template['id']
 
