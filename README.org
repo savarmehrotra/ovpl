@@ -46,7 +46,7 @@ machine on which the ADS services are running.
   + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=,
     and add actual email addresses of authorized users.
 
-** Choosing POOL AND ADAPTER
+** Choosing POOL and ADAPTER
    Choose =POOLID= and =ADAPTERID= from =VPOOLS= section. Make the appropriate change in =ADAPTER_TO_USE=
    
 #+begin_src example
