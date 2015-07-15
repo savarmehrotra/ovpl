@@ -69,9 +69,9 @@ machine on which the ADS services are running.
       4. Set ADS_SERVER_VM_ID to CTID of container running ADS.
          ADS_SERVER_VM_ID = "<CTID>" 
 
-     5. SUBNET field to match with the subnet of your base machine
-        If the ip address of your base machine is 10.2.58.XXX, 
-        SUBNET = ["10.2.58.12/28"]
+      5. SUBNET field to match with the subnet of your base machine
+         If the ip address of your base machine is 10.2.58.XXX, 
+         SUBNET = ["10.2.58.12/28"]
 
 **** Settings for =centos_bridged_adapter=
      Copy =config/adapters/sample_centos_bridged_config.py= to =config/adapters/centos_bridged_config.py=,

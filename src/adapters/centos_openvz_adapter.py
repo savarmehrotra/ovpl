@@ -39,7 +39,7 @@ import base_adapter
 from httplogging.http_logger import logger
 from utils.execute_commands import execute_command
 from utils.git_commands import GitCommands
-from config.adapters import centosvz_config as config
+from config.adapters import centos_openvz_config as config
 
 # Globals
 VZCTL = "/usr/sbin/vzctl"

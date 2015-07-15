@@ -31,7 +31,7 @@ import fileinput
 # VLEAD imports
 import vm_utils
 from dict2default import dict2default
-from config.adapters import centosvz_bridge_config as config
+from config.adapters import centos_bridged_config as config
 from config.adapters import base_config
 import base_adapter
 from httplogging.http_logger import logger
