@@ -98,7 +98,7 @@ class CentOSBridgeVZAdapter(object):
         logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s"
                      % (vm_id, src_dir, dest_dir))
         try:
-            return copy_files(str(src_dir), str(dest_dir))
+            return self.copy_files(str(src_dir), str(dest_dir))
         except Exception, e:
             logger.error("ERROR = %s" % str(e))
             return False
@@ -160,9 +160,9 @@ class CentOSBridgeVZAdapter(object):
     def create_vm(self, lab_spec, vm_id=""):
         logger.debug("BridgeVZAdapter: create_vm()")
 
-        vm_id = create_vm_id(vm_id)
+        vm_id = self.create_vm_id(vm_id)
 
-        (vm_create_args, vm_set_args) = construct_vzctl_args(lab_spec)
+        (vm_create_args, vm_set_args) = self.construct_vzctl_args(lab_spec)
 
         logger.debug("BridgeVZAdapter: create_vm(): ip = %s, vm_id = %s, \
                      vm_create_args = %s, vm_set_args = %s" %
@@ -177,9 +177,9 @@ class CentOSBridgeVZAdapter(object):
     def init_vm(self, vm_id, lab_repo_name):
         logger.debug("BridgeVZAdapter: init_vm(): vm_id = %s" % vm_id)
         success = True
-        success = success and copy_public_key(vm_id)
-        success = success and copy_ovpl_source(vm_id)
-        success = success and copy_lab_source(vm_id, lab_repo_name,
+        success = success and self.copy_public_key(vm_id)
+        success = success and self.copy_ovpl_source(vm_id)
+        success = success and self.copy_lab_source(vm_id, lab_repo_name,
                                               self.git.get_git_clone_loc())
         success = success and self.start_vm_manager(vm_id)
         # Return the VM's IP and port info
@@ -190,7 +190,7 @@ class CentOSBridgeVZAdapter(object):
         return (success, response)
 
     def destroy_vm(self, vm_id):
-        vm_id = validate_vm_id(vm_id)
+        vm_id = self.validate_vm_id(vm_id)
         try:
 
             command = (r'ssh -o "%s" %s "%s stop %s"' %
@@ -216,7 +216,7 @@ class CentOSBridgeVZAdapter(object):
             return "Failed to destroy VM: " + str(e)
 
     def restart_vm(self, vm_id):
-        vm_id = validate_vm_id(vm_id)
+        vm_id = self.validate_vm_id(vm_id)
         try:
             command = (r'ssh -o "%s" %s "%s restart %s"' %
                        (base_config.NO_STRICT_CHECKING,
@@ -257,7 +257,7 @@ class CentOSBridgeVZAdapter(object):
         pass
 
     def stop_vm(self, vm_id):
-        vm_id = validate_vm_id(vm_id)
+        vm_id = self.validate_vm_id(vm_id)
         try:
             command = (r'ssh -o "%s" %s "%s stop %s"' %
                        (base_config.NO_STRICT_CHECKING,
@@ -276,174 +276,174 @@ class CentOSBridgeVZAdapter(object):
         logger.debug("BridgeVZAdapter: test_logging()")
 
     def is_running_vm(self, vm_id):
-        vm_id = validate_vm_id(vm_id)
+        vm_id = self.validate_vm_id(vm_id)
         pass
 
     def migrate_vm(self, vm_id, destination):
-        vm_id = validate_vm_id(vm_id)
+        vm_id = self.validate_vm_id(vm_id)
         pass
 
     def take_snapshot(self, vm_id):
-        vm_id = validate_vm_id(vm_id)
+        vm_id = self.validate_vm_id(vm_id)
         pass
 
 
-def copy_public_key(vm_id):
-
-    try:
-        public_key_file = ("%s%s%s%s" %
-                           (base_config.VM_ROOT_DIR,
-                            base_config.ADS_SERVER_VM_ID,
-                            base_config.VM_DEST_DIR, ".ssh/id_rsa.pub"))
-
-        authorized_key_file = ("%s%s%s%s" %
-                               (base_config.VM_ROOT_DIR, vm_id,
-                                base_config.VM_DEST_DIR,
-                                ".ssh/authorized_keys"))
-
-        logger.debug("public key location = %s, authorized key location = %s" %
-                     (public_key_file, authorized_key_file))
-        command = (r'ssh -o "%s" %s "%s %s > %s"' %
-                   (base_config.NO_STRICT_CHECKING,
-                    base_config.BASE_IP_ADDRESS,
-                    "/bin/cat", public_key_file, authorized_key_file))
-        logger.debug("command to cpy the public key = %s" % command)
-        (ret_code, output) = execute_command(command)
-        return True
-    except Exception, e:
-        logger.error("ERROR = %s" % str(e))
-        return False
-
-
-def copy_files(src_dir, dest_dir):
-
-    try:
-        copy_command = "rsync -arz --progress " + src_dir + " " + dest_dir
-        logger.debug("copy command = %s" % copy_command)
-        command = (r'ssh -o "%s" %s "%s"' %
-                   (base_config.NO_STRICT_CHECKING,
-                    base_config.BASE_IP_ADDRESS, copy_command))
-        logger.debug("Command = %s" % command)
-        (ret_code, output) = execute_command(command)
-        if ret_code == 0:
-            logger.debug("Copy successful")
-            return True
-        else:
-            logger.debug("Copy Unsuccessful, return code is %s" % str(ret_code))
-            return False
-    except Exception, e:
-        logger.error("ERROR = %s" % str(e))
-        return False
-
-
-def copy_ovpl_source(vm_id):
-
-    src_dir = "%s%s%s" % (base_config.VM_ROOT_DIR,
-                          base_config.ADS_SERVER_VM_ID,
-                          base_adapter.OVPL_DIR_PATH)
-    dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id,
-                           base_config.VM_DEST_DIR)
-    logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s"
-                 % (vm_id, src_dir, dest_dir))
-
-    try:
-        return copy_files(str(src_dir), str(dest_dir))
-    except Exception, e:
-        logger.error("ERROR = %s" % str(e))
-        return False
-
-
-def copy_lab_source(vm_id, lab_repo_name, git_clone_loc):
-
-    directories = git_clone_loc.split("/")
-    labs_dir = directories[-2]
-    src_dir = "%s%s%s%s%s%s" % (base_config.VM_ROOT_DIR,
+    def copy_public_key(self, vm_id):
+        
+        try:
+            public_key_file = ("%s%s%s%s" %
+                               (base_config.VM_ROOT_DIR,
                                 base_config.ADS_SERVER_VM_ID,
-                                base_config.VM_DEST_DIR, labs_dir,
-                                "/", lab_repo_name)
-
-    dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id,
-                           base_config.VM_DEST_DIR + "labs")
-
-    logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
-                 (vm_id, src_dir, dest_dir))
-
-    try:
-        return copy_files(src_dir, dest_dir)
-    except Exception, e:
-        logger.error("ERROR = %s" % str(e))
-        return False
-
-
-def construct_vzctl_args(lab_specz={}):
-    """ Returns a tuple of vzctl create arguments and set arguments """
-
-    def get_vm_spec():
-        lab_spec = dict2default(lab_specz)
-        vm_spec = {"lab_ID": lab_spec['lab']['description']['id'],
-                   "os": lab_spec['lab']['runtime_requirements']
-                                 ['platform']['os'],
-                   "os_version": lab_spec['lab']['runtime_requirements']
-                                         ['platform']['osVersion'],
-                   "ram": lab_spec['lab']['runtime_requirements']['platform']
-                                  ['memory']['min_required'],
-                   "diskspace": lab_spec['lab']['runtime_requirements']
-                                        ['platform']['storage']['min_required'],
-                   "swap": lab_spec['lab']['runtime_requirements']['platform']
-                                   ['memory']['swap']
-                   }
-        return vm_spec
-
-    vm_spec = get_vm_spec()
-    lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
-    host_name = lab_ID + "." + base_adapter.get_adapter_hostname()
-    os_template = base_adapter.find_os_template(vm_spec["os"],
-                                                vm_spec["os_version"],
-                                                config.supported_template)
-    (ram, swap) = vm_utils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
-    (disk_soft, disk_hard) = vm_utils.get_disk_space(vm_spec["diskspace"])
-    vm_create_args = " --ostemplate " + os_template + \
-                     " --diskspace " + disk_soft + ":" + disk_hard + \
-                     " --hostname " + host_name
-    # Note to self: check ram format "0:256M" vs "256M"
-    vm_set_args = " --netif_add eth0,,,," + config.SUBNET_BRIDGE + \
-                  " --ram " + ram + \
-                  " --swap " + swap + \
-                  " --nameserver " + base_config.ADAPTER_NAME_SERVER + \
-                  " --onboot yes" + \
-                  " --save"
-
-    return (vm_create_args, vm_set_args)
+                                base_config.VM_DEST_DIR, ".ssh/id_rsa.pub"))
+            
+            authorized_key_file = ("%s%s%s%s" %
+                                   (base_config.VM_ROOT_DIR, vm_id,
+                                    base_config.VM_DEST_DIR,
+                                    ".ssh/authorized_keys"))
+            
+            logger.debug("public key location = %s, authorized key location = %s" %
+                         (public_key_file, authorized_key_file))
+            command = (r'ssh -o "%s" %s "%s %s > %s"' %
+                       (base_config.NO_STRICT_CHECKING,
+                        base_config.BASE_IP_ADDRESS,
+                        "/bin/cat", public_key_file, authorized_key_file))
+            logger.debug("command to cpy the public key = %s" % command)
+            (ret_code, output) = execute_command(command)
+            return True
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            return False
 
 
-def validate_vm_id(vm_id):
-    vm_id = str(vm_id).strip()
-    m = re.match(r'^([0-9]+)$', vm_id)
-    if m is None:
-        raise InvalidVMIDException("Invalid VM ID. VM ID must be numeric.")
-    vm_id = int(m.group(0))
-    if vm_id <= 0:
-        raise InvalidVMIDException("Invalid VM ID. VM ID must be greater than \
-                                   0.")
-    if vm_id > base_config.MAX_VM_ID:
-        raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
-    return str(vm_id)
+    def copy_files(self, src_dir, dest_dir):
+        
+        try:
+            copy_command = "rsync -arz --progress " + src_dir + " " + dest_dir
+            logger.debug("copy command = %s" % copy_command)
+            command = (r'ssh -o "%s" %s "%s"' %
+                       (base_config.NO_STRICT_CHECKING,
+                        base_config.BASE_IP_ADDRESS, copy_command))
+            logger.debug("Command = %s" % command)
+            (ret_code, output) = execute_command(command)
+            if ret_code == 0:
+                logger.debug("Copy successful")
+                return True
+            else:
+                logger.debug("Copy Unsuccessful, return code is %s" % str(ret_code))
+                return False
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            return False
 
 
-def create_vm_id(vm_id):
-    """If no vm_id is specified, it is computed using the last two segments"""
-    """of an available IP address; vm_spec is an object """
-    logger.debug("create_vm_id(): vm_id = %s" % vm_id)
-    if vm_id == "":
-        global IP_ADDRESS
-        IP_ADDRESS = base_adapter.find_available_ip()
-        m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', IP_ADDRESS)
-        if m is not None:
-            vm_id = str((int(m.group(1) + m.group(2))))
-        else:
-            vm_id = validate_vm_id(vm_id)
-    logger.debug("create_vm_id(): vm_id = %s" % vm_id)
-    return vm_id
+    def copy_ovpl_source(self, vm_id):
+        
+        src_dir = "%s%s%s" % (base_config.VM_ROOT_DIR,
+                              base_config.ADS_SERVER_VM_ID,
+                              base_adapter.OVPL_DIR_PATH)
+        dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id,
+                               base_config.VM_DEST_DIR)
+        logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s"
+                     % (vm_id, src_dir, dest_dir))
+        
+        try:
+            return self.copy_files(str(src_dir), str(dest_dir))
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            return False
+
+
+    def copy_lab_source(self, vm_id, lab_repo_name, git_clone_loc):
+        
+        directories = git_clone_loc.split("/")
+        labs_dir = directories[-2]
+        src_dir = "%s%s%s%s%s%s" % (base_config.VM_ROOT_DIR,
+                                    base_config.ADS_SERVER_VM_ID,
+                                    base_config.VM_DEST_DIR, labs_dir,
+                                    "/", lab_repo_name)
+        
+        dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id,
+                               base_config.VM_DEST_DIR + "labs")
+        
+        logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
+                     (vm_id, src_dir, dest_dir))
+
+        try:
+            return self.copy_files(src_dir, dest_dir)
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            return False
+
+
+    def construct_vzctl_args(self, lab_specz={}):
+        """ Returns a tuple of vzctl create arguments and set arguments """
+        
+        def get_vm_spec():
+            lab_spec = dict2default(lab_specz)
+            vm_spec = {"lab_ID": lab_spec['lab']['description']['id'],
+                       "os": lab_spec['lab']['runtime_requirements']
+                                     ['platform']['os'],
+                       "os_version": lab_spec['lab']['runtime_requirements']
+                                             ['platform']['osVersion'],
+                       "ram": lab_spec['lab']['runtime_requirements']['platform']
+                                      ['memory']['min_required'],
+                       "diskspace": lab_spec['lab']['runtime_requirements']
+                                            ['platform']['storage']['min_required'],
+                       "swap": lab_spec['lab']['runtime_requirements']['platform']
+                                       ['memory']['swap']
+                      }
+            return vm_spec
+
+        vm_spec = get_vm_spec()
+        lab_ID = get_test_lab_id() if vm_spec["lab_ID"] == "" else vm_spec["lab_ID"]
+        host_name = lab_ID + "." + base_adapter.get_adapter_hostname()
+        os_template = base_adapter.find_os_template(vm_spec["os"],
+                                                    vm_spec["os_version"],
+                                                    config.supported_template)
+        (ram, swap) = vm_utils.get_ram_swap(vm_spec["ram"], vm_spec["swap"])
+        (disk_soft, disk_hard) = vm_utils.get_disk_space(vm_spec["diskspace"])
+        vm_create_args = " --ostemplate " + os_template + \
+                         " --diskspace " + disk_soft + ":" + disk_hard + \
+                         " --hostname " + host_name
+        # Note to self: check ram format "0:256M" vs "256M"
+        vm_set_args = " --netif_add eth0,,,," + config.SUBNET_BRIDGE + \
+                      " --ram " + ram + \
+                      " --swap " + swap + \
+                      " --nameserver " + base_config.ADAPTER_NAME_SERVER + \
+                      " --onboot yes" + \
+                      " --save"
+
+        return (vm_create_args, vm_set_args)
+
+
+    def validate_vm_id(self, vm_id):
+        vm_id = str(vm_id).strip()
+        m = re.match(r'^([0-9]+)$', vm_id)
+        if m is None:
+            raise InvalidVMIDException("Invalid VM ID. VM ID must be numeric.")
+        vm_id = int(m.group(0))
+        if vm_id <= 0:
+            raise InvalidVMIDException("Invalid VM ID. VM ID must be greater \
+                                       than 0.")
+        if vm_id > base_config.MAX_VM_ID:
+            raise InvalidVMIDException("Invalid VM ID.  Specify a smaller VM ID.")
+        return str(vm_id)
+
+
+    def create_vm_id(self, vm_id):
+        """If no vm_id is specified, it is computed using the last two segments"""
+        """of an available IP address; vm_spec is an object """
+        logger.debug("create_vm_id(): vm_id = %s" % vm_id)
+        if vm_id == "":
+            global IP_ADDRESS
+            IP_ADDRESS = base_adapter.find_available_ip()
+            m = re.match(r'[0-9]+.[0-9]+.([0-9]+).([0-9]+)', IP_ADDRESS)
+            if m is not None:
+                vm_id = str((int(m.group(1) + m.group(2))))
+            else:
+                vm_id = self.validate_vm_id(vm_id)
+        logger.debug("create_vm_id(): vm_id = %s" % vm_id)
+        return vm_id
 
 
 def test():
