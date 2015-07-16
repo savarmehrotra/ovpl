@@ -5,18 +5,22 @@ import logging.handlers
 # other impors
 import json
 import os
+import requests
 
 from utils.envsetup import EnvSetUp
 
 e = EnvSetUp()
 used_loggers = {}
-config_spec = json.loads(open
-                         (e.get_ovpl_directory_path() +
-                          "/config/config.json").read())
-FILE_PATH = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["FILE_PATH"]
+config_spec = json.loads(open(e.get_ovpl_directory_path() +
+                         "/config/config.json").read())
+
+FILE_PATH = (config_spec["LOGGING_CONFIGURATION"]
+             ["LOGSERVER_CONFIGURATION"]["FILE_PATH"])
 
 if not os.path.isdir(FILE_PATH):
     os.mkdir(FILE_PATH)
+
+formatter = logging.Formatter()
 
 
 def get_logger(name):
@@ -62,3 +66,5 @@ def log(arguments):
     record = logger.makeRecord(name, levelname, funcName, lineno,
                                fmt_string, record_format_args, None)
     logger.handle(record)
+    requests.post('http://localhost:8080/take-logs',
+                  data={'msg': formatter.format(record)})

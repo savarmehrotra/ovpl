@@ -81,20 +81,25 @@ body {
 
 /* More custom style */
 .container {
-      text-align: center;
-    }
-    .help-text {
-      padding: 5px;
-      margin: 10px;
-    }
-    footer {
-      margin-top: 40px;
-    }
-    #user-dash {
-      position: absolute;
-      top: 3%;
-      right: 2%;
-    }
-    #notif {
-      display: none;
-    }
+  text-align: center;
+}
+.help-text {
+  padding: 5px;
+  margin: 10px;
+}
+footer {
+  margin-top: 40px;
+}
+#user-dash {
+  position: absolute;
+  top: 3%;
+  right: 2%;
+}
+#notif {
+  display: none;
+}
+#logs {
+  font-style: monospace;
+  height: 300px;
+  overflow-y: scroll;
+}

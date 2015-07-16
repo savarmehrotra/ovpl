@@ -20,6 +20,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
+import tornado.websocket
 from tornado.options import define, options
 
 # ADS imports
@@ -27,6 +28,12 @@ from http_logging.http_logger import logger
 from utils.envsetup import EnvSetUp
 import Controller
 from config import authorized_users
+
+
+# global variables for msg receiving..
+scheduler = None
+log_queue = []
+read_log_till = 0
 
 
 define("port", default=8000, help="run on the given port", type=int)
@@ -48,12 +55,15 @@ class MainHandler(BaseHandler):
             self.render('index.html')
 
     def post(self):
+        global scheduler
+
         if not self.current_user:
             self.redirect('/login')
             return
 
         post_data = dict(urlparse.parse_qsl(self.request.body))
         c = Controller.Controller()
+        print "recvd lab deployment request.."
         # log the user who is deploying the lab..
         logger.debug("Lab Deployment: deployed by: %s, lab id: %s, URL: %s" %
                      (self.current_user,
@@ -63,6 +73,7 @@ class MainHandler(BaseHandler):
         self.write(c.test_lab(self.current_user, post_data['lab_id'],
                               post_data['lab_src_url'],
                               post_data.get('version', None)))
+        scheduler.stop()
 
 
 class LoginHandler(BaseHandler):
@@ -74,10 +85,10 @@ class LoginHandler(BaseHandler):
         self.render('login.html')
 
     def post(self):
-        msg = "LoginHandler: Authenticating and authorizing using Persona.."
-        logger.debug(msg)
-        assertion = self.get_argument("assertion")
+        logger.debug("LoginHandler: Authenticating and authorizing using " +
+                     "Persona..")
 
+        assertion = self.get_argument("assertion")
         if not assertion:
             logger.debug("Assertion not passed by the client. Aborting.")
             self.write_error(400)
@@ -128,6 +139,42 @@ class LogoutHandler(BaseHandler):
         self.write({'status': 'okay', 'msg': 'logged out'})
 
 
+class ReceiveLogMessage(tornado.web.RequestHandler):
+    def post(self):
+        global log_queue
+        post_data = dict(urlparse.parse_qsl(self.request.body))
+        print('recvd msg from logger: %s' % post_data)
+        log_queue.append(post_data)
+        print log_queue
+
+
+class EchoWebSocket(tornado.websocket.WebSocketHandler):
+    def open(self):
+        global scheduler
+        print("Websocket opened")
+        scheduler = tornado.ioloop.PeriodicCallback(self.process_log_queue,
+                                                    2000)
+        scheduler.start()
+
+    def on_close(self):
+        print("Websocket closed")
+
+    """
+    keep polling the log queue for unread messages and write them to the
+    client
+    """
+    def process_log_queue(self):
+        print "read_log called"
+        global read_log_till
+        global log_queue
+        n = len(log_queue)
+        if read_log_till < n:
+            for i in range(read_log_till, n):
+                print(log_queue[i])
+                self.write_message(log_queue[i])
+            read_log_till = n
+
+
 if __name__ == "__main__":
     e = EnvSetUp()
     config_spec = json.loads(open(e.get_ovpl_directory_path() +
@@ -137,6 +184,8 @@ if __name__ == "__main__":
     app = tornado.web.Application(
         handlers=[
             (r"/", MainHandler),
+            (r"/echo", EchoWebSocket),
+            (r"/take-logs", ReceiveLogMessage),
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler)
         ],
@@ -147,6 +196,6 @@ if __name__ == "__main__":
 
     http_server = tornado.httpserver.HTTPServer(app)
     options.port = config_spec["CONTROLLER_CONFIG"]["SERVER_PORT"]
-    logger.debug("ControllerServer: It will run on port : " + str(options.port))
+    logger.debug("ControllerServer: running on port: %s" % (options.port))
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()

@@ -11,9 +11,11 @@ def __create_logger(name):
     config_spec = json.loads(open
                              (e.get_ovpl_directory_path() +
                               "/config/config.json").read())
-    logserver_ip = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["SERVER_IP"]
-    logserver_port = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["SERVER_PORT"]
-    logserver_uri = config_spec["LOGGING_CONFIGURATION"]["LOGSERVER_CONFIGURATION"]["URI_ENDPOINT"]
+    logserver_config = (config_spec["LOGGING_CONFIGURATION"]
+                        ["LOGSERVER_CONFIGURATION"])
+    logserver_ip = logserver_config["SERVER_IP"]
+    logserver_port = logserver_config["SERVER_PORT"]
+    logserver_uri = logserver_config["URI_ENDPOINT"]
     log_level = config_spec["LOGGING_CONFIGURATION"]["LOG_LEVEL"]
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
@@ -21,6 +23,7 @@ def __create_logger(name):
     if logger.handlers == []:
         server = logserver_ip + ":" + str(logserver_port)
         print server
+        print logserver_uri
         http_handler = HTTPHandler(host=server, url=logserver_uri,
                                    method="POST")
         logger.addHandler(http_handler)

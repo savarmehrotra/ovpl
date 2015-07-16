@@ -15,7 +15,7 @@
     <a href="#" class="btn btn-primary btn-sm" id="logout">Sign Out</a>
   {% end %}
 </div>
-<form class="form-horizontal" method="POST">
+<form class="form-horizontal" method="POST" id="lab-deploy-form">
   <div class="form-group">
     <label for="lab-id" class="col-md-2 control-label">Lab ID</label>
     <div class="col-md-10">
@@ -35,6 +35,8 @@
     </div>
   </div>
 
-  <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+  <button class="btn btn-primary btn-lg" id="deploy-lab">Submit</button>
 </form>
+
+<div id="logs" class="well"></div>
 {% end %}

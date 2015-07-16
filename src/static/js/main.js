@@ -70,9 +70,41 @@ window.ADS = window.ADS || {};
     //console.log(login_btn);
     this.persona.attachLogin(login_btn);
     this.persona.attachLogout(logout_btn);
+
+    $('#deploy-lab').click(function(event) {
+      event.preventDefault();
+      //$('#lab-deploy-form').slideUp();
+
+      var lab_id = $('#lab-id').val();
+      var lab_src_url = $('#lab-src-url').val();
+      var lab_tag = $('#lab-tag').val();
+      $.ajax({
+        url: '/',
+        type: "POST",
+        data: {
+          'lab_id': lab_id,
+          'lab_src_url': lab_src_url,
+          'version': lab_tag
+        },
+        success: function(data) {
+          console.log("Lab deployed at: %s", data);
+        }
+      });
+      return false;
+    });
+  };
+
+  var init_sockets = function() {
+    var ws = new WebSocket("ws://localhost:8080/echo");
+
+    ws.onmessage = function(evt) {
+      console.log(evt.data);
+      $('#logs').append(JSON.parse(evt.data)['msg'] + "<br>");
+    };
   };
 
   window.onload = function() {
     init();
+    init_sockets();
   };
 })(window.ADS);
