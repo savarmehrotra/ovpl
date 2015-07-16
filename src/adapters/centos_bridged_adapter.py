@@ -54,6 +54,9 @@ class InvalidVMIDException(Exception):
 
 
 class CentOSBridgeVZAdapter(object):
+    
+    TIME_BEFORE_NEXT_RETRY = 5
+    
     def __init__(self):
         self.env = EnvSetUp.Instance()
         self.git = GitCommands()
@@ -182,11 +185,24 @@ class CentOSBridgeVZAdapter(object):
         success = success and self.copy_lab_source(vm_id, lab_repo_name,
                                               self.git.get_git_clone_loc())
         success = success and self.start_vm_manager(vm_id)
-        # Return the VM's IP and port info
-        response = {"vm_id": vm_id, "vm_ip": IP_ADDRESS,
-                    "vm_port": base_config.VM_MANAGER_PORT}
-        logger.debug("BridgeVZAdapter: init_vm(): success = %s, response = %s" %
+        response = {"vm_id": vm_id, "vm_ip": IP_ADDRESS, "vm_port": base_config.VM_MANAGER_PORT}
+                            
+        # check if the VMManager service came up and running..
+        logger.debug("Ensuring VMManager service is running on VM %s" %
+                     response['vm_ip'])
+        vmmgr_port = int(base_config.VM_MANAGER_PORT)
+        success = base_adapter.wait_for_service(response['vm_ip'], vmmgr_port,
+                                                self.TIME_BEFORE_NEXT_RETRY,
+                                                config.TIMEOUT)
+        
+        if not success:
+            logger.debug("Could not reach VMManager after %s secs!! Aborting." %
+                         config.TIMEOUT)
+            return (success, response)
+
+        logger.debug("centos_openvz_adapter: init_vm(): success = %s, response = %s" %
                      (success, response))
+       
         return (success, response)
 
     def destroy_vm(self, vm_id):

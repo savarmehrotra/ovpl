@@ -1,7 +1,8 @@
 import netaddr
 import sh
 import re
-
+from time import sleep
+import socket
 from __init__ import *
 from utils.envsetup import EnvSetUp
 from utils.execute_commands import execute_command
@@ -38,6 +39,51 @@ class OSNotFound(Exception):
     def __str__(self):
         return repr(self.msg)
 
+ # wait for a particular service to come up..
+ # sleeps for the given amount of time between each rety
+ # timesout and returns False after given timeout
+   
+def wait_for_service(vm_ip, port, sleep_time, timeout):
+    logger.debug("base_adapter: wait_for_service(): VM IP: %s" % vm_ip)
+    logger.debug("base_adapter: port: %s; sleep: %s; timeout: %s" %
+                 (port, sleep_time, timeout))
+    
+    total_slept = 0
+    
+    # check if the VM is up and the given TCP port is reachable
+    # assumption - the port is running a TCP service
+    def is_service_up(vm_ip, port):
+        logger.debug("base_adapter: is_service_up(): VM IP: %s" % vm_ip)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            logger.debug("base_adapter: trying to connect to port: %s of: %s" %
+                         (port, vm_ip))
+            s.connect((vm_ip, port))
+            logger.debug("base_adapter: VM %s: port: %s is up.." % (vm_ip, port))
+            return True
+        except socket.error as e:
+            logger.debug("base_adapter: VM %s: Error connecting to port: %s: %s" %
+                         (vm_ip, port, e))
+            logger.debug("base_adapter: retrying to reach port %s.." % port)
+            s.close()
+            return False
+
+    while not is_service_up(vm_ip, port):
+        total_slept += sleep_time
+        logger.debug("total slept: %s" % total_slept)
+        # we have tried for the `timeout` time. Abort checking and return
+        # False(failure)
+        if total_slept >= timeout:
+            return False
+            
+        logger.debug("VM %s: waiting for service at port: %s to be up.." %
+                     (vm_ip, port))
+        sleep(sleep_time)
+
+        return True
+    # check if the VM is up and the given TCP port is reachable
+    # assumption - the port is running a TCP service
+    
 
 def find_os_template(os, os_version, supported_images):
     """
