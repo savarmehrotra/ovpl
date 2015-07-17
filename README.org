@@ -1,8 +1,10 @@
 * Settings for ADS 
 Execute the following steps, to configure and then run ADS as a service:
 
-** Edit the file ovpl/config/config.json
-
+** Edit the =ovpl/config/= directory
+   Copy =ovpl/config/sample_config.json= to =ovpl/config/config.json= and make
+   the following changes:
+      
   + To set the proxies.
 #+begin_src example
     "ENVIRONMENT": {
@@ -46,14 +48,16 @@ machine on which the ADS services are running.
   + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=,
     and add actual email addresses of authorized users.
 
-** Choosing POOL and ADAPTER
-   Choose =POOLID= and =ADAPTERID= from =VPOOLS= section. Make the appropriate change in =ADAPTER_TO_USE=
+*** Choosing POOL and ADAPTER
+    Choose =POOLID= and =ADAPTERID= from =VPOOLS= section. Make the appropriate change in =ADAPTER_TO_USE=.
+    The =ADAPTERID= for =aws_adapter=, =centos_openvz_adapter= and =centos_bridged_adapter= is 1, 2 and 3 
+    respectively.
    
 #+begin_src example
 "ADAPTER_TO_USE" : {"POOLID" : 1, "ADAPTERID" : 2}
 #+end_src
 
-*** Settings For Adapters
+*** Settings For =base_config=
    1. Copy =config/adapters/sample_base_config.py= to =config/adapters/base_config.py=. 
       For =aws_adapter=, no change in this file has to be done. For =centos_openvz_adapter=
       and =centos_bridged_adapter= make the following changes in the file:
