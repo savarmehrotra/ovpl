@@ -69,8 +69,9 @@ class AWSAdapter(object):
     VM_USER = 'root'
     # the time to wait(in secs) until the next retry - for checking if a service
     # is up
-    TIME_BEFORE_NEXT_RETRY = 5
-
+    time_before_next_retry = None
+    git = None
+    env = None
     def __init__(self):
         # check if the key_file exists, else throw an error!
         # The key file should not be checked in, but the deployer has to
@@ -87,6 +88,7 @@ class AWSAdapter(object):
         self.connection = self.create_connection()
         self.env = EnvSetUp.Instance()
         self.git = GitCommands()
+        self.time_before_next_retry = 5
 
     def create_connection(self):
         # When keys are absent, it implies, the adapter uses IAM role.
@@ -146,8 +148,8 @@ class AWSAdapter(object):
         # until then we won't be able to go ahead with later steps..
         logger.debug("AWSAdapter: VM %s: waiting for SSH to be up..." %
                      vm_ip_addr)
-        success = self.wait_for_service(vm_ip_addr, 22,
-                                        self.TIME_BEFORE_NEXT_RETRY,
+        success = base_adapter.wait_for_service(vm_ip_addr, 22,
+                                        self.time_before_next_retry,
                                         config.TIMEOUT)
 
         if not success:
@@ -182,8 +184,8 @@ class AWSAdapter(object):
         logger.debug("Ensuring VMManager service is running on VM %s" %
                      vm_ip_addr)
         vmmgr_port = int(base_config.VM_MANAGER_PORT)
-        success = self.wait_for_service(vm_ip_addr, vmmgr_port,
-                                        self.TIME_BEFORE_NEXT_RETRY,
+        success = base_adapter.wait_for_service(vm_ip_addr, vmmgr_port,
+                                        self.time_before_next_retry,
                                         config.TIMEOUT)
         if not success:
             logger.debug("Could not reach VMManager after %s secs!! Aborting." %
@@ -262,48 +264,6 @@ class AWSAdapter(object):
                      instance.private_ip_address)
 
         return instance.private_ip_address
-
-    # wait for a particular service to come up..
-    # sleeps for the given amount of time between each rety
-    # timesout and returns False after given timeout
-    def wait_for_service(self, vm_ip, port, sleep_time, timeout):
-        logger.debug("AWSAdapter: wait_for_service(): VM IP: %s" % vm_ip)
-        logger.debug("AWSAdapter: port: %s; sleep: %s; timeout: %s" %
-                     (port, sleep_time, timeout))
-
-        total_slept = 0
-
-        while not self.is_service_up(vm_ip, port):
-            total_slept += sleep_time
-            logger.debug("total slept: %s" % total_slept)
-            # we have tried for the `timeout` time. Abort checking and return
-            # False(failure)
-            if total_slept >= timeout:
-                return False
-
-            logger.debug("VM %s: waiting for service at port: %s to be up.." %
-                         (vm_ip, port))
-            sleep(sleep_time)
-
-        return True
-
-    # check if the VM is up and the given TCP port is reachable
-    # assumption - the port is running a TCP service
-    def is_service_up(self, vm_ip, port):
-        logger.debug("AWSAdapter: is_service_up(): VM IP: %s" % vm_ip)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        try:
-            logger.debug("AWSAdapter: trying to connect to port: %s of: %s" %
-                         (port, vm_ip))
-            s.connect((vm_ip, port))
-            logger.debug("AWSAdapter: VM %s: port: %s is up.." % (vm_ip, port))
-            return True
-        except socket.error as e:
-            logger.debug("AWSAdapter: VM %s: Error connecting to port: %s: %s" %
-                         (vm_ip, port, e))
-            logger.debug("AWSAdapter: retrying to reach port %s.." % port)
-            s.close()
-            return False
 
     def is_running_vm(self, vm_id):
         instance = self.get_instance(vm_id)

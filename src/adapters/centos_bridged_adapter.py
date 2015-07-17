@@ -55,11 +55,13 @@ class InvalidVMIDException(Exception):
 
 class CentOSBridgeVZAdapter(object):
     
-    TIME_BEFORE_NEXT_RETRY = 5
-    
+    time_before_next_retry = None
+    git = None
+    env = None
     def __init__(self):
         self.env = EnvSetUp.Instance()
         self.git = GitCommands()
+        self.time_before_next_retry = 5
     """
     Every newly created container needs to be set with IP_ADDRESS in the
     interfaces file. This acheived by modifying the x.x.x.x variable in the
@@ -67,13 +69,13 @@ class CentOSBridgeVZAdapter(object):
     /etc/network/interfaces.
     """
     def prepare_vm_for_bridged_network(self, vm_id):
-        src_dirc = base_adapter.OVPL_DIR_PATH + \
+        src_file = base_adapter.OVPL_DIR_PATH + \
             config.BRIDGE_NETWORK_SETUP_PATH + "bridge-settings"
-        dest_dirc = base_adapter.OVPL_DIR_PATH + \
+        dest_file = base_adapter.OVPL_DIR_PATH + \
             config.BRIDGE_NETWORK_SETUP_PATH + "interfaces"
 
         try:
-            copy_command = "rsync -arz --progress " + src_dirc + " " + dest_dirc
+            copy_command = "rsync -arz --progress " + src_file + " " + dest_file
             logger.debug("copy command = %s" % copy_command)
             command = ('%s' % (copy_command))
             logger.debug("Command = %s" % command)
@@ -86,22 +88,22 @@ class CentOSBridgeVZAdapter(object):
         except Exception, e:
             logger.error("ERROR = %s" % str(e))
 
-        textToSearch = 'x.x.x.x'
-        textToReplace = IP_ADDRESS
-        fileToSearch = dest_dirc
-        fd = open(fileToSearch, 'r+')
-        for line in fileinput.input(fileToSearch):
-            fd.write(line.replace(textToSearch, textToReplace))
+        text_to_search = 'x.x.x.x'
+        text_to_replace = IP_ADDRESS
+        file_to_search = dest_file
+        fd = open(file_to_search, 'r+')
+        for line in fileinput.input(file_to_search):
+            fd.write(line.replace(text_to_search, text_to_replace))
         fd.close()
 
-        src_dir = "/vz/private/" + base_config.ADS_SERVER_VM_ID + \
+        src_file = "/vz/private/" + base_config.ADS_SERVER_VM_ID + \
             base_adapter.OVPL_DIR_PATH + config.BRIDGE_NETWORK_SETUP_PATH + \
             "interfaces"
-        dest_dir = "/vz/private/" + vm_id + "/etc/network/interfaces"
-        logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s"
-                     % (vm_id, src_dir, dest_dir))
+        dest_file = "/vz/private/" + vm_id + "/etc/network/interfaces"
+        logger.debug("vm_id = %s, src_file=%s, dest_file=%s"
+                     % (vm_id, src_file, dest_file))
         try:
-            return self.copy_files(str(src_dir), str(dest_dir))
+            return self.copy_files(str(src_file), str(dest_file))
         except Exception, e:
             logger.error("ERROR = %s" % str(e))
             return False
@@ -192,7 +194,7 @@ class CentOSBridgeVZAdapter(object):
                      response['vm_ip'])
         vmmgr_port = int(base_config.VM_MANAGER_PORT)
         success = base_adapter.wait_for_service(response['vm_ip'], vmmgr_port,
-                                                self.TIME_BEFORE_NEXT_RETRY,
+                                                self.time_before_next_retry,
                                                 config.TIMEOUT)
         
         if not success:

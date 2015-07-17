@@ -43,16 +43,7 @@ class OSNotFound(Exception):
  # sleeps for the given amount of time between each rety
  # timesout and returns False after given timeout
    
-def wait_for_service(vm_ip, port, sleep_time, timeout):
-    logger.debug("base_adapter: wait_for_service(): VM IP: %s" % vm_ip)
-    logger.debug("base_adapter: port: %s; sleep: %s; timeout: %s" %
-                 (port, sleep_time, timeout))
-    
-    total_slept = 0
-    
-    # check if the VM is up and the given TCP port is reachable
-    # assumption - the port is running a TCP service
-    def is_service_up(vm_ip, port):
+def is_service_up(vm_ip, port):
         logger.debug("base_adapter: is_service_up(): VM IP: %s" % vm_ip)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
@@ -68,6 +59,16 @@ def wait_for_service(vm_ip, port, sleep_time, timeout):
             s.close()
             return False
 
+def wait_for_service(vm_ip, port, sleep_time, timeout):
+    logger.debug("base_adapter: wait_for_service(): VM IP: %s" % vm_ip)
+    logger.debug("base_adapter: port: %s; sleep: %s; timeout: %s" %
+                 (port, sleep_time, timeout))
+    
+    total_slept = 0
+    
+    # check if the VM is up and the given TCP port is reachable
+    # assumption - the port is running a TCP service
+    
     while not is_service_up(vm_ip, port):
         total_slept += sleep_time
         logger.debug("total slept: %s" % total_slept)
@@ -80,9 +81,7 @@ def wait_for_service(vm_ip, port, sleep_time, timeout):
                      (vm_ip, port))
         sleep(sleep_time)
 
-        return True
-    # check if the VM is up and the given TCP port is reachable
-    # assumption - the port is running a TCP service
+    return True
     
 
 def find_os_template(os, os_version, supported_images):

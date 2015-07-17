@@ -55,9 +55,13 @@ class InvalidVMIDException(Exception):
 
 
 class CentOSVZAdapter(object):
-    TIME_BEFORE_NEXT_RETRY = 5
+
+    time_before_next_retry = None
+    git = None
+
     def __init__(self):
         self.git = GitCommands()
+        self.time_before_next_retry = 5
 
     def create_vm(self, lab_spec, vm_id=""):
         logger.debug("centos_openvz_adapter: create_vm()")
@@ -132,7 +136,7 @@ class CentOSVZAdapter(object):
                      response['vm_ip'])
         vmmgr_port = int(base_config.VM_MANAGER_PORT)
         success = base_adapter.wait_for_service(response['vm_ip'], vmmgr_port,
-                                        self.TIME_BEFORE_NEXT_RETRY,
+                                        self.time_before_next_retry,
                                         config.TIMEOUT)
         
         if not success:
