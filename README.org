@@ -57,7 +57,7 @@ machine on which the ADS services are running.
 "ADAPTER_TO_USE" : {"POOLID" : 1, "ADAPTERID" : 2}
 #+end_src
 
-*** Settings For =base_config=
+** Settings for =base_config=
    1. Copy =config/adapters/sample_base_config.py= to =config/adapters/base_config.py=. 
       For =aws_adapter=, no change in this file has to be done. For =centos_openvz_adapter=
       and =centos_bridged_adapter= make the following changes in the file:
@@ -77,17 +77,17 @@ machine on which the ADS services are running.
          If the ip address of your base machine is 10.2.58.XXX, 
          SUBNET = ["10.2.58.12/28"]
 
-**** Settings for =centos_bridged_adapter=
-     Copy =config/adapters/sample_centos_bridged_config.py= to =config/adapters/centos_bridged_config.py=,
-     and change the =SUBNET_BRIDGE= in the file.
+*** Settings for =centos_bridged_adapter=
+    Copy =config/adapters/sample_centos_bridged_config.py= to =config/adapters/centos_bridged_config.py=,
+    and change the =SUBNET_BRIDGE= in the file.
    
-**** Settings for =centos_openvz_adapter=
-     Copy =config/adapters/sample_centos_openvz_config.py= to =config/adapters/centos_openvz_config.py=.
+*** Settings for =centos_openvz_adapter=
+    Copy =config/adapters/sample_centos_openvz_config.py= to =config/adapters/centos_openvz_config.py=.
        
-**** Settings for =aws_adapter=
-     Copy =config/adapters/sample_aws_config.py= to =config/adapters/aws_config.py=, and edit the values
-     accordingly. The private key =key_file_name.pem= should be copied inside =src/= directory.
-     See [[./docs/AWSAdapter.org][here]] for more details.
+*** Settings for =aws_adapter=
+    Copy =config/adapters/sample_aws_config.py= to =config/adapters/aws_config.py=, and edit the values
+    accordingly. The private key =key_file_name.pem= should be copied inside =src/= directory.
+    See [[./docs/AWSAdapter.org][here]] for more details.
    
 ** Commands to Manage the Service
 + As root, go into =src= directory and run make:
