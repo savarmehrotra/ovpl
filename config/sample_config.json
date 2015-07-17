@@ -1,14 +1,14 @@
  {
     "ENVIRONMENT": {
-        "HTTP_PROXY":"http://proxy.iiit.ac.in:8080",
-        "HTTPS_PROXY":"http://proxy.iiit.ac.in:8080"
+        "HTTP_PROXY":"",
+        "HTTPS_PROXY":""
     },
 
     "CONTROLLER_CONFIG": {
         "SERVER_PORT": 8080,
-        "COOKIE_SECRET": "aakdksjlkjldkjasdieiei",
+        "COOKIE_SECRET": "<generate a long random UUID",
         "PERSONA_VERIFIER": "https://verifier.login.persona.org/verify",
-        "APP_URL": "http://10.2.56.182:8080",
+        "APP_URL": "http://localhost:8080",
         "LOG_FILENAME": "/root/logs/ovpl.log"
     },
 
@@ -77,7 +77,7 @@
         "__comment__" : "level 10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR, 50=CRITICAL",
         "LOG_LEVEL":10 ,
         "LOGSERVER_CONFIGURATION": {
-            "SERVER_IP": "10.2.56.182",
+            "SERVER_IP": "localhost",
             "SERVER_PORT": 8239,
             "URI_ENDPOINT": "/log/",
             "FILE_PATH": "/root/logs/"
