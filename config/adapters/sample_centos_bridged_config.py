@@ -1,7 +1,7 @@
 # Settings for Bridged Adapter
 SUBNET_BRIDGE = "<bridge-name>"
 BRIDGE_NETWORK_SETUP_PATH = "/src/adapters/"
-
+TIMEOUT = 300
 supported_template = [
     {'os': 'UBUNTU', 'version': '12.04',
      'id': 'ubuntu-12.04-custom-x86_64'},

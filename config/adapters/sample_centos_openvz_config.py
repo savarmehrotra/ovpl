@@ -1,5 +1,5 @@
 # Settings for CentOSVZ Adapter
-
+TIMEOUT = 300
 supported_template = [
     {'os': 'UBUNTU', 'version': '12.04',
      'id': 'ubuntu-12.04-custom-x86_64'},
