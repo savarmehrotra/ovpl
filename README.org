@@ -110,7 +110,7 @@ $ cd ovpl
 $ ./manage_services.sh start LOGGER
 #+end_src
 
-+ For more help use =./manage_services.sh -H=.
++ For more help use =./manage_services.sh -h=.
 
 + View the logs at /root/logs/ovpl.log by
 #+begin_src example
