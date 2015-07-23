@@ -8,11 +8,12 @@ from utils.envsetup import EnvSetUp
 
 def __create_logger(name):
     e = EnvSetUp()
-    config_spec = json.loads(open
-                             (e.get_ovpl_directory_path() +
-                              "/config/config.json").read())
+    config_spec = json.loads(open(e.get_ovpl_directory_path() +
+                                  "/config/config.json").read())
+
     logserver_config = (config_spec["LOGGING_CONFIGURATION"]
                         ["LOGSERVER_CONFIGURATION"])
+
     logserver_ip = logserver_config["SERVER_IP"]
     logserver_port = logserver_config["SERVER_PORT"]
     logserver_uri = logserver_config["URI_ENDPOINT"]

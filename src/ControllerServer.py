@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python
 
 # Services exposed by the VM Manager
 # The REST url :
@@ -73,7 +73,8 @@ class MainHandler(BaseHandler):
         self.write(c.test_lab(self.current_user, post_data['lab_id'],
                               post_data['lab_src_url'],
                               post_data.get('version', None)))
-        scheduler.stop()
+        if scheduler:
+            scheduler.stop()
 
 
 class LoginHandler(BaseHandler):
@@ -133,7 +134,6 @@ class LogoutHandler(BaseHandler):
     """
     LogoutHandler will handle logouts at /logout
     """
-
     def post(self):
         self.clear_cookie('user')
         self.write({'status': 'okay', 'msg': 'logged out'})
@@ -164,7 +164,7 @@ class EchoWebSocket(tornado.websocket.WebSocketHandler):
     client
     """
     def process_log_queue(self):
-        print "read_log called"
+        print "process_log_queue called"
         global read_log_till
         global log_queue
         n = len(log_queue)

@@ -66,5 +66,5 @@ def log(arguments):
     record = logger.makeRecord(name, levelname, funcName, lineno,
                                fmt_string, record_format_args, None)
     logger.handle(record)
-    requests.post('http://localhost:8080/take-logs',
-                  data={'msg': formatter.format(record)})
+    # requests.post('http://localhost:8080/take-logs',
+    #              data={'msg': formatter.format(record)})
