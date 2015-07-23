@@ -20,7 +20,7 @@
 * Implementation
 * Test Cases
 
-* Design dicsussions
+* Design Discussions
 
 ** Deploying a Lab :: A case for using configuration management tools.
    To deploy a lab, there are two steps: 
@@ -117,16 +117,14 @@ a lab is always identified uniquely at any time.
    + creates a container within this bridged network and 
    + deploys lab on this newly created container.
 
-** Release v1.0.5
-   Issues: 50, 49, 58, 44, 64, 57, 56, 37, 64, 65
-   release date : [2015-06-30 Tue]
-   
-** Release V1.1.0
-   Issues: 53, 48
-   release date: [2015-07-03 Fri]
+** Release v1.2.0
+   This release is about:
+   + providing support for life cycle management of ADS.
+   + and enhancing the ability of ADS to deploy a lab when IAM role is
+     associated with the machine running ADS services.
+   + Manage services from a single script.
+   + Adhere to Pep 8 coding standards
+   + Save the state of a lab
+   + GitHub Issues: 37, 57, 42, 48, 41, 3, 64, 46, 43, 56, 65, 53, 4, 50, 49
+     and 44
 
-** release v1.1.1
-   Issues: 43, 41, 42, 46, 4, 3, 29
-
-** release v1.2.0
-   Issues: 54
