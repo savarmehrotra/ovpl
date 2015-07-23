@@ -103,7 +103,7 @@ $ ./manage_services stop
 #+end_src
 
 + To stop or start specific service use =./manage_services.sh [action] [services]=
-[action]   = start (or) stop
+[action]   = start (or) stop <br>
 [services] = LOGGER (or) ADAPTER (or) CONTROLLER
 #+begin_src example
 $ cd ovpl
