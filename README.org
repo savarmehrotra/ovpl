@@ -90,18 +90,27 @@ machine on which the ADS services are running.
    See [[./docs/AWSAdapter.org][here]] for more details.
    
 ** Commands to Manage the Service
-+ As root, go into =src= directory and run make:
++ As root, go into =ovpl= directory and run =manage_services.sh= file:
 #+begin_src example
-$ cd src
-$ make
+$ cd ovpl
+$ ./manage_services (or) ./manage_services start
 #+end_src
 
-+ To stop the services, or restart
++ To stop the services
 #+begin_src example
-$ cd src
-$ make stop-server
-$ make restart-server
+$ cd ovpl
+$ ./manage_services stop
 #+end_src
+
++ To stop or start specific service use =./manage_services.sh [action] [services]=
+[action]   = start (or) stop
+[services] = LOGGER (or) ADAPTER (or) CONTROLLER
+#+begin_src example
+$ cd ovpl
+$ ./manage_services.sh start LOGGER
+#+end_src
+
++ For more help use =./manage_services.sh -H=.
 
 + View the logs at /root/logs/ovpl.log by
 #+begin_src example
