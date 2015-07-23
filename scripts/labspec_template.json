@@ -1,0 +1,81 @@
+{
+  "lab": {
+    "description": {
+      "name": "",
+      "id": "",
+      "status": "",
+      "discipline": [],
+      "type": "Simulation",
+      "server-side": true,
+      "integration_level": 0,
+      "developer": [
+        {
+          "name": "",
+          "title": "",
+          "role": "",
+          "organization": "",
+          "institute": "",
+          "web": "",
+          "department": "",
+          "contact": {
+        	  "email": "",
+        	  "alternate_email": "",
+        	  "mobile_number": "",
+        	  "office_number": ""
+          }
+        }
+      ]
+    },
+
+    "build_requirements": {
+      "platform": {
+        "os": "ubuntu", 
+        "osVersion": "12",
+        "arch": "i386",
+        "service_pack": "",
+        "installer": [
+        ],
+        "build_steps": {
+          "configure": [],
+          "pre_build": [],
+          "build": [],
+          "post_build": [],
+          "status": []
+        }
+      }
+    },
+
+    "runtime_requirements": {
+      "platform": {
+        "os": "ubuntu", 
+        "osVersion": "12",
+        "arch": "i386",
+        "servicepack": "",
+        "hosting": "dedicated",
+        "memory": {
+          "max_required": "2gb",
+          "min_required": "256mb"
+        },
+        "storage": {
+          "min_required": "10gb"
+        },
+        "installer": [
+        ],
+        "lab_actions": {
+          "init":     [],
+          "shutdown": [],
+          "pause":    [],
+          "resume":   [],
+          "start":    [],
+          "stop":     [],
+          "backup":   [],
+          "restore":  [],
+          "clean":    [],
+          "stats":    [],
+          "publish":  []
+        }
+      }
+    }
+  },
+  "template": "1.0"
+}

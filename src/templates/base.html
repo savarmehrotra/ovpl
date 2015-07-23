@@ -1,0 +1,45 @@
+<html>
+<head>
+	<title>{% block title %}OVPL{% end %}</title>
+	<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="static/css/main.css">
+	<style type="text/css">{% block CSS %}{% end %}</style>
+</head>
+<body>
+	<div id="container" class="container">
+    <div class="header clearfix">
+      <nav>
+        <!--ul class="nav nav-pills pull-right">
+          <li class="active" role="presentation"><a href="#">Home</a></li>
+          <li role="presentation"><a href="#">About</a></li>
+          <li role="presentation"><a href="#">Contact</a></li>
+        </ul-->
+      </nav>
+      <h1 class="text-muted">OVPL</h1>
+    </div>
+		<h2 class="text-muted"> {% block header %} OVPL {% end %} </h2>
+
+		<div id="main">
+				{% block body %}{% end %}
+		</div>
+
+		<footer>
+      <hr/>
+			{% block footer %}
+			<a href="http://github.com/vlead/ovpl">OVPL - Github</a>
+			{% end %}
+		</footer>
+	</div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="https://login.persona.org/include.js"></script>
+  <script src="static/js/main.js"></script>
+  <script>
+    ADS.loggedInUser = function() {
+      return ("{{ current_user }}" == "None") ? null : "{{ current_user }}";
+    };
+    ADS.loginURL = function() { return "/login"; };
+    ADS.logoutURL = function() { return "/logout"; };
+  </script>
+</body>
+</html>
