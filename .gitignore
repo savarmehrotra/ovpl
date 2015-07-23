@@ -44,6 +44,7 @@ nosetests.xml
 .pydevproject
 
 # config files
+config.json
 aws_config.py
 centosvz_config.py
 centosvz_bridge_config.py
