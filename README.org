@@ -1,8 +1,10 @@
 * Settings for ADS 
 Execute the following steps, to configure and then run ADS as a service:
 
-** Edit the file ovpl/config/config.json
-
+** Edit the =ovpl/config/= directory
+   Copy =ovpl/config/sample_config.json= to =ovpl/config/config.json= and make
+   the following changes:
+      
   + To set the proxies.
 #+begin_src example
     "ENVIRONMENT": {
@@ -19,7 +21,6 @@ Execute the following steps, to configure and then run ADS as a service:
     },
 #+end_src
   
-  *Note:* CentOSBridgeVZAdapter does not require the proxy settings.
 
   + Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
 machine on which the ADS services are running.
@@ -44,75 +45,79 @@ machine on which the ADS services are running.
      "APP_URL": "http://ads-server-public-ip:8080",
 #+end_src
 
-  + Copy =config/sample_authorized_users.py= to =config/authorized_users.py=,
+  + Choose =POOLID= and =ADAPTERID= from =VPOOLS= section. Make the appropriate change in =ADAPTER_TO_USE=.
+    The =ADAPTERID= for =aws_adapter=, =centos_openvz_adapter= and =centos_bridged_adapter= is 1, 2 and 3 
+    respectively.
+   
+#+begin_src example
+"ADAPTER_TO_USE" : {"POOLID" : 1, "ADAPTERID" : 2}
+#+end_src
+  
+** Identify =authorized_users=
+    Copy =config/sample_authorized_users.py= to =config/authorized_users.py=,
     and add actual email addresses of authorized users.
 
-** Choosing ADAPTER_NAME
-   In the ADAPTER section, change the ADAPTER_NAME to appropriate adapter used.
-   Possible values for now are - "CentOSVZAdapter", "AWSAdapter" and
-   "CentOSBridgeVZAdapter"
-#+begin_src example
-"ADAPTER": {
-        "ADAPTER_NAME" :"CentOSVZAdapter",
-	}
-#+end_src
+** Settings for =base_config=
+   1. Copy =config/adapters/sample_base_config.py= to =config/adapters/base_config.py=. 
+      For =aws_adapter=, no change in this file has to be done. For =centos_openvz_adapter=
+      and =centos_bridged_adapter= make the following changes in the file:
 
-*** Settings for CentOSVZAdapter and CentOSBridgeVZAdapter
-   Edit the file ovpl/src/adapters/settings.py to set
-   the following:
+      1. If the services are running on the base machine,
+         set =ADS_ON_CONTAINER= to False.
 
-   1. If the services are running on the base machine,
-      set ADS_ON_CONTAINER to False.
+      2. If the services are running on a container, set =ADS_ON_CONTAINER= to True.
 
-   2. If the services are running on a container,
-      set ADS_ON_CONTAINER to True.
+      3. Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
+         base machine on which containers are created.
 
-   3. Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
-      base machine on which containers are created.
+      4. Set ADS_SERVER_VM_ID to CTID of container running ADS.
+         ADS_SERVER_VM_ID = "<CTID>" 
 
-   4. Set ADS_SERVER_VM_ID to CTID of container running ADS.
-      ADS_SERVER_VM_ID = "<CTID>" 
+      5. SUBNET field to match with the subnet of your base machine
+         If the ip address of your base machine is 10.2.58.XXX, 
+         SUBNET = ["10.2.58.12/28"]
 
-   5. SUBNET field to match with the subnet of your base machine
-      If the ip address of your base machine is 10.2.58.XXX, 
-      SUBNET = ["10.2.58.12/28"]
-
-*** Settings Specific CentOSBrdigeVZAdapter
-Following are the specific settings for the bridge adapter. Edit the file 
-=ovpl/src/adapters/settings.py= to set the following:
-   1. Update the SUBNET_BRIDGE name with name of the bridge which is 
-      internal to private network
-      
-   2. In the function get_adapter_nameserver(), update the variable
-    NAME_SERVER from 'inherit' to the IP of the name server in the 
-    network.
-
+** Settings for =centos_bridged_adapter=
+   Copy =config/adapters/sample_centos_bridged_config.py= to =config/adapters/centos_bridged_config.py=,
+   and change the =SUBNET_BRIDGE= in the file.
    
-*** Settings for AWSAdapter
-   If using AWSAdapter, copy =src/adapters/sample_aws_config.py= to
-   =src/adapters/aws_config.py=, and edit the values accordingly. See
-   [[./docs/AWSAdapter.org][here]] for more details.
+** Settings for =centos_openvz_adapter=
+   Copy =config/adapters/sample_centos_openvz_config.py= to =config/adapters/centos_openvz_config.py=.
+       
+** Settings for =aws_adapter=
+   Copy =config/adapters/sample_aws_config.py= to =config/adapters/aws_config.py=, and edit the values
+   accordingly. The private key =key_file_name.pem= should be copied inside =src/= directory.
+   See [[./docs/AWSAdapter.org][here]] for more details.
    
 ** Commands to Manage the Service
-+ As root, go into =src= directory and run make:
++ As root, go into =ovpl= directory and run =manage_services.sh= file:
 #+begin_src example
-$ cd src
-$ make
+$ cd ovpl
+$ ./manage_services (or) ./manage_services start
 #+end_src
 
-+ To stop the services, or restart
++ To stop the services
 #+begin_src example
-$ cd src
-$ make stop-server
-$ make restart-server
+$ cd ovpl
+$ ./manage_services stop
 #+end_src
+
++ To stop or start specific service use =./manage_services.sh [action] [services]=
+	- [action]   = start (or) stop
+	- [services] = LOGGER (or) ADAPTER (or) CONTROLLER
+#+begin_src example
+$ cd ovpl
+$ ./manage_services.sh start LOGGER
+#+end_src
+
++ For more help use =./manage_services.sh --help=.
 
 + View the logs at /root/logs/ovpl.log by
 #+begin_src example
 tail -f /root/logs/ovpl.log
 #+end_src
 
-+ Open the location =http://localhost:8080= from the browser and provide the lab
++ Open the location =http://ads-server-public-ip:8080= from the browser and provide the lab
   id and lab sources url.
 
 

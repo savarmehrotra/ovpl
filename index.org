@@ -20,7 +20,7 @@
 * Implementation
 * Test Cases
 
-* Design dicsussions
+* Design Discussions
 
 ** Deploying a Lab :: A case for using configuration management tools.
    To deploy a lab, there are two steps: 
@@ -68,7 +68,26 @@
    
 ** Platform for Continuous Delivery
 
+** Lab ID
+The key for the record that is saved into DB during deployment of a lab is
+lab_id.  The values used for lab_id are alphanumeric e.g cse02, and are
+provided by the lab deployer to deploy a lab.  lab_id is solely used to
+uniquely identify a record that is saved during deployment of lab in a database
+by ADS; essentially used for book keeping by the ADS.  
+
+In any situation, the user of ADS should not be burdened with providing a key.
+Instead, the generation should be the responsibility of ADS in such a way that
+a lab is always identified uniquely at any time.
+
+
 * Releases
+** Conventions followed with the github issue tracker
+  + Done :: An issue is in done state when code review is completed, tested and
+            the branch in which this issue is addressed at the same level as
+            develop branch.
+  + Released :: The issue is in production or pushed to master branch and
+                tagged.
+
 ** Release v1.0.2 
    + Assumptions :: Both the containers, one hosting ADS services and the other
                     on which lab is deployed are created on a host machine
@@ -98,9 +117,14 @@
    + creates a container within this bridged network and 
    + deploys lab on this newly created container.
 
-** Release v1.1.0
+** Release v1.2.0
    This release is about:
    + providing support for life cycle management of ADS.
    + and enhancing the ability of ADS to deploy a lab when IAM role is
      associated with the machine running ADS services.
+   + Manage services from a single script.
+   + Adhere to Pep 8 coding standards
+   + Save the state of a lab
+   + GitHub Issues: 37, 57, 42, 48, 41, 3, 64, 46, 43, 56, 65, 53, 4, 50, 49
+     and 44
 
