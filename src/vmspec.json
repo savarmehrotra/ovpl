@@ -1,0 +1,8 @@
+{
+	"lab_ID" : "test99",
+	"os" : "Ubuntu",
+	"os_version" : "12.04",
+	"ram" : "256M",
+	"swap" : "512M",
+	"diskspace" : "2G"
+}

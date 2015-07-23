@@ -1,0 +1,90 @@
+{
+  "lab": {
+    "description": {
+      "name": "Solving Crosswords for Fun and Profit",
+      "id": "cse30",
+      "status": "released",
+      "discipline": ["Computer Science", "Electronics & Communications"],
+      "type": "Simulation",
+      "server-side": true,
+      "integration_level": 0,
+      "developer": [
+        {
+          "name": "Wit Cracker",
+          "title": "Professor",
+          "role": "Lab developer",
+          "organization": "teasers",
+          "institute": "Crossword University",
+          "web": "http://crossword.edu/faculty/cse/ai/witcrack.html",
+          "department": "Chaotic Intelligence",
+          "contact": {
+        	  "email": "witcracker@crossword.edu",
+        	  "alternate_email": "witcracker@ultramail.com",
+        	  "mobile_number": 888888888888, 
+        	  "office_number": 999999999999
+          }
+        }
+      ]
+    },
+
+    "build_requirements": {
+      "platform": {
+        "os": "ubuntu", 
+        "osVersion": "12",
+        "arch": "i386",
+        "service_pack": "",
+        "installer": [
+          "sudo apt-get install libxml2",
+          "sudo apt-get install libnss3",
+          "sudo apt-get install python2.7",
+          "sudo apt-get install curl",
+          "git clone https://bitbucket.org/deviprasad/data_structures.git",
+          "wget -b -O output/log.txt --user=witcracker --password=secretpassword www.myhome.in/config_lab.py"
+        ],
+        "build_steps": {
+          "configure": ["configure.sh"],
+          "pre_build": ["make clean"],
+          "build": ["make lab", "make install"],
+          "post_build": ["make clean"],
+          "status": ["check_build_status.sh"]
+        }
+      }
+    },
+
+    "runtime_requirements": {
+      "platform": {
+        "os": "ubuntu", 
+        "osVersion": "12",
+        "arch": "i386",
+        "servicepack": "",
+        "hosting": "shared",
+        "memory": {
+        "max_required": "2gb",
+        "min_required": "2gb"
+        },
+        "storage": {
+          "min_required": "20gb"
+        },
+        "installer": [
+          "wget -b -O output/log.txt --user=witcracker --password=secretpassword www.crossword.edu/faculty/witcracker/init_lab.sh",
+          "wget -b -O output/log.txt --user=witcracker --password=secretpassword www.crossword.edu/faculty/witcracker/shutdowb_lab.sh",
+          "wget -b -O output/log.txt --user=witcracker --password=secretpassword www.crossword.edu/faculty/witcracker/backup_lab.sh"
+        ],
+        "lab_actions": {
+          "init":     ["on_init_lab.sh", "first_run.py", "start_services.sh"],
+          "shutdown": ["on_shutdown_lab.sh", "stop_services.sh"],
+          "pause":    ["on_pause_lab.sh", "backup_lab.py", "pause_services.sh"],
+          "resume":   ["on_reseume_lab.sh", "resume_services.sh"],
+          "start":    ["on_start_lab.sh", "restart_services.sh"],
+          "stop":     ["on_stop_lab.sh", "stop_services.sh"],
+          "backup":   ["backup_lab.sh"],
+          "restore":  [],
+          "clean":    ["clean_lab.sh"],
+          "stats":    ["compute_stats.py"],
+          "publish":  ["on_publish_lab.sh"]
+        }
+      }
+    }
+  },
+  "template": "1.0"
+}
