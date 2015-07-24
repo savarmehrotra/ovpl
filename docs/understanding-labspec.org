@@ -1,0 +1,177 @@
+#+Title: Working with labspec.json
+#+Author: Prakash B. H.
+#+Date: 28 April 2015
+
+* Introduction
+This document details out on how to complete the labspec.json in the
+process of deploying the lab.
+
+* Assumptions
+The integration engineer is aware of various levels of integration,
+has the lab source code and is aware of all the technology and tools
+used for the lab development.
+
+* JavaScript Object Notation (JSON)
+JSON is a lightweight data-interchange format which is easy for humans
+to read and write as well easy for machines to parse and
+generate. JSON is a text format that is completely language
+independent but uses conventions that are familiar to programmers of
+the C-family of languages.
+
+JSON is built on two structures:
+    + A collection of name/value pairs. In various languages, this is
+      realized as an object, record, struct, dictionary, hash table,
+      keyed list, or associative array.
+    + An ordered list of values. In most languages, this is realized
+      as an array, vector, list, or sequence.
+
+More information about JSON can be found in the [[http://www.json.org/][official
+documentation]].
+
+* Completing the Template
+The description below explains how to populate the =labspec.json=
+template. For simplicity it is break down into several parts.
+
+The first section in the template covers the build requirements for
+the lab. It covers the lab build requirements like architecture, OS,
+OS version, service pack and other details. Build operation can be
+viewed as build, the configuration, operations to be carried out pre
+build and post build. Only the required values can be filled inside
+the template. The fields with unknown or no values can be left empty.
+#+begin_src example
+"lab": {
+        "build_requirements": {
+            "platform": {
+                "arch": "", 
+                "build_steps": {
+                    "build": [], 
+                    "configure": [], 
+                    "post_build": [], 
+                    "pre_build": [], 
+                    "status": []
+                }, 
+                "installer": [], 
+                "os": "", 
+                "osVersion": "", 
+                "service_pack": ""
+            }
+        }, 
+#+end_src
+
+The example below demonstrates one sample of populating the template.
+Information relating to =OS= details are mentioned and well explains
+that build is carried out by running =make= file present in =src= and
+there is no operation in configure as well as no operations pre and post
+builds.
+#+begin_src example
+"lab": {
+        "build_requirements": {
+            "platform": {
+                "arch": "i386", 
+                "build_steps": {
+                    "build": ["make -C ../src"], 
+                    "configure": [], 
+                    "post_build": [], 
+                    "pre_build": [], 
+                    "status": []
+                }, 
+                "installer": [], 
+                "os": "ubuntu", 
+                "osVersion": "12", 
+                "service_pack": ""
+            }
+        }, 
+#+end_src
+
+
+Section next covers the information about the lab developers. Any
+number of lab developers information can be sequentially appended
+using the same template. All the available information can be provided
+and remaining cab be left empty.
+#+begin_src example
+"description": {
+            "developer": [
+                {
+                    "contact": {
+                        "alternate_email": "", 
+                        "email": "", 
+                        "mobile_number": "", 
+                        "office_number": ""
+                    }, 
+                    "department": "", 
+                    "institute": "", 
+                    "name": "", 
+                    "organization": "", 
+                    "role": "", 
+                    "title": "", 
+                    "web": ""
+                }, 
+#+end_src
+
+The next section requires the lab information covering the discipline,
+lab id, name and other details relating to the lab.
+#+begin_src example
+"discipline": [
+                ""
+            ], 
+            "id": "", 
+            "integration_level": , 
+            "name": "", 
+            "server-side": , 
+            "status": "", 
+            "type": ""
+#+end_src
+
+A sample completed template for a computer programming lab can be seen
+below:
+#+begin_src example
+"discipline": [
+                "Computer Science & Engineering"
+            ], 
+            "id": "cse02", 
+            "integration_level": 5, 
+            "name": "Computer Programming", 
+            "server-side": true, 
+            "status": "Released", 
+            "type": ""
+#+end_src
+
+The last part of the template covers all the runtime requirements. A
+sample completed template is provided below along with few completed
+entries. The name value pairs are self explanatory and can be
+populated as per the lab requirements.
+#+begin_src example
+ "runtime_requirements": {
+            "platform": {
+                "arch": "i386", 
+                "hosting": "dedicated", 
+                "installer": ["sudo apt-get update",
+                "sudo apt-get install -y php5 apache2"], 
+                "lab_actions": {
+                    "backup": [], 
+                    "clean": [], 
+                    "init": ["cp -r ../build/* /var/www/","mv /var/www/index.html index.html.default"
+                        ], 
+                    "pause": [], 
+                    "publish": [], 
+                    "restore": [], 
+                    "resume": [], 
+                    "shutdown": ["service apache2 stop"], 
+                    "start": ["service apache2 start"],  
+                    "stats": [], 
+                    "stop": []
+                }, 
+                "memory": {
+                    "max_required": "2gb", 
+                    "min_required": "256mb"
+                }, 
+                "os": "ubuntu", 
+                "osVersion": "12", 
+                "servicepack": "", 
+                "storage": {
+                    "min_required": "10gb"
+                }
+            }
+        }
+    }, 
+#+end_src

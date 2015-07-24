@@ -1,0 +1,193 @@
+#+Title: CentOSBridgeVZAdapter
+#+Author: vlead
+#+Date: 15 April 2015
+
+* Introduction
+An adapter is an ADS component, which is responsible for creating and
+managing VMs on a particular platform. This document presents the
+requirements, design and implementation of the adapter for the bridged
+network on CentOS OpenVZ platform.
+
+* Requirement
+Following are the requirements of the adapter:
+    + The adapter will create a ubuntu container using OpenVZ 
+      based on the specification given in the lab spec of a
+      particular lab.
+    + Adapter will copy the ADS and lab source code to the newly created
+      container and start the VMManager service.
+    + Adapter will copy the bridge network interface settings to the newly
+      created container from the ADS server
+
+* Design
+CentOSBridgeVZAdapter is required to manage the containers by
+supporting create, start, stop and restart operations.
+
+CentOSBridgeAdapter uses the SSH service to initially install the ADS
+component and start the service. Once the service is up, other
+components of ADS communicate with the VM through this service.
+
+** Pre-requisites for the Adapter
+Following are the pre-requisites for understanding the Adapter:
+    + Understanding the bridge-network is essential to understand the
+      working of the adapter. A detailed documentation on setting up a
+      bridged network can be found [[./bridge-setup.org][here]]
+    + The provisioning of ADS server has to meet the requirements of a
+      bridged network. These requirements and provisioning are defined
+      [[./ads-provisioning.org][here]].
+Following infrastructure has to be made available to run the Adapter:    
+    + The brdige network is setup and running
+    + One of the component in the network is the ADS server
+    + ADS server is provisioned, up and running
+    + The git is updated with newer version on the ADS server
+    + Adapter source code is cloned on the ADS server
+** Interfaces
+In the current design of ADS, a fixed set of interfaces to an adapter
+is already defined. An adapter is required to implement these
+interfaces. This enables other components/services of ADS to
+communicate with the adapter. The interfaces implemented by the
+adapter are listed below:
+
+1. *create_vm* (self, lab_spec, vm_id="")   
+   Creates a new VM.
+   *Parameters*: 
+       + lab_spec - Lists the lab and VM related reqirements
+       + vm_id - If no vm_id is specified, it is computed using the
+         last two segments of an available IP address
+   *Returns*: VM id of the newly created VM
+
+2. *start_vm* (self, vm_id)
+   Starts the VM identified by =vm_id=.
+   *Parameters*:
+       + vm_id - vm_id of the VM to be started
+   *Returns*: List of VMs that got started
+
+3. *start_vm_manager* (self, vm_id)
+   Starts the VM manager service inside the VM identified by =vm_id=
+   *Parameters*:
+       + vm_id - VM id of the VM to be started
+   *Returns*: True if the VM Manager service has successfully started
+
+** Configuration
+
+1) Bridged network do not need proxies to be set. In the files
+   ovpl/config/config.json and ovpl/src/VMManager/config.json proxies
+   have to remain unset. Example:
+#+BEGIN_EXAMPLE
+"ENVIRONMENT": { "HTTP_PROXY":"", "HTTPS_PROXY":"" },
+#+END_EXAMPLE
+
+2) In order to save the logs in the ADS machine, the *config.json*
+   file in */ovpl/config* needs to be updated with ADS server IP for
+   the variable *SERVER_IP* under *LOGGING CONGIGURATION*.
+
+3) Following changes have to be made in *settings.py* file present in
+   *ovpl/src/adapters* directory:
+      + Set the *BASE_IP_ADDRESS* variable with ip address of the base
+        machine where the ADS server is deployed
+      + Set the vm server id for the variable *ADS_SERVER_VM_ID*
+      + Set the *SUBNET_BRIDGE* variable with the name of the subnet
+        bridge of the network
+      + In the function *get_subnet()* provide the *SUBNET* range for
+        the network
+	
+* Scenario for the BridgeCentOSVZAdapter
+The following sequence diagram depicts the work flow for creation and
+intilization of the VM. It takes the lab spec through http request and
+creates the VM. CentOSBridgeVZAdapter returns vm_id, vm_ip and
+vm_manager_port as a http response to the VMPoolmanager.
+
+[[./bridge-adapter-sequence-diagram.png]]
+
+Following is the sequence of events that occur when a lab is deployed
+on CentOS platform using the adapter:
+
+    + VMPoolManager sends an HTTP Request to AdapterServer indicating
+      that a VM needs to be created. It also passes the lab spec that
+      includes VM requirements.
+    + On receiving this request, the AdapterServer calls the
+      create_vm() function of CentOSBridgeVZAdapter and hands over the
+      lab spec to it.
+    + Based on lab spec, the adapter selects OS template.
+    + It creates a VM on Base Machine on a bridged network.
+    + The vm_id of the newly created VM is returned to the
+      AdapterServer.
+    + The AdapterServer call the initialize function of
+      CentOSBridgeVZAdapter.
+    + This initializes the newly created VM on CentOSBridgeVZAdapter by
+      copying relevant ADS component (VM Manager) and lab sources, and
+      starting the VM Manager.
+    + Once this service has started, the CentOSBrdigeVZAdapter sends
+      back vm details like vm_id, vm_ip and port on which the VM
+      Manager service is running to AdapterServer.
+    + These vm details (vm_id, vm_ip, vm_manager_port) are forwarded
+      by AdapterServer as HTTP response to the VMPoolManager.
+
+Note: The sequence diagram is generated using a online tool at [[https://www.websequencediagrams.com/][Web
+Sequence Diagrams]] and following is the source code for diagram
+generation:
+#+begin_src example
+title CentOSBridgeVZAdapter Design
+
+VM Pool Manager->+Adapter Server: HTTP Request with lab spec
+Adapter Server-> +CentOSBrdigeVZAdapter: create vm using lab spec
+
+CentOSBrdigeVZAdapter->Bridge Network: create vm
+CentOSBrdigeVZAdapter->Bridge Network: copy network settings
+
+CentOSBrdigeVZAdapter-> -Adapter Server: returns vm id
+Adapter Server->+CentOSBrdigeVZAdapter: initialize vm
+
+CentOSBrdigeVZAdapter->Bridge Network: copy VMManager
+CentOSBrdigeVZAdapter->Bridge Network : copy lab sources
+CentOSBrdigeVZAdapter->-Adapter Server: return vm details
+
+Adapter Server-> -VM Pool Manager: return vm details
+#+end_src
+* Implementation 
+The source code of the implementation of the adapter is located at the
+following Github URL:
+[[https://github.com/vlead/ovpl/tree/bridge-openvz-adapter][bridge-openvz-adapter]]
+* Testing
+** Objective
++ To validate the creation of a container on CentOS platform which has
+  a openvz as hypervisor.
++ To ensure that the newly created container is connected to bridged network.
++ To ensure that the ADS and Lab source are copied into container.
++ To ensure that the VMManager service is running on this container.
+
+This is achieved through unit testing.
+
+** Testing Environment
+Following are the pre-requisites for the test environment:
+1. A container is provisioned on base1-cluster with internet acces.
+2. The *state* of this container is *running*
+3. =ADS= is configured and running in the provisioned container.
+4. The test cases are written and tested for CentOSBridgeVZAdapter.
+
+** Test Cases
+*** Case 01: Creation of a container on base1-cluster platform.
+The objective of this test case is to test the creation of a container
+on base1-cluster. =create_container()= in *CentOSBridgeVZAdapter* is responsible in
+ADS for creation of virtual machine. A container will be created in
+this test scenario and the creation is tested by return status (Evaluated to True).
+
+*** Case 02: Setting up the container to connect to the bridged-network.
+The objective of this test case is to test the whether newly created
+container is connected to the bridged-network or not. =container_set()= in
+*CentOSBridgeVZAdapter* is responsible in ADS for setup container. A
+container will be set in this test scenario and tested by return status (Evaluated to True).
+
+*** Case 03: Copying ADS and Lab source code to newly created container.
+The objective of this test case is to test the whether ADS and Labs
+source code is copied into the newly created container. =copy_files()=
+in *CentOSBridgeVZAdapter* is responsible in ADS for copying these files. In
+this test scenario look for =ovpl= and =labs= folders in newly created
+container at =/root/=.
+
+*** Case 04: Checking if VMManager service is running successfully
+The objective of this is to test whether the VMManager service is
+running successfully on the newly created container on base1-cluster. 
+=init_vm()= in *CentOSBridgeVZAdapter* is responsible in ADS for intializing service.
+
+*** Implementation of test cases
+The implementation code for all above test case scenarios can be found [[https://github.com/vlead/ovpl/blob/bridge-openvz-adapter/tests/test_CentOSBridgeVZAdapter.py][here]]

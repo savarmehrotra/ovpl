@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# current directory where this file is kept
+CUR_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+#echo $CUR_DIR
+cd "$CUR_DIR/../src"
+#echo `pwd`
+make stop-server
