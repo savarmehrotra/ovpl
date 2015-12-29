@@ -99,7 +99,9 @@ class Controller:
         self.deploy_record.record['lab_history']['released_by'] = 'dummy'
         self.deploy_record.record['lab_history']['released_on'] = \
             datetime.utcnow()
-        self.deploy_record.record['id'] = self.lab_spec['lab']['lab_src_url']
+        # This is a hack, just to avoid duplicate records.
+        self.deploy_record.record['id'] = \
+            self.lab_spec['lab']['lab_src_url'] + str(datetime.utcnow())
         logger.debug("Lab deployed by %s" %
                      self.deploy_record.record['lab_history']['deployed_by'])
 
