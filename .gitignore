@@ -4,6 +4,7 @@
 *~
 *#*
 .*#*
+*.pyc
 
 # the log directory
 log/*
