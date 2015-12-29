@@ -21,12 +21,14 @@ class LabManager:
         logger.debug("Will return lab spec")
         try:
             repo_name = self.git.construct_repo_name(lab_src_url)
+
             if self.git.repo_exists(repo_name):
-                #  reset_repo(repo_name)
+                self.git.reset_repo(repo_name)
                 self.git.pull_repo(repo_name)
             else:
                 self.git.clone_repo(lab_src_url, repo_name)
-                self.git.checkout_version(repo_name, version)
+
+            self.git.checkout_version(repo_name, version)
             return self.git.get_lab_spec(repo_name)
         except Exception, e:
             logger.error("Error: %s" % str(e))

@@ -60,8 +60,8 @@ class GitCommands:
             raise e
 
     def pull_repo(self, repo_name):
-        pull_cmd = "git --git-dir=%s/.git pull" % (self.git_clone_loc +
-                                                   repo_name)
+        repo = self.git_clone_loc + repo_name
+        pull_cmd = "git --git-dir=%s/.git --work-tree=%s pull" % (repo, repo)
         logger.debug("pull cmd: %s" % pull_cmd)
         try:
             (ret_code, output) = execute_command(pull_cmd)
@@ -71,8 +71,8 @@ class GitCommands:
             raise e
 
     def reset_repo(self, repo_name):
-        reset_cmd = "git --git-dir=%s/.git reset --hard" % (self.git_clone_loc
-                                                            + repo_name)
+        repo = self.git_clone_loc + repo_name
+        reset_cmd = "git --git-dir=%s/.git --work-tree=%s reset --hard" % (repo, repo)
         logger.debug("reset cmd: %s" % reset_cmd)
         try:
             (ret_code, output) = execute_command(reset_cmd)
@@ -82,15 +82,16 @@ class GitCommands:
             raise e
 
     def checkout_version(self, repo_name, version=None):
-        if version:
-            checkout_cmd = "git --git-dir=%s checkout %s" \
-                           % ((self.git_clone_loc + repo_name), version)
-            try:
-                (ret_code, output) = execute_command(checkout_cmd)
-                logger.debug("Checkout repo successful")
-            except Exception, e:
-                logger.error("Error checking out the repository: " + str(e))
-                raise e
+        repo = self.git_clone_loc + repo_name
+        if version is None:
+            version = "master"
+        checkout_cmd = "git --git-dir=%s/.git --work-tree=%s checkout %s" % (repo, repo, version)
+        try:
+            (ret_code, output) = execute_command(checkout_cmd)
+            logger.debug("Checkout repo successful")
+        except Exception, e:
+            logger.error("Error checking out the repository: " + str(e))
+            raise e
 
     def get_spec_path(self, repo_name):
         return self.git_clone_loc + repo_name + self.lab_spec_dir
