@@ -126,19 +126,21 @@ class CentOSVZAdapter(object):
         success = True
         success = success and self.copy_public_key(vm_id)
         success = success and self.copy_ovpl_source(vm_id)
-        success = success and self.copy_lab_source(vm_id, lab_repo_name,
-                                              self.git.get_git_clone_loc())
+        success = success and self.copy_lab_source(vm_id,
+                                                   lab_repo_name,
+                                                   self.git.get_git_clone_loc())
         success = success and self.start_vm_manager(vm_id)
         response = {"vm_id": vm_id, "vm_ip": self.get_vm_ip(vm_id), "vm_port": base_config.VM_MANAGER_PORT}
-                            
+
         # check if the VMManager service came up and running..
         logger.debug("Ensuring VMManager service is running on VM %s" %
                      response['vm_ip'])
         vmmgr_port = int(base_config.VM_MANAGER_PORT)
-        success = base_adapter.wait_for_service(response['vm_ip'], vmmgr_port,
-                                        self.time_before_next_retry,
-                                        config.TIMEOUT)
-        
+        success = base_adapter.wait_for_service(response['vm_ip'],
+                                                vmmgr_port,
+                                                self.time_before_next_retry,
+                                                config.TIMEOUT)
+
         if not success:
             logger.debug("Could not reach VMManager after %s secs!! Aborting." %
                          config.TIMEOUT)
@@ -146,9 +148,9 @@ class CentOSVZAdapter(object):
 
         logger.debug("centos_openvz_adapter: init_vm(): success = %s, response = %s" %
                      (success, response))
-       
+
         return (success, response)
-        
+
     def destroy_vm(self, vm_id):
         vm_id = self.validate_vm_id(vm_id)
         try:
@@ -250,7 +252,6 @@ class CentOSVZAdapter(object):
         vm_id = self.validate_vm_id(vm_id)
         pass
 
-
     def copy_public_key(self, vm_id):
 
         try:
@@ -261,7 +262,7 @@ class CentOSVZAdapter(object):
                                     base_config.VM_DEST_DIR, ".ssh/id_rsa.pub"))
             else:
                 public_key_file = ("%s" %
-                               ("/root/.ssh/id_rsa.pub"))
+                                   ("/root/.ssh/id_rsa.pub"))
 
             authorized_key_file = ("%s%s%s%s" %
                                    (base_config.VM_ROOT_DIR, vm_id,
@@ -280,7 +281,6 @@ class CentOSVZAdapter(object):
         except Exception, e:
             logger.error("ERROR = %s" % str(e))
             return False
-
 
     def copy_files(self, src_dir, dest_dir):
 
@@ -301,7 +301,6 @@ class CentOSVZAdapter(object):
             logger.error("ERROR = %s" % str(e))
             return False
 
-
     def copy_ovpl_source(self, vm_id):
 
         if base_config.ADS_ON_CONTAINER:
@@ -313,15 +312,14 @@ class CentOSVZAdapter(object):
 
             dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id,
                                    base_config.VM_DEST_DIR)
-            logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
-                         (vm_id, src_dir, dest_dir))
+        logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
+                     (vm_id, src_dir, dest_dir))
 
-            try:
-                return self.copy_files(str(src_dir), str(dest_dir))
-            except Exception, e:
-                logger.error("ERROR = %s" % str(e))
-                return False
-
+        try:
+            return self.copy_files(str(src_dir), str(dest_dir))
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            return False
 
     def copy_lab_source(self, vm_id, lab_repo_name, git_clone_loc):
 
@@ -339,15 +337,14 @@ class CentOSVZAdapter(object):
             dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id,
                                    base_config.VM_DEST_DIR + "labs")
 
-            logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
-                         (vm_id, src_dir, dest_dir))
+        logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
+                     (vm_id, src_dir, dest_dir))
 
-            try:
-                return self.copy_files(src_dir, dest_dir)
-            except Exception, e:
-                logger.error("ERROR = %s" % str(e))
-                return False
-
+        try:
+            return self.copy_files(src_dir, dest_dir)
+        except Exception, e:
+            logger.error("ERROR = %s" % str(e))
+            return False
 
     def get_vm_ip(self, vm_id):
         vm_id = self.validate_vm_id(vm_id)
@@ -366,29 +363,31 @@ class CentOSVZAdapter(object):
         except Exception, e:
             raise e
 
-
     def construct_vzctl_args(self, lab_specz={}):
         """ Returns a tuple of vzctl create arguments and set arguments """
 
         def get_vm_spec():
             lab_spec = dict2default(lab_specz)
-            vm_spec = {"lab_ID": lab_spec['lab']['description']['id'],
-                       "os": lab_spec['lab']['runtime_requirements']['platform']
-                                     ['os'],
-                       "os_version": lab_spec['lab']['runtime_requirements']
-                                             ['platform']['osVersion'],
-                       "ram": lab_spec['lab']['runtime_requirements']['platform']
-                                      ['memory']['min_required'],
-                       "diskspace": lab_spec['lab']['runtime_requirements']
-                                            ['platform']['storage']['min_required'],
-                       "swap": lab_spec['lab']['runtime_requirements']['platform']
-                                       ['memory']['swap']
-                      }
+            vm_spec = {
+                "lab_ID": lab_spec['lab']['description']['id'],
+                "os": lab_spec['lab']['runtime_requirements']['platform']['os'],
+                "os_version": lab_spec['lab']['runtime_requirements']
+                ['platform']['osVersion'],
+                "ram": lab_spec['lab']['runtime_requirements']['platform']
+                ['memory']['min_required'],
+                "diskspace": lab_spec['lab']['runtime_requirements']
+                ['platform']['storage']['min_required'],
+                "swap": lab_spec['lab']['runtime_requirements']['platform']
+                ['memory']['swap']
+            }
             return vm_spec
 
         vm_spec = get_vm_spec()
-        lab_ID = base_adapter.get_test_lab_id() if vm_spec["lab_ID"] == "" \
-                 else vm_spec["lab_ID"]
+        lab_ID = None
+        if vm_spec["lab_ID"] == "":
+            lab_ID = base_adapter.get_test_lab_id()
+        else:
+            lab_ID = vm_spec["lab_ID"]
         host_name = lab_ID + "." + base_adapter.get_adapter_hostname()
         ip_address = base_adapter.find_available_ip()
         os_template = base_adapter.find_os_template(vm_spec["os"],
@@ -407,7 +406,6 @@ class CentOSVZAdapter(object):
                       " --onboot yes" + \
                       " --save"
         return (vm_create_args, vm_set_args)
-
 
     def validate_vm_id(self, vm_id):
         vm_id = str(vm_id).strip()
