@@ -302,7 +302,8 @@ class CentOSVZAdapter(object):
             return False
 
     def copy_ovpl_source(self, vm_id):
-
+        src_dir = None
+        dest_dir = None
         if base_config.ADS_ON_CONTAINER:
             src_dir = "%s%s%s" % (base_config.VM_ROOT_DIR,
                                   base_config.ADS_SERVER_VM_ID,
@@ -312,6 +313,7 @@ class CentOSVZAdapter(object):
 
             dest_dir = "%s%s%s" % (base_config.VM_ROOT_DIR, vm_id,
                                    base_config.VM_DEST_DIR)
+
         logger.debug("vm_id = %s, src_dir=%s, dest_dir=%s" %
                      (vm_id, src_dir, dest_dir))
 
@@ -325,6 +327,8 @@ class CentOSVZAdapter(object):
 
         directories = git_clone_loc.split("/")
         labs_dir = directories[-2]
+        src_dir = None
+        dest_dir = None
         if base_config.ADS_ON_CONTAINER:
             src_dir = "%s%s%s%s%s%s" % (base_config.VM_ROOT_DIR,
                                         base_config.ADS_SERVER_VM_ID,
