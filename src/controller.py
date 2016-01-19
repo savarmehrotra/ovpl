@@ -13,6 +13,7 @@ from state import State
 from state import Record
 from httplogging.http_logger import logger
 from utils.git_commands import GitCommands
+from utils.execute_commands import execute_command
 
 
 class Controller:
@@ -58,6 +59,7 @@ class Controller:
             ip = self.deploy_record.record['vm_info']['vm_ip']
             port = self.deploy_record.record['vm_info']['vm_port']
             vmmgrurl = "http://" + ip
+            lab_id = self.deploy_record.record['lab_spec']['lab_id']
             logger.debug("test_lab(): vmmgrurl = %s" % (vmmgrurl))
 
             # deploy the lab on the newly created container.
@@ -70,7 +72,8 @@ class Controller:
                     self.update_deploy_record(current_user)
                     self.state.save(self.deploy_record.record)
                     logger.info("test_lab(): test succcessful, ip = %s" % ip)
-                    return ip
+                    domain_name = self.register_lab(lab_id, ip)
+                    return domain_name
                 else:
                     logger.error("test_lab(); Test failed with error:" +
                                  str(ret_str))
@@ -109,6 +112,18 @@ class Controller:
         logger.debug("undeploy_lab for lab_id %s" % lab_id)
         self.vmpoolmgr.undeploy_lab(lab_id)
         return "Success"
+
+    def register_lab(self, lab_id, ip_address):
+        ansible_url = "ssh root@ansible.base4.vlabs.ac.in"
+        service_name = "hosting_service"
+        service_action = "register"
+        command = (r'"%s %s %s %s %s"' %
+                   (ansible_url, service_name, service_action, lab_id, ip_address ))
+        logger.debug("Hook's service command =  %s" %
+                     command)
+        (ret_code, output) = execute_command(command)
+        if ret_code == 0:
+            return lab_id + "base4.vlabs.ac.in"
 
 if __name__ == '__main__':
 
