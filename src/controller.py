@@ -72,8 +72,12 @@ class Controller:
                     self.update_deploy_record(current_user)
                     self.state.save(self.deploy_record.record)
                     logger.info("test_lab(): test succcessful, ip = %s" % ip)
-                    domain_name = self.register_lab(lab_id, ip)
-                    return domain_name
+
+                    if(base_config.ADS_USING_HOOKS):
+                        domain_name = self.register_lab(lab_id, ip)
+                        return "LAB URL = "+ domain_name + "\n" + "(Note : Very soon you will be allowed to access lab using given domain name)"
+                    else:
+                        return ip
                 else:
                     logger.error("test_lab(); Test failed with error:" +
                                  str(ret_str))
