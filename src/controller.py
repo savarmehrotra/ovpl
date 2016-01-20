@@ -14,8 +14,8 @@ from state import Record
 from httplogging.http_logger import logger
 from utils.git_commands import GitCommands
 from utils.execute_commands import execute_command
-
-
+from adapters.base_adapter import get_adapter_hostname
+from config.adapters import base_config
 class Controller:
     state = None
     lab_spec = None
@@ -114,16 +114,20 @@ class Controller:
         return "Success"
 
     def register_lab(self, lab_id, ip_address):
-        ansible_url = "ssh root@ansible.base4.vlabs.ac.in"
+        service_host = base_config.SERVICE_HOST
         service_name = "hosting_service"
         service_action = "register"
-        command = (r'"%s %s %s %s %s"' %
-                   (ansible_url, service_name, service_action, lab_id, ip_address ))
+        command = 'ssh  %s %s %s %s %s' % \
+                  (service_host, service_name, service_action, lab_id,
+                   ip_address)
         logger.debug("Hook's service command =  %s" %
                      command)
         (ret_code, output) = execute_command(command)
         if ret_code == 0:
-            return lab_id + "base4.vlabs.ac.in"
+            domain_name = lab_id + "." +  get_adapter_hostname()
+            logger.debug("FQDN of lab is  =  %s" %
+                         domain_name)
+            return domain_name
 
 if __name__ == '__main__':
 
