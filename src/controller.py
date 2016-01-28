@@ -13,8 +13,9 @@ from state import State
 from state import Record
 from httplogging.http_logger import logger
 from utils.git_commands import GitCommands
-
-
+from utils.execute_commands import execute_command
+from adapters.base_adapter import get_adapter_hostname
+from config.adapters import base_config
 class Controller:
     state = None
     lab_spec = None
@@ -58,6 +59,7 @@ class Controller:
             ip = self.deploy_record.record['vm_info']['vm_ip']
             port = self.deploy_record.record['vm_info']['vm_port']
             vmmgrurl = "http://" + ip
+            lab_id = self.deploy_record.record['lab_spec']['lab_id']
             logger.debug("test_lab(): vmmgrurl = %s" % (vmmgrurl))
 
             # deploy the lab on the newly created container.
@@ -70,7 +72,12 @@ class Controller:
                     self.update_deploy_record(current_user)
                     self.state.save(self.deploy_record.record)
                     logger.info("test_lab(): test succcessful, ip = %s" % ip)
-                    return ip
+
+                    if(base_config.ADS_USING_HOOKS):
+                        domain_name = self.register_lab(lab_id, ip)
+                        return "LAB URL = "+ domain_name + "\n" + "(Note : Very soon you will be allowed to access lab using given domain name)"
+                    else:
+                        return ip
                 else:
                     logger.error("test_lab(); Test failed with error:" +
                                  str(ret_str))
@@ -109,6 +116,22 @@ class Controller:
         logger.debug("undeploy_lab for lab_id %s" % lab_id)
         self.vmpoolmgr.undeploy_lab(lab_id)
         return "Success"
+
+    def register_lab(self, lab_id, ip_address):
+        service_host = base_config.SERVICE_HOST
+        service_name = "hosting_service"
+        service_action = "register"
+        command = 'ssh  %s %s %s %s %s' % \
+                  (service_host, service_name, service_action, lab_id,
+                   ip_address)
+        logger.debug("Hook's service command =  %s" %
+                     command)
+        (ret_code, output) = execute_command(command)
+        if ret_code == 0:
+            domain_name = lab_id + "." +  get_adapter_hostname()
+            logger.debug("FQDN of lab is  =  %s" %
+                         domain_name)
+            return domain_name
 
 if __name__ == '__main__':
 

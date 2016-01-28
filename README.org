@@ -77,6 +77,10 @@ machine on which the ADS services are running.
          If the ip address of your base machine is 10.2.58.XXX, 
          SUBNET = ["10.2.58.12/28"]
 
+      6. ADAPTER_NAME_SERVER, set the field to a specific nameserver that is
+         used in the cluster or leave it as 'inherit' to use the nameserver
+         configuration from the base machine.
+
 ** Settings for =centos_bridged_adapter=
    Copy =config/adapters/sample_centos_bridged_config.py= to =config/adapters/centos_bridged_config.py=,
    and change the =SUBNET_BRIDGE= in the file.

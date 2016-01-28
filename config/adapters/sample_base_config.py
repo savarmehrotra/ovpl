@@ -14,8 +14,14 @@ VM_MANAGER_PORT = "9089"
 LAB_ID = "engg01"
 OS = "Ubuntu"
 OS_VERSION = "12.04"
-HOST_NAME = "vlabs.ac.in"
+HOST_NAME = "base4.vlabs.ac.in"
 ADAPTER_NAME_SERVER = "inherit"
 # run VMManagerServer with the default VMManager
 VM_MANAGER_SERVER_PATH = "/src/vmmanager/vm_manager_server.py"
 MAX_VM_ID = 2147483644  # 32-bit; exact value based on trial-and-error
+
+#Hooks configuration
+#ADS_USING_HOOKS = True will invoke hooks service and return the domain name (FQDN)
+#False will return the ip address of the deployed lab.
+ADS_USING_HOOKS = True
+SERVICE_HOST = "root@ansible.base4.vlabs.ac.in"
