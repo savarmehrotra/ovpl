@@ -1,0 +1,79 @@
+#+Title: ADS Installation steps
+#+Author:  Yogesh Agrawal
+#+Email: yogeshiiith@gmail.com
+
+* Introduction
+  This document describes the steps to install ads.
+
+* Steps:
+  1. Create a container using netiff_add.
+
+  2. Install git
+     #+BEGIN_EXAMPLE
+     yum -y install git
+     #+END_EXAMPLE
+  3. Generate root users ssh-keys. Setup trust based ssh from ads container root
+     user to Base machine.
+     #+BEGIN_EXAMPLE
+     ssh-keygen -t rsa
+     ssh-copy-id root@<base-machine-ip>
+     #+END_EXAMPLE
+   
+  4. Clone setup-ovpl-centos using:
+     #+BEGIN_EXAMPLE
+     git clone https://github.com/vlead/setup-ovpl-centos.git
+     #+END_EXAMPLE
+
+  5. Install dependencies as follows
+     #+BEGIN_EXAMPLE
+     cd setup-ovpl-centos/scripts
+     vim config.sh #set proxy settings here if network uses any proxy
+     vim centos_prepare_ovpl.sh  #Comment OpenVZ installation and git installation lines 35-41 and 52-58
+     ./centos_prepare_ovpl.sh    # Relax for 10 to 15 minutes or Go for a TEA
+     #+END_EXAMPLE 
+  6. Terminate the starting of mongodb service process by pressing "ctrl+c".
+  7. Do following steps
+     #+BEGIN_EXAMPLE 
+     cd ovpl/config
+     cp sample_config.json config.json
+     cp sample_authorized_users.py authorized_users.py
+     cd adapters
+     cp sample_centos_openvz_config.py centos_openvz_config.py
+     cp sample_base_config.py base_config.py
+     cd ..
+     #+END_EXAMPLE
+  8. Edit config.json as follows:
+     + COOKIE_SECRET :: Change to some other random string
+     + APP_URL :: Update app url to include FQDN
+	   *Example: ads.{cluster-name}.vlabs.ac.in:8080*
+     + ADAPTER_TO_USE :: {"POOLID" : 1, "ADAPTERID" : 3 } 
+       - In case of other types of setup use appropriate poolid or
+         adapter Id.
+     + LOGSERVER_CONFIGURATION / SERVER_IP :: "10.100.1.9"
+  9. Edit authorized_users.py as follows:
+     + Put bunch of gmail IDs separated by , as shown in the example
+       config.  While deploying labs Gmail OpenID login will be
+       used.  Also the given gmail ID may have to be associated with
+       a persona account.
+  10. Edit adapters/base_config.py as follows:
+     + ADS_ON_CONTAINER = True
+     + SUBNET = ["10.4.14.0/24"]
+     + BASE_IP_ADDRESS = "root@10.4.14.202"
+       + Replace 10.4.14.202 with correct base machine (ie VM) IP
+     + ADS_SERVER_VM_ID = "1009"
+       + CTID of ADS container.  This is used while copying cloned
+         labs and OVPL code from ADS container to lab container.  Note
+         that git clone of lab happens within ADS container and not
+         directly in lab container.
+     + HOST_NAME = "{cluster}.vlabs.ac.in"
+       + Domain name of lab-id
+     + Set ADS_USING_HOOKS to 'False'.
+  11. Run services using
+     #+BEGIN_EXAMPLE
+     cd ~/ovpl
+     ./manage_services.sh start
+     #+END_EXAMPLE
+    
+  12. Make the dns entry in private dns for the ads server. This is necessary as
+      it is observed that ads does not work properly when access via just ip
+      address.
