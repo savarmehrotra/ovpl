@@ -4,6 +4,7 @@ from flask import Blueprint
 import requests
 import json
 from config import CONSUMER_KEY, CONSUMER_SECRET, ADS_URL, ADS_SECRET_KEY
+import re
 
 api = Blueprint('APIs', __name__)
 
@@ -34,10 +35,11 @@ def index():
         lab_id = request.form.get("lab_id")
         lab_url = request.form.get("lab_src_url")
         tag = request.form.get("version")
-        ads_url = ADS_URL
-        data = {'lab_id': lab_id, 'lab_src_url': lab_url, 'version': tag}
+        data = {'lab_id': lab_id, 'lab_src_url': lab_url, 'version': tag, 'key' : ADS_SECRET_KEY}
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        r = requests.post(ads_url, data=json.dumps(data), headers=headers)
+        if(re.search('^[a-zA-Z0-9_]+$', lab_id) is None or (re.search('^[a-zA-Z0-9_]+$', tag) is None)):
+            return render_template("index.html", invalid_lab=lab_id, invalid_tag=tag)
+        r = requests.post(ADS_URL, data=json.dumps(data), headers=headers)
         if r.status_code !=200:
             return "Error Occured"
         else:

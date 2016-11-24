@@ -5,22 +5,29 @@
 <header>
   <h3>Deploy Your Lab</h3>
 </header>
+{% if invalid_lab %}
+<h4>Invalid Lab Name : {{ invalid_lab }}</h4>
+{% endif %}
+
+{% if invalid_tag %}
+<h4>Invalid Version : {{ invalid_tag }}</h4>
+{% endif %}
 
 <div id="form">
 
   <div class="fish" id="fish"></div>
   <div class="fish" id="fish2"></div>
   
-  <form id="waterform">
+  <form id="waterform" method="post">
     
     <div class="formgroup" id="name-form">
       <label for="name">Lab ID*</label>
-      <input type="text" id="name" name="lab_id" />
+      <input type="text" id="name" name="lab_id" required/>
     </div>
     
     <div class="formgroup" id="name-from">
       <label for="name">Github URL*</label>
-      <input type="text" id="url" name="lab_src_url" />
+      <input type="text" id="url" name="lab_src_url" required/>
     </div>
     
     <div class="formgroup" id="message-form">
@@ -28,33 +35,8 @@
     <input type="text" id="tag" name="version" />
     
     </div>
-    <input type="submit" onclick="validation();"/>
+    <input type="submit" value="Submit"/>
   </form>
 </div>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script>
-function validation()
-{
-
-var lab_id = document.getElementById("name").value;
-var lab_src_url = document.getElementById("url").value;
-var version = document.getElementById("tag").value;
-var lab_reg_exp = new RegExp("^[a-zA-Z0-9_]+$")
-
-if(lab_reg_exp.test(lab_id) && lab_reg_exp.test(version)){
-$.ajax({type: 'POST',url: "/",success: function() {console.log("dfd");
-},
-error: function() {
-alert("dfd")
-}
-});
-
-}
-
-
-
-
-}
-</script>
 {% endblock %}
