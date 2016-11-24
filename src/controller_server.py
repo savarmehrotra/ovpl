@@ -28,7 +28,7 @@ from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
 from controller import Controller
 from config import authorized_users
-
+import json
 
 define("port", default=8000, help="run on the given port", type=int)
 
@@ -39,28 +39,20 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class MainHandler(BaseHandler):
-    """
-    Main Handler is to handle the index page for ControllerServer
-    """
-    def get(self):
-        if not self.current_user:
-            self.redirect('/login')
-        else:
-            self.render('index.html')
 
     def post(self):
-        if not self.current_user:
-            self.redirect('/login')
-            return
+        key = "adsdefaultkey"
+        post_data = json.loads(self.request.body.decode('utf-8'))
+        if post_data['key'] != key:
+            self.write("Unauthorized Client")
 
-        post_data = dict(urlparse.parse_qsl(self.request.body))
         c = Controller()
         # log the user who is deploying the lab..
         logger.debug("Lab Deployment: deployed by: %s, lab id: %s, URL: %s" %
                      (self.current_user,
                       post_data['lab_id'],
                       post_data['lab_src_url']))
-
+        
         self.write(c.test_lab(self.current_user, post_data['lab_id'],
                               post_data['lab_src_url'],
                               post_data.get('version', None)))
