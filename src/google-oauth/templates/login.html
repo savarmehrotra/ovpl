@@ -1,0 +1,46 @@
+{% include "base.html" %}
+{% block content %}
+<html>
+  <head>
+    <title> OVPL | VLEAD Platform Services</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/css/main.css">
+    <style type="text/css"></style>
+  </head>
+  <body>
+    <div id="container" class="container">
+      <div class="row" align="center">
+      <!--<h1 class="text-muted col-md-offset-2 col-md-7">ADS</h1>-->
+      <div class="col-sm-12">
+	<h1>ADS</h1>
+      </div>
+      </div>
+     <!---  <h2 class="text-muted"></h2>-->
+      <div id="main" class="row" style="margin-top:8em;">
+	
+	<div class="col-md-offset-2 col-md-7 login-well well" align="center">
+	  <div class="help-text">
+	    You have to login to deploy a lab. Please use your email address to
+	    login.
+	  </div>
+	  <p></p>
+	  <div>
+	    <button class="btn btn-lg btn-primary" onclick="window.location.href='/login'">Login</button>
+	  </div><br>
+	  <div class="help-text">
+	    We use Google OAuth service for logging in.
+	  </div>
+	</div>
+      </div>
+      <div class="row" align="center">
+	<div class="col-md-offset-2 col-md-7" style="margin-top:1em;">
+	<a href="http://github.com/vlead/ovpl">OVPL - Github</a></div>
+      </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://login.persona.org/include.js"></script>
+    <script src="static/js/main.js"></script>
+  </body>
+</html>
+
+{% endblock %}
