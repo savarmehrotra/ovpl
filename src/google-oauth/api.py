@@ -3,7 +3,7 @@ from flask_oauthlib.client import OAuth
 from flask import Blueprint
 import requests
 import json
-from config import CONSUMER_KEY, CONSUMER_SECRET
+from config import CONSUMER_KEY, CONSUMER_SECRET, ADS_URL, ADS_SECRET_KEY
 
 api = Blueprint('APIs', __name__)
 
@@ -34,7 +34,7 @@ def index():
         lab_id = request.form.get("lab_id")
         lab_url = request.form.get("lab_src_url")
         tag = request.form.get("version")
-        ads_url = "http://10.4.15.91:8080"
+        ads_url = ADS_URL
         data = {'lab_id': lab_id, 'lab_src_url': lab_url, 'version': tag}
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
         r = requests.post(ads_url, data=json.dumps(data), headers=headers)
