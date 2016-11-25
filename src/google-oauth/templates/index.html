@@ -2,9 +2,8 @@
 
 {% block content %}
 
-<header>
-  <h3>Deploy Your Lab</h3>
-</header>
+
+
 <img src="http://vlabs.ac.in/images/banner_img.jpg" class="img-responsive" />	    
 {% if invalid_lab %}
 <h4>Invalid Lab Name : {{ invalid_lab }}</h4>
@@ -15,12 +14,9 @@
 {% endif %}
 
 <div id="form">
-
-  <div class="fish" id="fish"></div>
-  <div class="fish" id="fish2"></div>
+  <h3 style ="align:center">Deploy Your Lab</h3>
   
-  <form id="waterform" method="post">
-    
+  <form id="waterform" method="post">    
     <div class="formgroup" id="name-form">
       <label for="name">Lab ID*</label>
       <input type="text" id="name" name="lab_id" required/>

@@ -113,13 +113,16 @@ h3{
 	font-size: 2em;
 	font-family: 'Raleway', sans-serif;
 	margin: 0 auto;
-	margin-top: 30px;
+	margin-top: 15px;
 	width: 500px;
 	color: #F90;
 	text-align: center;
 
 }
 
+.navbar {
+    margin-bottom: 0px !important;
+}
 /* Animation webkit */
 @-webkit-keyframes myfirst
 {
@@ -160,6 +163,10 @@ h3{
 	-webkit-animation-delay: 12s;
 }
 */
+* {
+    overflow-y : hidden;
+    overflow-x : hidden;
+}
 
 header{
 	height: 68px;
@@ -180,7 +187,6 @@ header{
 form{
 	margin: 0 auto;
 	width: 500px;
-	padding-top: 40px;
 	color: white;
 	position: relative;
 	
@@ -212,6 +218,9 @@ input:focus, textarea:focus{
 	border: solid 3px #77bde0;	
 }
 
+.logo-img {
+    z-index:1;
+}
 textarea{
 	height: 100px;	
 	resize: none; 
@@ -236,7 +245,7 @@ input[type="submit"]:hover{
 }
 label{
 	font-size: 1.2em;
-	margin-top: 20px;
+	margin-top: 10px;
 	padding-left: 20px;
 }
 .formgroup, .formgroup-active, .formgroup-error{
@@ -248,7 +257,6 @@ label{
 	-moz-transition: background-image 0.7s;
 	-o-transition: background-image 0.7s;
 	width: 566px;
-	padding-top: 2px;
 }
 
 .formgroup{
