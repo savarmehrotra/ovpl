@@ -261,3 +261,7 @@ label{
 	background-image: url('http://www.geertjanhendriks.nl/codepen/form/octo-error.png');
 	color: red;
 }
+.error{
+    color: red;
+    font-weight: 400;
+}
