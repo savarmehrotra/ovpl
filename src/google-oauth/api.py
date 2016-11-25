@@ -3,7 +3,7 @@ from flask_oauthlib.client import OAuth
 from flask import Blueprint
 import requests
 import json
-from config import CONSUMER_KEY, CONSUMER_SECRET, ADS_URL, ADS_SECRET_KEY
+from config import *
 import re
 
 api = Blueprint('APIs', __name__)
@@ -15,7 +15,7 @@ google = oauth.remote_app(
     consumer_key=CONSUMER_KEY,
     consumer_secret=CONSUMER_SECRET,
     request_token_params={
-        'scope': 'email'
+        'scope': 'email', 'prompt': 'select_account'
     },
     base_url='https://www.googleapis.com/oauth2/v1/',
     request_token_url=None,
@@ -54,6 +54,7 @@ def login():
 @api.route('/logout')
 def logout():
     session.pop('current_user', None)
+    session.pop('error', None)
     return redirect("/")
 
 
@@ -66,9 +67,13 @@ def authorized():
             request.args['error_description']
         )
     session['google_token'] = (resp['access_token'], '')
-    me = google.get('userinfo')
-    session['current_user'] = me.data['email']
-    #return jsonify({"data": me.data})
+    user_info = google.get('userinfo')
+    email = user_info.data['email']
+    
+    if email not in AUTHORIZED_USERS:
+        session['error'] = "Unauthorized Email : "+email
+    else:
+        session['current_user'] = email
     return redirect("/")
 
 @google.tokengetter
