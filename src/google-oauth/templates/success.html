@@ -3,35 +3,28 @@
 {% block content %}
 
 <header>
-  <h1>Lab Has Deployed </h1>
+  <h1 align="center">Lab has Deployed </h1>
 </header>
-{% if data.url == "Test failed: See log file for errors" %}
-<h3>error</h3>
-{% else %}
-<div id="form">
-  
-  <form id="waterform" method="post">
-    
-    <div class="formgroup" id="name-form">
-      <label for="name">Lab ID*</label>
-      <input type="text" id="name" name="lab_id" placeholder="{{ data.lab_id }}" readonly/>
-    </div>
-    
-    <div class="formgroup" id="name-from">
-      <label for="name">Github URL*</label>
-      <input type="text" id="email" name="lab_src_url" placeholder="{{ data.lab_src_url }}" readonly/>
-    </div>
-    
-    <div class="formgroup" id="message-form">
-       <label for="message">Branch/Tag</label>
-    <input type="text" id="email" name="version" placeholder="{{ data.version }}" readonly/>
-    </div>
-    <div class="formgroup" id="message-form">
-       <label for="message">Lab IP/Domain</label>
-    <input type="text" id="email" name="version" value="{{ data.url }}"/>
-    </div>
-    
-  </form>
+<br>
+<div class="container">
+  <table class="table table-condensed">
+
+    <thead>
+      <tr>
+	<th> LAB URL</th>
+	<th> LAB ID</th>
+	<th> GITHUB URL</th>
+	<th> VERSION/TAG</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+	<td>{{ data.url }}</td>
+	<td>{{ data.lab_id }}</td>
+	<td>{{ data.lab_src_url }}</td>
+	<td>{{ data.version }}</td>
+      </tr>
+    </tbody>
+  </table>
 </div>
-{% endif %}
 {% endblock %}
