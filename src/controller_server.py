@@ -28,20 +28,16 @@ from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
 from controller import Controller
 from config import authorized_users
+from config.adapters import base_config
 import json
 
 define("port", default=8000, help="run on the given port", type=int)
 
 
-class BaseHandler(tornado.web.RequestHandler):
-    def get_current_user(self):
-        return self.get_secure_cookie("user")
-
-
 class MainHandler(BaseHandler):
 
     def post(self):
-        key = "adsdefaultkey"
+        key = base_config.SECREAT_KEY
         post_data = json.loads(self.request.body.decode('utf-8'))
         if post_data['key'] != key:
             self.write("Unauthorized Client")
@@ -58,78 +54,13 @@ class MainHandler(BaseHandler):
                               post_data.get('version', None)))
 
 
-class LoginHandler(BaseHandler):
-    """
-    LoginHandler will handle logins at /login
-    """
-
-    def get(self):
-        self.render('login.html')
-
-    def post(self):
-        msg = "LoginHandler: Authenticating and authorizing using Persona.."
-        logger.debug(msg)
-        assertion = self.get_argument("assertion")
-
-        if not assertion:
-            logger.debug("Assertion not passed by the client. Aborting.")
-            self.write_error(400)
-            return
-
-        data = {'assertion': assertion,
-                'audience': config_spec["CONTROLLER_CONFIG"]["APP_URL"]}
-
-        # make the auth request to persona
-        resp = requests.post(
-            config_spec["CONTROLLER_CONFIG"]["PERSONA_VERIFIER"],
-            data=data, verify=True)
-
-        if not resp.ok:
-            logger.debug("Response from Persona is malformed. Aborting auth.")
-            self.write_error(500)
-            return
-
-        verified_data = json.loads(resp.content)
-        logger.debug("Verified data from Persona: %s" % verified_data)
-
-        if verified_data['status'] != 'okay':
-            logger.debug("Persona returned error. Aborting authentication.")
-            self.write_error(500)
-            return
-
-        user_email = verified_data['email']
-        # user exists in our set of authorized users
-        if user_email in authorized_users.users:
-            logger.debug("Authentication and authorization successful!")
-            self.set_secure_cookie('user', user_email)
-            self.write({'status': 'okay', 'msg': "Successful login"})
-        # user does not exist. Send unauthorized error.
-        else:
-            logger.debug("User: %s is not authorized. Aborting." % user_email)
-            msg = "<b>Oops!</b> You are not authorized to deploy a lab. <br>"
-            msg += "<small>Please contact <some> admin for details.</small>"
-            self.write({'status': 'error', 'msg': msg})
-
-
-class LogoutHandler(BaseHandler):
-    """
-    LogoutHandler will handle logouts at /logout
-    """
-
-    def post(self):
-        self.clear_cookie('user')
-        self.write({'status': 'okay', 'msg': 'logged out'})
-
-
 if __name__ == "__main__":
     env = EnvSetUp.Instance()
     config_spec = env.get_config_spec()
     tornado.options.parse_command_line()
     app = tornado.web.Application(
         handlers=[
-            (r"/", MainHandler),
-            (r"/login", LoginHandler),
-            (r"/logout", LogoutHandler)
+            (r"/", MainHandler)
         ],
         template_path=os.path.join(os.path.dirname(__file__), "templates"),
         static_path=os.path.join(os.path.dirname(__file__), "static"),

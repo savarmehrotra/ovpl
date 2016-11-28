@@ -25,3 +25,7 @@ MAX_VM_ID = 2147483644  # 32-bit; exact value based on trial-and-error
 #False will return the ip address of the deployed lab.
 ADS_USING_HOOKS = True
 SERVICE_HOST = "root@ansible.base4.vlabs.ac.in"
+
+#SECREATE KEY
+
+SECREATE_KEY = "placethekeyhere"
