@@ -149,22 +149,22 @@ stop_service() {
 
 # Start mongod service.
 start_mongod() {
-  service mongodb start
+  service mongod start
 }
 
 # Stop mongod service.
 stop_mongod() {
-  service mongodb stop
+  service mongod stop
 }
 
 # Repair mongod service.
 repair_mongod() {
-  mongodb --repair
+  mongod --repair
 }
 
 # Check if the service mongod is already running.
 pre_check() {
-  service mongodb status
+  service mongod status
   if [ $? != 0 ]
   then
     echo -e '\e[31mservice mongod is not running\e[0m'

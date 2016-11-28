@@ -1,0 +1,30 @@
+{% include "base.html" %}
+
+{% block content %}
+
+<header>
+  <h1 align="center">Lab has Deployed </h1>
+</header>
+<br>
+<div class="container">
+  <table class="table table-condensed">
+
+    <thead>
+      <tr>
+	<th> LAB URL</th>
+	<th> LAB ID</th>
+	<th> GITHUB URL</th>
+	<th> VERSION/TAG</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+	<td>{{ data.url }}</td>
+	<td>{{ data.lab_id }}</td>
+	<td>{{ data.lab_src_url }}</td>
+	<td>{{ data.version }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endblock %}
