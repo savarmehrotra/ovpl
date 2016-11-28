@@ -32,7 +32,7 @@
           <ul class="nav navbar-form navbar-right">
 	    {% if session.current_user %}
 	    <li>
-	      <span> Welcome {{ session.current_user }}</span> &emsp;<button class="btn btn-primary btn-signin" onclick="window.location.href='/logout'">Log out</button>
+	      <span> Welcome <b>{{ session.current_user }}</b></span> &emsp;<button class="btn btn-primary btn-signin" onclick="window.location.href='/logout'">Log out</button>
 	    </li>
 	    {% else %}
 	    <li>
