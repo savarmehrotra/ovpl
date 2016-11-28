@@ -37,14 +37,21 @@ def index():
         tag = request.form.get("version")
         data = {'lab_id': lab_id, 'lab_src_url': lab_url, 'version': tag, 'key' : ADS_SECRET_KEY}
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        if(re.search('^[a-zA-Z0-9_]+$', lab_id) is None or (re.search('^[a-zA-Z0-9_]+$', tag) is None)):
-            return render_template("index.html", invalid_lab=lab_id, invalid_tag=tag)
+
+        if(re.search('^[a-zA-Z0-9_]+$', lab_id) is None):
+            return render_template("index.html", message="Invalid Lab_id : " + lab_id)
+        
+        if (re.search('^[a-zA-Z0-9_]+$', tag) is None):
+            return render_template("index.html", message="Invalid Tag : " + tag)
+        
         r = requests.post(ADS_URL, data=json.dumps(data), headers=headers)
-        if r.status_code !=200:
-            return "Error Occured"
+        if r.status_code == 200:
+            return render_template("index.html", message=r.text)
+        elif r.status_code == 401:
+            return render_template("index.html", message="Unauthorized Credentials")
         else:
-            data['url'] = r.text
-            return render_template("success.html", data=data)
+            return render_template("index.html", message=r.status_code)
+            
 
 @api.route('/login')
 def login():
