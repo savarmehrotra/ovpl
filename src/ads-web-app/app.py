@@ -1,8 +1,7 @@
 from flask import Flask
 from api import *
-import config
 
-def create_app(config):
+def create_app():
     # init our app
     app = Flask(__name__)
     app.secret_key = 'development'
@@ -13,5 +12,5 @@ def create_app(config):
 
 #+NAME: run_server
 if __name__ == "__main__":
-    app = create_app(config)
+    app = create_app()
     app.run(debug=True, host='0.0.0.0', threaded=True)

@@ -3,7 +3,8 @@ from setuptools import setup
 
 requires = [
     'flask',
-    'Flask-OAuthlib'
+    'oauthlib',
+    'flask-oauthlib'
 ]
 
 setup(
