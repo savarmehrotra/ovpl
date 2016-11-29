@@ -121,9 +121,6 @@ $ ./manage_services.sh start LOGGER
 tail -f /root/logs/ovpl.log
 #+end_src
 
-+ Open the location =http://ads-server-public-ip:8080= from the browser and provide the lab
-  id and lab sources url.
-
 ** Setting up ADS-web-app
 *** Install dependencies
 #+BEGIN_SRC 
@@ -158,6 +155,10 @@ rsync -avz --progress /root/ovpl/src/ads-web-app /var/www/html/
 #+BEGIN_SRC 
 service httpd restart
 #+END_SRC
+*** Access =ADS= from browser
+   - Open the location =http://ads-server-public-ip= from the
+     browser and provide the lab id, lab sources url and version/tag.
+
 ** Other related documentation:
 Steps to manually create a container
 -----
