@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, session, request, jsonify,\
-     render_template
+     render_template, current_app
 from flask_oauthlib.client import OAuth
 from flask import Blueprint
 import requests
@@ -39,7 +39,7 @@ def index():
             if ('current_user' in session) and ('google_token' in session):
                 return render_template("index.html")
             return render_template("login.html")
-    
+
     elif request.method == 'POST':
         lab_id = request.form.get("lab_id")
         lab_url = request.form.get("lab_src_url")
@@ -48,12 +48,16 @@ def index():
             tag = "master"
         data = {'lab_id': lab_id, 'lab_src_url': lab_url, 'version': tag, \
                     'key' : ADS_SECRET_KEY}
+        current_app.logger.debug("lab_id = %s, lab_src_url=%s, "
+                                     "version=%s, key=%s, "
+                            %(lab_id, lab_url, tag, ADS_SECRET_KEY))
+
         headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
         if(re.search('^[a-zA-Z0-9_-]+$', lab_id) is None):
             return render_template("index.html", message="Invalid Lab_id : " \
                                        + lab_id)
-        print tag
+
         if (re.search('^[a-zA-Z0-9_-]+$', tag) is None or tag == ""):
             return render_template("index.html", message="Invalid Tag : "\
                                        + tag)
@@ -73,6 +77,7 @@ def index():
                 data['url'] = "http://" + r.text
                 return render_template("success.html", data=data)
         elif r.status_code == 401:
+            app.logger.error("error code = %s" % "401")
             return render_template("index.html", \
                                        message="Unauthorized Credentials")
         else:
