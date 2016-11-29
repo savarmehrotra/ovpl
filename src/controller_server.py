@@ -40,8 +40,7 @@ class MainHandler(BaseHandler):
         key = base_config.SECREAT_KEY
         post_data = json.loads(self.request.body.decode('utf-8'))
         if post_data['key'] != key:
-            self.write("Unauthorized Client")
-
+            raise tornado.web.HTTPError(401, "Unauthorized_error")
         c = Controller()
         # log the user who is deploying the lab..
         logger.debug("Lab Deployment: deployed by: %s, lab id: %s, URL: %s" %
