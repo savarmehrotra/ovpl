@@ -139,10 +139,6 @@ rsync -avz --progress /root/ovpl/src/ads-web-app /var/www/html/
  </Directory>
 
 #+END_SRC
-  - Restart =Apache= server
-#+BEGIN_SRC 
-service httpd restart
-#+END_SRC
 *** Setup Google Oauth credentials
     - Create a project at [[https://console.developers.google.com][Google Dashboard]] and create =Oauth= credentails.
     - Provide =CONSUMER_KEY= and =CONSUMER_SECRET= in
@@ -169,6 +165,11 @@ AUTHORIZED_USERS = [
 #+END_SRC
 
 *** Access =ADS= from browser
+   - Restart =Apache= server
+#+BEGIN_SRC 
+service httpd restart
+#+END_SRC
+
    - Open the location =http://ads-server-public-ip= from the
      browser and provide the lab id, lab sources url and version/tag.
    - View the logs at /root/logs/ovpl.log by
