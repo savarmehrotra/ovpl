@@ -94,6 +94,12 @@ machine on which the ADS services are running.
    See [[./docs/AWSAdapter.org][here]] for more details.
    
 ** Commands to Manage the Service
++ Copy =ssh publick key= to =authorized_keys=
+#+BEGIN_SRC example
+ssh-keygen (Press enter for all Y/N prompts)
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/autorized_keys
+#+END_SRC
+
 + As root, go into =ovpl= directory and run =manage_services.sh= file:
 #+begin_src example
 $ cd ovpl
@@ -116,10 +122,6 @@ $ ./manage_services.sh start LOGGER
 
 + For more help use =./manage_services.sh --help=.
 
-+ View the logs at /root/logs/ovpl.log by
-#+begin_src example
-tail -f /root/logs/ovpl.log
-#+end_src
 
 ** Setting up ADS-web-app
 *** Install dependencies
@@ -158,6 +160,11 @@ service httpd restart
 *** Access =ADS= from browser
    - Open the location =http://ads-server-public-ip= from the
      browser and provide the lab id, lab sources url and version/tag.
+   - View the logs at /root/logs/ovpl.log by
+#+begin_src example
+tail -f /root/logs/ovpl.log
+#+end_src
+
 
 ** Other related documentation:
 Steps to manually create a container
