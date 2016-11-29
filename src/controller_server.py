@@ -37,7 +37,7 @@ define("port", default=8000, help="run on the given port", type=int)
 class MainHandler(BaseHandler):
 
     def post(self):
-        key = base_config.SECREAT_KEY
+        key = base_config.SECRET_KEY
         post_data = json.loads(self.request.body.decode('utf-8'))
         if post_data['key'] != key:
             raise tornado.web.HTTPError(401, "Unauthorized_error")
