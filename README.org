@@ -53,10 +53,6 @@ machine on which the ADS services are running.
 "ADAPTER_TO_USE" : {"POOLID" : 1, "ADAPTERID" : 2}
 #+end_src
   
-** Identify =authorized_users=
-    Copy =config/sample_authorized_users.py= to =config/authorized_users.py=,
-    and add actual email addresses of authorized users.
-
 ** Settings for =base_config=
    1. Copy =config/adapters/sample_base_config.py= to =config/adapters/base_config.py=. 
       For =aws_adapter=, no change in this file has to be done. For =centos_openvz_adapter=
@@ -171,6 +167,13 @@ CONSUMER_SECRET = "<consumer secret key>"
 #+BEGIN_SRC 
 ADS_URL = "http://<ip/domain>:8080"
 ADS_SECRET_KEY= "defaultadskey"
+
+#+END_SRC
+    - Add emails ids to =AUTHORIZED_USERS=
+#+BEGIN_SRC 
+AUTHORIZED_USERS = [
+    "heregoesemail@gmail.com"
+]
 
 #+END_SRC
 
