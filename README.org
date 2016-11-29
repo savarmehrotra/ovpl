@@ -124,7 +124,40 @@ tail -f /root/logs/ovpl.log
 + Open the location =http://ads-server-public-ip:8080= from the browser and provide the lab
   id and lab sources url.
 
+** Setting up ADS-web-app
+*** Install dependencies
+#+BEGIN_SRC 
+sudo su -
+yum update -y
+yum install epel-release
+yum install "mod_wsgi" -y
+yum install python-pip
+python setup.py install
+rsync -avz --progress /root/ovpl/src/ads-web-app /var/www/html/
 
+   
+#+END_SRC
+*** Configure Apache server virtual-host (=httpd=)
+  -  Configure Apache to load mod_wsgi module and your project in
+     VirtualHost (in =/etc/httpd/conf/httpd.conf=)
+  -  Add below lines to =/etc/httpd/conf/httpd.conf=)
+#+BEGIN_SRC 
+
+ ServerName ads.vlabs.ac.in
+
+ WSGIScriptAlias / /var/www/html/ads-web-app/app.wsgi
+ WSGIScriptReloading On
+
+ <Directory /var/www/html/ads-web-app>
+     Order deny,allow
+     Allow from all
+ </Directory>
+
+#+END_SRC
+  - Restart =Apache= server
+#+BEGIN_SRC 
+service httpd restart
+#+END_SRC
 ** Other related documentation:
 Steps to manually create a container
 -----
