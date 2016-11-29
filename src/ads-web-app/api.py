@@ -27,11 +27,19 @@ google = oauth.remote_app(
 
 @api.route('/', methods=['GET', 'POST'])
 def index():
+    
     if request.method == 'GET':
-        if 'current_user' in session:
-            me = google.get('userinfo')
-            return render_template("index.html")
-        return render_template("login.html")
+        remote_url = request.url
+        if remote_url.find("vlabs.ac.in") != -1:
+            return redirect(APP_URL)
+        elif remote_url.find("localhost") != -1:
+            if 'current_user' in session:
+                return render_template("index.html")
+            return render_template("login.html")
+        else:
+            if ('current_user' in session) and ('google_token' in session):
+                return render_template("index.html")
+            return render_template("login.html")
     elif request.method == 'POST':
         lab_id = request.form.get("lab_id")
         lab_url = request.form.get("lab_src_url")
@@ -78,10 +86,10 @@ def login():
 
 @api.route('/logout')
 def logout():
+    session.pop('google_token', None)
     session.pop('current_user', None)
     session.pop('error', None)
     return redirect("/")
-
 
 @api.route('/login/authorized')
 def authorized():
