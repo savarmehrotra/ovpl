@@ -2,25 +2,25 @@
 
 {% block content %}
 <header>
-  <h1 align="center">Lab is Deployed </h1>
+  <h1 align="center" class="text-h3-darkblue-bold">Lab is Deployed </h1>
 </header>
 <br>
 <div class="container">
   <table align="center" class="table-condensed">
       <tr>
-	<td> LAB URL</td><td></td>
+	<td><b> LAB URL</b></td><td></td>
         <td>{{ data.url }}</td>
       </tr>
       <tr>
-	<td> LAB ID</td><td></td>
+	<td><b>LAB ID</b></td><td></td>
 	<td>{{ data.lab_id }}</td>
       </tr>
       <tr>
-	<td> GITHUB URL</td><td></td>
+	<td><b>GITHUB URL</b></td><td></td>
 	<td>{{ data.lab_src_url }}</td>
       </tr>
       <tr>
-        <td> VERSION/TAG</td><td></td>
+        <td><b>VERSION/TAG</b></td><td></td>
 	<td>{{ data.version }}</td>
       </tr>
   </table>

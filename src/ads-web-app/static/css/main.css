@@ -130,6 +130,12 @@ h4{
 .table {
     width: 0px !important;
 }
+.text-h3-darkblue-bold{
+	color: #3e6389;
+#	font-size: 1.4em;
+	font-weight: bold;
+
+}
 /* Animation webkit */
 @-webkit-keyframes myfirst
 {
