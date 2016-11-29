@@ -28,4 +28,4 @@ SERVICE_HOST = "root@ansible.base4.vlabs.ac.in"
 
 #SECREATE KEY
 
-SECREATE_KEY = "placethekeyhere"
+SECRETE_KEY = "placethekeyhere"
