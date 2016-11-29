@@ -50,9 +50,8 @@ def index():
             return render_template("index.html", message="Invalid Tag : "\
                                        + tag)
 
-        if (re.search('(?P<host>(git@|https://)([\w\.@]+)(/|:))(?P<owner>"\
-            "[\w,\-,\_]+)/(?P<repo>[\w,\-,\_]+)(.git){0,1}((/){0,1})',\
-                          lab_url) is None):
+        if (re.search("((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)"\
+                          "([\w\.@\:/\-~]+)((\.git)(/)|())?", lab_url) is None):
             return render_template("index.html", message="Invalid Git URL : "\
                                        + lab_url)
 
