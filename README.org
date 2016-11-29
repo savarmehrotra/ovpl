@@ -97,7 +97,7 @@ machine on which the ADS services are running.
 + Copy =ssh publick key= to =authorized_keys=
 #+BEGIN_SRC example
 ssh-keygen (Press enter for all Y/N prompts)
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/autorized_keys
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 #+END_SRC
 
 + As root, go into =ovpl= directory and run =manage_services.sh= file:
