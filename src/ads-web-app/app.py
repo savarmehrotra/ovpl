@@ -9,7 +9,6 @@ def create_app():
     app.register_blueprint(api)
     return app
 
-
 #+NAME: run_server
 if __name__ == "__main__":
     app = create_app()

@@ -27,7 +27,6 @@ google = oauth.remote_app(
 
 @api.route('/', methods=['GET', 'POST'])
 def index():
-    
     if request.method == 'GET':
         remote_url = request.url
         if remote_url.find("vlabs.ac.in") != -1:
@@ -40,6 +39,7 @@ def index():
             if ('current_user' in session) and ('google_token' in session):
                 return render_template("index.html")
             return render_template("login.html")
+    
     elif request.method == 'POST':
         lab_id = request.form.get("lab_id")
         lab_url = request.form.get("lab_src_url")
@@ -95,10 +95,7 @@ def logout():
 def authorized():
     resp = google.authorized_response()
     if resp is None:
-        return 'Access denied: reason=%s error=%s' % (
-            request.args['error_reason'],
-            request.args['error_description']
-        )
+        return redirect("/")
     session['google_token'] = (resp['access_token'], '')
     user_info = google.get('userinfo')
     email = user_info.data['email']
