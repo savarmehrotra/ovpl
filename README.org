@@ -20,7 +20,13 @@ Execute the following steps, to configure and then run ADS as a service:
         "HTTPS_PROXY":""
     },
 #+end_src
-  
+
+ + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly
+    generated string.
+
+#+begin_src example
+"COOKIE_SECRET": "<generate a long random UUID>",
+#+end_src  
 
   + Set the SERVER_IP in LOGSERVER_CONFIGURATION to the IP address of the
 machine on which the ADS services are running.
@@ -28,21 +34,6 @@ machine on which the ADS services are running.
 "LOGSERVER_CONFIGURATION": {
             "SERVER_IP": "ads-server-private-ip",
 	    },
-#+end_src
-
-  + Set the COOKIE_SECRET value in CONTROLLER_CONFIG to some long randomly
-    generated string.
-
-#+begin_src example
-"COOKIE_SECRET": "<generate a long random UUID>",
-#+end_src
-
-  + Leave the PERSONA_VERIFIER field as it is, if you are using the Mozilla's
-    default Persona provider service.
-
-  + Change APP_URL field and put the URL where the application is hosted.
-#+begin_src example
-     "APP_URL": "http://ads-server-public-ip:8080",
 #+end_src
 
   + Choose =POOLID= and =ADAPTERID= from =VPOOLS= section. Make the appropriate change in =ADAPTER_TO_USE=.
