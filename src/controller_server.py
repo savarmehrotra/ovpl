@@ -27,14 +27,13 @@ from __init__ import *
 from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
 from controller import Controller
-from config import authorized_users
 from config.adapters import base_config
 import json
 
 define("port", default=8000, help="run on the given port", type=int)
 
 
-class MainHandler(BaseHandler):
+class MainHandler():
 
     def post(self):
         key = base_config.SECRET_KEY

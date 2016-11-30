@@ -118,9 +118,11 @@ yum update -y
 yum install epel-release
 yum install "mod_wsgi" -y
 yum install python-pip
+cd /root/ovpl/src/ads-web-app
 python setup.py install
+
 rsync -avz --progress /root/ovpl/src/ads-web-app /var/www/html/
-   
+chmod -R 777 /var/www/html/ads-web-app
 #+END_SRC
 *** Configure Apache server virtual-host (=httpd=)
   -  Configure Apache to load mod_wsgi module and your project in
