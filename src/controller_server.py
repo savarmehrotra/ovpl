@@ -27,6 +27,7 @@ from __init__ import *
 from httplogging.http_logger import logger
 from utils.envsetup import EnvSetUp
 from controller import Controller
+from config.adapters import base_config
 
 
 define("port", default=8000, help="run on the given port", type=int)
