@@ -50,9 +50,11 @@ machine on which the ADS services are running.
       and =centos_bridged_adapter= make the following changes in the file:
 
       1. If the services are running on the base machine,
-         set =ADS_ON_CONTAINER= to False.
+         set =ADS_ON_CONTAINER= to False and copy public key (id_rsa.pub) to authorized_keys
 
-      2. If the services are running on a container, set =ADS_ON_CONTAINER= to True.
+      2. If the services are running on a container, set =ADS_ON_CONTAINER= to
+         True and copy the public key of the container to the authorized_keys
+         of the base machine. 
 
       3. Set BASE_IP_ADDRESS = "root@<IP>" where IP is the ip address of
          base machine on which containers are created.
@@ -64,55 +66,54 @@ machine on which the ADS services are running.
          If the ip address of your base machine is 10.2.58.XXX, 
          SUBNET = ["10.2.58.12/28"]
 
-      6. ADAPTER_NAME_SERVER, set the field to a specific nameserver that is
+      6. =ADAPTER_NAME_SERVER=, set the field to a specific nameserver that is
          used in the cluster or leave it as 'inherit' to use the nameserver
          configuration from the base machine.
-      7. SECRETE_KEY, used as authentication to use ADS's REST API.
+
+      7. =SECRET_KEY=, used to authenticate the ADS WEB APP.
 	 
 ** Settings for =centos_bridged_adapter=
    Copy =config/adapters/sample_centos_bridged_config.py= to =config/adapters/centos_bridged_config.py=,
    and change the =SUBNET_BRIDGE= in the file.
    
 ** Settings for =centos_openvz_adapter=
-   Copy =config/adapters/sample_centos_openvz_config.py= to =config/adapters/centos_openvz_config.py=.
-       
+   - Copy =config/adapters/sample_centos_openvz_config.py= to
+     =config/adapters/centos_openvz_config.py=.
 ** Settings for =aws_adapter=
    Copy =config/adapters/sample_aws_config.py= to =config/adapters/aws_config.py=, and edit the values
    accordingly. The private key =key_file_name.pem= should be copied inside =src/= directory.
    See [[./docs/AWSAdapter.org][here]] for more details.
    
 ** Commands to Manage the Service
-+ Copy =ssh publick key= to =authorized_keys=
-#+BEGIN_SRC example
-ssh-keygen (Press enter for all Y/N prompts)
-cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-#+END_SRC
-
-+ As root, go into =ovpl= directory and run =manage_services.sh= file:
-#+begin_src example
+   + As root, go into =ovpl= directory and run =manage_services.sh= file:
+#+BEGIN_EXAMPLE
 $ cd ovpl
 $ ./manage_services (or) ./manage_services start
-#+end_src
+#+END_EXAMPLE
 
-+ To stop the services
-#+begin_src example
+   + To stop the services
+#+BEGIN_EXAMPLE
 $ cd ovpl
 $ ./manage_services stop
-#+end_src
+#+END_EXAMPLE
 
-+ To stop or start specific service use =./manage_services.sh [action] [services]=
-	- [action]   = start (or) stop
-	- [services] = LOGGER (or) ADAPTER (or) CONTROLLER
-#+begin_src example
+  + To stop or start specific service use =./manage_services.sh [action]
+    [services]=
+    - [action]   = start (or) stop
+    - [services] = LOGGER (or) ADAPTER (or) CONTROLLER
+
+#+begin_example
 $ cd ovpl
 $ ./manage_services.sh start LOGGER
-#+end_src
+#+end_example
 
 + For more help use =./manage_services.sh --help=.
 
 ** Setting up ADS-web-app
 *** Install dependencies
-#+BEGIN_SRC 
+    This assumes apache server is installed. If not, please install the apache
+    server.
+#+BEGIN_EXAMPLE
 sudo su -
 yum update -y
 yum install epel-release
@@ -123,7 +124,8 @@ python setup.py install
 
 rsync -avz --progress /root/ovpl/src/ads-web-app /var/www/html/
 chmod -R 777 /var/www/html/ads-web-app
-#+END_SRC
+#+END_EXAMPLE
+
 *** Configure Apache server virtual-host (=httpd=)
   -  Configure Apache to load mod_wsgi module and your project in
      VirtualHost (in =/etc/httpd/conf/httpd.conf=)
@@ -178,6 +180,7 @@ service httpd restart
 #+begin_src example
 tail -f /root/logs/ovpl.log
 #+end_src
+
 
 ** Other related documentation:
 Steps to manually create a container
