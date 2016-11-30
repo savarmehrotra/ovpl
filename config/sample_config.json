@@ -7,6 +7,8 @@
     "CONTROLLER_CONFIG": {
         "SERVER_PORT": 8080,
         "COOKIE_SECRET": "<generate a long random UUID",
+        "PERSONA_VERIFIER": "https://verifier.login.persona.org/verify",
+        "APP_URL": "http://localhost:8080",
         "LOG_FILENAME": "/root/logs/ovpl.log"
     },
 
