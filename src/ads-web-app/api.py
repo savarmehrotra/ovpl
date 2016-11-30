@@ -82,7 +82,7 @@ def index():
                                        message="Unauthorized Credentials")
         else:
             return render_template("index.html", message="Error : " \
-                                       + status_code)
+                                       + r.status_code)
 
 @api.route('/login')
 def login():
