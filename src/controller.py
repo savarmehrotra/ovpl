@@ -75,7 +75,7 @@ class Controller:
 
                     if(base_config.ADS_USING_HOOKS):
                         domain_name = self.register_lab(lab_id, ip)
-                        return "LAB URL = "+ domain_name + "\n" + "(Note : Very soon you will be allowed to access lab using given domain name)"
+                        return domain_name + "\n" + "(Note : Very soon you will be allowed to access lab using given domain name)"
                     else:
                         return ip
                 else:
