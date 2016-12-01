@@ -174,7 +174,7 @@ AUTHORIZED_USERS = [
 service httpd restart
 #+END_SRC
 
-   - Open the location =http://ads-server-public-ip= from the
+   - Open the location =http://ads-server-public-ip:8080= from the
      browser and provide the lab id, lab sources url and version/tag.
    - View the logs at /root/logs/ovpl.log by
 #+begin_src example
