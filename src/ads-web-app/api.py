@@ -67,22 +67,25 @@ def index():
             return render_template("index.html", message="Invalid Git URL : "\
                                        + lab_url)
 
-        r = requests.post(ADS_URL, data=json.dumps(data), headers=headers)
-        if r.status_code == 200:
-            if r.text == "Test failed: See log file for errors":
+        try:
+            r = requests.post(ADS_URL, data=json.dumps(data), headers=headers)
+            if r.status_code == 200:
+                if r.text == "Test failed: See log file for errors":
+                    return render_template("index.html", \
+                                            message="Something went wrong please"\
+                                               "check log files in ADS server")
+                else:
+                    data['url'] = "http://" + r.text
+                    return render_template("success.html", data=data)
+            elif r.status_code == 401:
+                app.logger.error("error code = %s" % "401")
                 return render_template("index.html", \
-                                        message="Something went wrong please"\
-                                           "check log files in ADS server")
+                                           message="Unauthorized Credentials")
             else:
-                data['url'] = "http://" + r.text
-                return render_template("success.html", data=data)
-        elif r.status_code == 401:
-            app.logger.error("error code = %s" % "401")
-            return render_template("index.html", \
-                                       message="Unauthorized Credentials")
-        else:
-            return render_template("index.html", message="Error : " \
-                                       + r.status_code)
+                return render_template("index.html", message="Error : " \
+                                           + r.status_code)
+        except Exception as e:
+            return render_template("index.html", message="Error : " + str(e))
 
 @api.route('/login')
 def login():
