@@ -47,7 +47,7 @@ def index():
         if tag == "":
             tag = "master"
         data = {'lab_id': lab_id, 'lab_src_url': lab_url, 'version': tag, \
-                    'key' : ADS_SECRET_KEY}
+                    'key' : ADS_SECRET_KEY, "current_user" : session.get('current_user')}
         current_app.logger.debug("lab_id = %s, lab_src_url=%s, "
                                      "version=%s, key=%s, "
                             %(lab_id, lab_url, tag, ADS_SECRET_KEY))
@@ -78,13 +78,14 @@ def index():
                     data['url'] = "http://" + r.text
                     return render_template("success.html", data=data)
             elif r.status_code == 401:
-                app.logger.error("error code = %s" % "401")
+                current_app.logger.error("error code = %s" % "401")
                 return render_template("index.html", \
                                            message="Unauthorized Credentials")
             else:
                 return render_template("index.html", message="Error : " \
                                            + r.status_code)
         except Exception as e:
+            current_app.logger.error("error code = %s" % str(e))
             return render_template("index.html", message="Error : " + str(e))
 
 @api.route('/login')
