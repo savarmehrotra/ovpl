@@ -126,23 +126,6 @@ rsync -avz --progress /root/ovpl/src/ads-web-app /var/www/html/
 chmod -R 777 /var/www/html/ads-web-app
 #+END_EXAMPLE
 
-*** Configure Apache server virtual-host (=httpd=)
-  -  Configure Apache to load mod_wsgi module and your project in
-     VirtualHost (in =/etc/httpd/conf/httpd.conf=)
-  -  Add below lines to =/etc/httpd/conf/httpd.conf=)
-#+BEGIN_SRC 
-
- ServerName ads.vlabs.ac.in
-
- WSGIScriptAlias / /var/www/html/ads-web-app/app.wsgi
- WSGIScriptReloading On
-
- <Directory /var/www/html/ads-web-app>
-     Order deny,allow
-     Allow from all
- </Directory>
-
-#+END_SRC
 *** Setup Google Oauth credentials
     - Create a project at [[https://console.developers.google.com][Google Dashboard]] and create =Oauth= credentails.
     - Provide =CONSUMER_KEY= and =CONSUMER_SECRET= in
@@ -156,7 +139,7 @@ CONSUMER_SECRET = "<consumer secret key>"
     - Provide =ADS= running server IP/Domain name to variable =ADS_URL=.
     - Set secret key of =ADS= server to variable =ADS_SECRET_KEY=.
 #+BEGIN_SRC 
-ADS_URL = "http://<ip/domain>:8080"
+ADS_URL = "http://<ip/domain>:5000"
 ADS_SECRET_KEY= "defaultadskey"
 
 #+END_SRC
@@ -169,9 +152,10 @@ AUTHORIZED_USERS = [
 #+END_SRC
 
 *** Access =ADS= from browser
-   - Restart =Apache= server
+   - Restart =Flask= server
 #+BEGIN_SRC 
-service httpd restart
+cd /var/www/html/ads-web-app/
+python app.py &
 #+END_SRC
 
    - Open the location =http://ads-server-public-ip:8080= from the
