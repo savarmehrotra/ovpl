@@ -42,4 +42,4 @@ def configure_logging(app):
 #+NAME: run_server
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', threaded=True)
+    app.run(debug=True, host='0.0.0.0', threaded=True, port=8080)
