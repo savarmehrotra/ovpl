@@ -78,12 +78,12 @@ def index():
                     data['url'] = "http://" + r.text
                     return render_template("success.html", data=data)
             elif r.status_code == 401:
-                current_app.logger.error("error code = %s" % "401")
+                current_app.logger.error("error code = %s" % str(r.status_code))
                 return render_template("index.html", \
                                            message="Unauthorized Credentials")
             else:
                 return render_template("index.html", message="Error : " \
-                                           + r.status_code)
+                                           + str(r.status_code))
         except Exception as e:
             current_app.logger.error("error code = %s" % str(e))
             return render_template("index.html", message="Error : " + str(e))
