@@ -1,6 +1,6 @@
 * Proposed Design To Build The Output Console
 
-** Functionlity  
+** Functionality  
    The Output Console will display of the current status of the deployment
    process.The logs would be displayed to the Auto Deployment Service user 
    on the initate Deployment page.
