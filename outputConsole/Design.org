@@ -34,8 +34,8 @@ direct two-way connection between user and server.
 #+END_HTML
 
 ** References
-[[1.][http://www.codestance.com/tutorials-archive/python-tornado-web-server-with-websockets-part-i-441]]
-[[https://www.toptal.com/tornado/simple-python-websocket-server][]]
+[["1."][http://www.codestance.com/tutorials-archive/python-tornado-web-server-with-websockets-part-i-441]]
+[[][https://www.toptal.com/tornado/simple-python-websocket-server]]
 
 
 
