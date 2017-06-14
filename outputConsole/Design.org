@@ -1,0 +1,49 @@
+* Proposed Design To Build The Output Console
+
+** Functionlity  
+   The Output Console will display of the current status of the deployment
+   process.The logs would be displayed to the Auto Deployment Service user 
+   on the initate Deployment page.
+
+** Technologies to be used
+   + Tornado framework on the server end.
+   + websockets for a persistent communication
+   + Java Script on the client end.
+
+** Working of Web Sockets
+   #+BEGIN_HTML
+<img src="">"/home/savar/Desktop/realtime-with-websockets.jpg"
+<p align="center"> Real Time with Web Sockets </p>
+#+END_HTML
+
+** A bit about WebSockets
+WebSocket is a tool that makes online development easier. In simple terms, it¡¯s
+a protocol that opens up a full duplex (two way) connection using a TCP
+internet connection. Before the invention of WebSocket, programs running over
+the internet had to circumvent to the connection, often including a client-side
+and server-side portion of each program, making it a difficult and time
+consuming process. It¡¯s important to note that WebSocket doesn¡¯t overwrite the
+standard HTTP protocols, it merely compliments them with the ability to forge a
+direct two-way connection between user and server.
+
+
+** Work Flow
+#+BEGIN_HTML
+<img src="">"https://docs.google.com/drawings/d/10NySWruFuZFqqlGUNGT-B7dYdTmoAYRSo3G2wOyvqsY/edit?usp=sharing"
+<p align="center"> Work flow for the Feature </p>
+#+END_HTML
+
+** References
+[[http://www.codestance.com/tutorials-archive/python-tornado-web-server-with-websockets-part-i-441][]]
+[[https://www.toptal.com/tornado/simple-python-websocket-server][]]
+
+
+
+
+
+
+
+
+
+
+
