@@ -1,4 +1,4 @@
-* Proposed Design To Build The Output Console
+* Proposed Design To Build The Output Console Feature
 
 ** Functionality  
    The Output Console will display of the current status of the deployment
