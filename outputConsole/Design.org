@@ -12,7 +12,7 @@
 
 ** Working of Web Sockets
    #+BEGIN_HTML
-<img src="/home/savar/Desktop/realtime-with-websockets.jpg"/>
+<img src="./realtime-with-websockets.jpg"/>
 <p align="center"> Real Time with Web Sockets </p>
 #+END_HTML
 
@@ -29,7 +29,7 @@ direct two-way connection between user and server.
 
 ** Work Flow
 #+BEGIN_HTML
-<img src="https://docs.google.com/drawings/d/10NySWruFuZFqqlGUNGT-B7dYdTmoAYRSo3G2wOyvqsY/edit?usp=sharing"/>
+<img src="https://docs.google.com/drawings/d/10NySWruFuZFqqlGUNGT-B7dYdTmoAYRSo3G2wOyvqsY/pub?w=960&h=720"/>
 <p align="center"> Work flow for the Feature </p>
 #+END_HTML
 
