@@ -12,7 +12,7 @@
 
 ** Working of Web Sockets
    #+BEGIN_HTML
-<img src="">"/home/savar/Desktop/realtime-with-websockets.jpg"
+<img src="/home/savar/Desktop/realtime-with-websockets.jpg"/>
 <p align="center"> Real Time with Web Sockets </p>
 #+END_HTML
 
@@ -29,13 +29,21 @@ direct two-way connection between user and server.
 
 ** Work Flow
 #+BEGIN_HTML
-<img src="">"https://docs.google.com/drawings/d/10NySWruFuZFqqlGUNGT-B7dYdTmoAYRSo3G2wOyvqsY/edit?usp=sharing"
+<img src="https://docs.google.com/drawings/d/10NySWruFuZFqqlGUNGT-B7dYdTmoAYRSo3G2wOyvqsY/edit?usp=sharing"/>
 <p align="center"> Work flow for the Feature </p>
 #+END_HTML
 
 ** References
+<<<<<<< fbc322a55d97c484a9798d3eae74d218d3f0101b
 [[][http://www.codestance.com/tutorials-archive/python-tornado-web-server-with-websockets-part-i-441]]
 [[][https://www.toptal.com/tornado/simple-python-websocket-server]]
+=======
+2.http://www.codestance.com/tutorials-archive/python-tornado-web-server-with-websockets-part-i-441
+
+1.https://www.toptal.com/tornado/simple-python-websocket-server
+
+
+>>>>>>> Design File
 
 
 
