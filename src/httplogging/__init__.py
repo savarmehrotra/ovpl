@@ -1,3 +1,7 @@
+#All paths necessary are being set here 
+#This file runs whenever the module is imported
+
+
 import os
 import sys
 

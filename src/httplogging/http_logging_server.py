@@ -12,11 +12,25 @@ import tornado.options
 import tornado.httpserver
 from tornado.options import define, options
 
-from __init__ import *
+
+from tornado import websocket
+
+
 from utils.envsetup import EnvSetUp
 import httplogging.helper as helper
+#from webSocket import *
 
 define("port", default=8239, help="run on the given port", type=int)
+
+class WebSocketHandler(tornado.websocket.WebSocketHandler):
+    
+    def open(self):
+        print("Opened Connection to Controller")
+    
+
+    def on_close(self):
+        print("Closed Connection to Controller")
+
 
 
 class LogHandler(tornado.web.RequestHandler):
@@ -26,10 +40,15 @@ class LogHandler(tornado.web.RequestHandler):
     def post(self):
         """Spawns a new thread for every request and passes the request as \
         arguments to log() function"""
-        t = threading.Thread(target=helper.log,
-                             args=(self.request.arguments,))
+        arguments = self.request.arguments
+        
+        ws = WebSocketHandler()
+        ws.open()
+        ws.write_message(arguments, binary=False)
+        
+        t = threading.Thread(target=helper.log, args=(self.request.arguments,))
         t.start()
-
+        ws.close()
 
 class OtherHandler(tornado.web.RequestHandler):
     def get(self):

@@ -2,7 +2,7 @@
 import logging
 import logging.handlers
 
-# other impors
+# other imports
 import os
 from __init__ import *
 from utils.envsetup import EnvSetUp
@@ -58,4 +58,6 @@ def log(arguments):
     }
     record = logger.makeRecord(name, levelname, funcName, lineno,
                                fmt_string, record_format_args, None)
+    #print "This is what the record contain :"
+    #print record.getMessage()
     logger.handle(record)
