@@ -20,6 +20,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
+import tornado.websocket
 from tornado.options import define, options
 
 # ADS imports
@@ -38,6 +39,19 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.get_secure_cookie("user")
 
 
+class WebSocketHandler(tornado.websocket.WebSocketHandler):
+    
+    def open(self):
+        print("Opened Connection to Controller")
+    
+    def on_message(self,message)
+        print("status is :"+message)
+
+    def on_close(self):
+        print("Closed Connection to Controller")
+
+
+
 class MainHandler(BaseHandler):
  
     def post(self):
@@ -51,10 +65,16 @@ class MainHandler(BaseHandler):
                      (post_data['current_user'],
                       post_data['lab_id'],
                       post_data['lab_src_url']))
-        
+
+        ws = WebSocketHandler()
+        ws.open()
+        ws.on_message()
+
         self.write(c.test_lab(post_data['current_user'], post_data['lab_id'],
                               post_data['lab_src_url'],
                               post_data.get('version', None)))
+
+
 
 
 if __name__ == "__main__":
