@@ -12,7 +12,7 @@ import tornado.options
 import tornado.httpserver
 from tornado.options import define, options
 
-
+from __init__ import *
 from tornado import websocket
 
 

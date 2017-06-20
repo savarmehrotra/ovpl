@@ -14,6 +14,7 @@ import os
 import os.path
 import json
 import requests
+import pymongo
 
 # tornado imports
 import tornado.httpserver
@@ -44,7 +45,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self):
         print("Opened Connection to Controller")
     
-    def on_message(self,message)
+    def on_message(self,message):
         print("status is :"+message)
 
     def on_close(self):
